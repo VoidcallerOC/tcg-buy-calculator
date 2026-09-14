@@ -15,6 +15,20 @@ const summary = document.querySelector("#import-summary");
 const errors = document.querySelector("#import-errors");
 const publishButton = document.querySelector("#publish-button");
 const providerStatus = document.querySelector("#provider-status");
+const policyPanel = document.querySelector("#policy-panel");
+const policyStatus = document.querySelector("#condition-policy-status");
+const readinessStatus = document.querySelector("#readiness-status");
+const softwareReadiness = document.querySelector("#software-readiness");
+const businessPolicyReadiness = document.querySelector(
+  "#business-policy-readiness",
+);
+const externalAuthorizationReadiness = document.querySelector(
+  "#external-authorization-readiness",
+);
+const productionActivationReadiness = document.querySelector(
+  "#production-activation-readiness",
+);
+const authorizationEvidence = document.querySelector("#authorization-evidence");
 let session = null;
 let previewRows = null;
 let conditions = [];
@@ -42,6 +56,61 @@ function addSummaryLine(label, value) {
   summary.append(element);
 }
 
+function renderReadiness({ client, policies, compliance }) {
+  const policyApproved =
+    policies.length >= 5 &&
+    policies.every(
+      (policy) =>
+        policy.status === "APPROVED" &&
+        policy.enabled &&
+        Number.isInteger(policy.multiplier_basis_points),
+    );
+  const commercial = compliance.commercial_use_status || "UNCLEAR";
+  const derived = compliance.derived_pricing_status || "UNCLEAR";
+  const attribution = compliance.attribution_status || "UNCLEAR";
+  const externalAuthorized =
+    commercial === "AUTHORIZED" &&
+    derived === "AUTHORIZED" &&
+    (attribution === "NOT_REQUIRED" ||
+      (attribution === "REQUIRED" && compliance.attribution_implemented));
+  const denied = commercial === "DENIED" || derived === "DENIED";
+  const policyVersion = policies.find(
+    (policy) => policy.policy_version,
+  )?.policy_version;
+  softwareReadiness.textContent = "GREEN — SOFTWARE COMPLETE";
+  businessPolicyReadiness.textContent = policyApproved
+    ? `GREEN — APPROVED (v${policyVersion || "backend"})`
+    : "RED — CONDITION POLICY INCOMPLETE";
+  externalAuthorizationReadiness.textContent = denied
+    ? "RED — AUTHORIZATION DENIED"
+    : externalAuthorized
+      ? "GREEN — AUTHORIZED"
+      : "PENDING — EXTERNAL AUTHORIZATION REQUIRED";
+  productionActivationReadiness.textContent =
+    externalAuthorized && policyApproved
+      ? "READY — SERVER-SIDE GATE STILL REQUIRED"
+      : denied
+        ? "RED — PRODUCTION BLOCKED"
+        : "BLOCKED — EXTERNAL AUTHORIZATION REQUIRED";
+  authorizationEvidence.textContent = [
+    `Commercial use: ${commercial}`,
+    `Derived pricing: ${derived}`,
+    `Attribution: ${attribution}`,
+    `Provider: ${compliance.provider || "TCGCSV"}`,
+    compliance.authorization_source
+      ? `Source: ${compliance.authorization_source}`
+      : "Evidence source: not supplied",
+    compliance.authorization_date
+      ? `Date: ${compliance.authorization_date}`
+      : "Authorization date: not supplied",
+    compliance.permission_scope
+      ? `Scope: ${compliance.permission_scope}`
+      : "Scope: not supplied",
+  ].join(" · ");
+  readinessStatus.textContent = `${client.business_name}. Buy rate: ${(client.buy_rate_basis_points / 100).toFixed(0)}%. Provider: ${compliance.provider || "TCGCSV"}.`;
+  policyStatus.textContent = `Condition policy: ${policyApproved ? "APPROVED" : "UNCONFIGURED"}. ${policies.map((policy) => `${policy.display_name}: ${policy.multiplier_basis_points == null ? "—" : `${policy.multiplier_basis_points / 100}%`} market reference`).join(" · ")}`;
+}
+
 async function signIn() {
   try {
     const email = document.querySelector("#admin-email").value.trim();
@@ -57,9 +126,25 @@ async function signIn() {
     if (!response.ok)
       throw new Error(body.error_description || body.msg || "Sign-in failed.");
     session = body;
-    conditions = await api(
-      "/rest/v1/tcg_conditions?select=code,name&order=sort_order",
-    );
+    const [clientRows, conditionRows, policyRows, complianceRows] =
+      await Promise.all([
+        api(
+          `/rest/v1/tcg_clients?id=eq.${encodeURIComponent(config.client_id)}&select=*`,
+        ),
+        api("/rest/v1/tcg_conditions?select=code,name&order=sort_order"),
+        api(
+          `/rest/v1/tcg_condition_policies?client_id=eq.${encodeURIComponent(config.client_id)}&select=*`,
+        ),
+        api(
+          `/rest/v1/tcg_source_compliance?client_id=eq.${encodeURIComponent(config.client_id)}&select=*`,
+        ),
+      ]);
+    const client = clientRows[0];
+    const compliance = complianceRows[0];
+    if (!client || !compliance)
+      throw new Error("Production readiness configuration is incomplete.");
+    conditions = conditionRows;
+    renderReadiness({ client, policies: policyRows, compliance });
     const statusResponse = await fetch(`${base}/functions/v1/tcgcsv-sync`, {
       headers: {
         ...publicHeaders,
@@ -70,6 +155,7 @@ async function signIn() {
     providerStatus.textContent = status.configured
       ? `TCGCSV provider: ${status.status}. Source updated ${status.source_updated_at || "unknown"}.`
       : "TCGCSV provider is unavailable. Live synchronization is disabled until the source responds.";
+    policyPanel.hidden = false;
     loginPanel.hidden = true;
     importPanel.hidden = false;
     sessionMessage.textContent = `Signed in as ${email}. Upload a CSV to preview it before server-side publishing.`;

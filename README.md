@@ -52,7 +52,7 @@ Customers can read active clients, cards, conditions, and active pricing through
 
 ## Remaining launch dependency
 
-The code and database boundary are functional, but the repository cannot honestly be called green until the shop supplies an authorized pricing dataset and a real admin account is assigned. Those are operational inputs, not fabricated defaults.
+The code and database boundary are functional. Hard Hittin’s approved condition-neutral online policy and 60% buy rate are configured. The repository cannot honestly be called green until TCGCSV commercial-use, derived-pricing redistribution, and attribution authorization are documented, a real admin account is assigned, and authorized production pricing is published. Those are operational and external inputs, not fabricated defaults.
 
 ## TCGCSV provider
 
@@ -62,4 +62,6 @@ TCGCSV’s documented `marketPrice` is a product/variation market value and does
 
 TCGCSV credentials are not required by the documented public endpoints, but all ingestion remains server-side. The customer browser never fetches TCGCSV directly. The deployed `tcgcsv-sync` function reports source availability and the latest source timestamp; a sync must still be previewed and transactionally published before production mode is enabled.
 
-Before commercial production use, obtain written confirmation that the intended TCGCSV-derived pricing use is permitted. The reviewed TCGCSV documentation provides endpoint and processing guidance but does not state a clear commercial redistribution or embedding license. Also approve a documented mapping from TCGCSV variations to the calculator’s five conditions; TCGCSV warns that `marketPrice` is not condition-specific, so the system must not guess a condition.
+Before commercial production use, obtain written confirmation that the intended TCGCSV-derived pricing use is permitted, including derived-price redistribution and attribution. The reviewed TCGCSV documentation provides endpoint and processing guidance but does not state a clear commercial redistribution or embedding license. Hard Hittin’s approved condition-neutral online policy uses the same market reference for NM, LP, MP, HP, and DMG; it is a shop policy and must not be described as TCGCSV condition-specific pricing.
+
+The manual authorization request, official contact channels, evidence requirements, and later activation workflow are documented in [`docs/TCGCSV_AUTHORIZATION_REQUEST.md`](docs/TCGCSV_AUTHORIZATION_REQUEST.md). The connected GitHub integration cannot create issues in the external TCGCSV repository; that limitation does not change the calculator’s authorization status.

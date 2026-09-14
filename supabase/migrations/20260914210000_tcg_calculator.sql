@@ -103,7 +103,7 @@ on conflict (code) do update set name = excluded.name, sort_order = excluded.sor
 
 insert into public.tcg_clients (id, business_name, logo_text, primary_color, secondary_color, buy_rate_basis_points, currency, disclaimer, contact, data_status)
 values ('hard-hittin', 'Hard Hittin', 'HARD HITTIN', '#e86a3c', '#f3c969', 6000, 'USD',
-  'This is an estimated buy offer based on maintained reference pricing data. Final offers are subject to in-person inspection, authenticity verification, and final condition assessment.',
+  'This is an estimated offer based on the current market reference and Hard Hittin''s 60% buying rate. Final offers are subject to physical inspection, authenticity verification, edition/printing, and shop policy.',
   'Bring your cards into the shop for a final assessment.', 'Production schema ready — pricing requires an authorized maintained dataset.')
 on conflict (id) do update set business_name = excluded.business_name, buy_rate_basis_points = excluded.buy_rate_basis_points, updated_at = now();
 

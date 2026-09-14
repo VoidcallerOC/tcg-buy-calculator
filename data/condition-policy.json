@@ -1,0 +1,59 @@
+{
+  "status": "APPROVED",
+  "policy_version": "1.0",
+  "effective_date": "2026-09-14",
+  "approved_by": "Hard Hittin",
+  "notes": "Online estimate uses the same market reference across selected conditions. Final offer is subject to physical inspection and shop policy.",
+  "conditions": {
+    "NM": {
+      "display_name": "Near Mint",
+      "multiplier_basis_points": 10000,
+      "enabled": true,
+      "status": "APPROVED",
+      "effective_date": "2026-09-14",
+      "approved_by": "Hard Hittin",
+      "policy_version": "1.0",
+      "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
+    },
+    "LP": {
+      "display_name": "Lightly Played",
+      "multiplier_basis_points": 10000,
+      "enabled": true,
+      "status": "APPROVED",
+      "effective_date": "2026-09-14",
+      "approved_by": "Hard Hittin",
+      "policy_version": "1.0",
+      "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
+    },
+    "MP": {
+      "display_name": "Moderately Played",
+      "multiplier_basis_points": 10000,
+      "enabled": true,
+      "status": "APPROVED",
+      "effective_date": "2026-09-14",
+      "approved_by": "Hard Hittin",
+      "policy_version": "1.0",
+      "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
+    },
+    "HP": {
+      "display_name": "Heavily Played",
+      "multiplier_basis_points": 10000,
+      "enabled": true,
+      "status": "APPROVED",
+      "effective_date": "2026-09-14",
+      "approved_by": "Hard Hittin",
+      "policy_version": "1.0",
+      "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
+    },
+    "DMG": {
+      "display_name": "Damaged",
+      "multiplier_basis_points": 10000,
+      "enabled": true,
+      "status": "APPROVED",
+      "effective_date": "2026-09-14",
+      "approved_by": "Hard Hittin",
+      "policy_version": "1.0",
+      "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
+    }
+  }
+}

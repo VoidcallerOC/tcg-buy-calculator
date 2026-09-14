@@ -5,6 +5,7 @@ import {
   parsePercentageToBasisPoints,
 } from "./lib/money.js";
 import { findPricing, searchCards } from "./lib/lookup.js";
+import { evaluateProductionGate } from "./lib/production-gate.js";
 
 const config = await fetch("./data/config.json").then((response) => {
   if (!response.ok) throw new Error("Client configuration unavailable.");
@@ -18,6 +19,20 @@ async function loadDataset() {
     );
     return { ...dataset, data_status: config.data_status, stale: false };
   }
+  const gate = evaluateProductionGate({
+    commercialUseStatus: config.tcgcsv_commercial_use_status,
+    derivedPricingStatus: config.tcgcsv_derived_pricing_status,
+    attributionStatus: config.tcgcsv_attribution_status,
+    attributionSatisfied: config.tcgcsv_attribution_implemented === true,
+    conditionPolicyStatus: config.condition_policy_status,
+    supabaseConfigured: Boolean(
+      config.pricing_backend_url && config.pricing_backend_publishable_key,
+    ),
+  });
+  if (gate.status === "BLOCKED")
+    throw new Error(
+      "Production pricing provider requires commercial-use confirmation.",
+    );
   const base = config.pricing_backend_url;
   const headers = {
     apikey: config.pricing_backend_publishable_key,
