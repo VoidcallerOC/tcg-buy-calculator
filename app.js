@@ -4,105 +4,20 @@ import {
   formatRate,
   parsePercentageToBasisPoints,
 } from "./lib/money.js";
-import { findPricing, searchCards } from "./lib/lookup.js";
-import { evaluateProductionGate } from "./lib/production-gate.js";
 
-const config = await fetch("./data/config.json").then((response) => {
+const config = await fetch("./data/config.json").then(async (response) => {
   if (!response.ok) throw new Error("Client configuration unavailable.");
   return response.json();
 });
 
-async function loadDataset() {
-  if (config.pricing_mode !== "production") {
-    const dataset = await fetch("./data/sample-pricing.json").then((response) =>
-      response.json(),
-    );
-    return { ...dataset, data_status: config.data_status, stale: false };
-  }
-  const gate = evaluateProductionGate({
-    commercialUseStatus:
-      config.pricing_provider === "justtcg"
-        ? config.justtcg_commercial_use_status
-        : config.tcgcsv_commercial_use_status,
-    derivedPricingStatus:
-      config.pricing_provider === "justtcg"
-        ? config.justtcg_derived_pricing_status
-        : config.tcgcsv_derived_pricing_status,
-    attributionStatus:
-      config.pricing_provider === "justtcg"
-        ? config.justtcg_attribution_status
-        : config.tcgcsv_attribution_status,
-    attributionSatisfied:
-      config.pricing_provider === "justtcg"
-        ? config.justtcg_attribution_implemented === true
-        : config.tcgcsv_attribution_implemented === true,
-    conditionPolicyStatus: config.condition_policy_status,
-    supabaseConfigured: Boolean(
-      config.pricing_backend_url && config.pricing_backend_publishable_key,
-    ),
-  });
-  if (gate.status === "BLOCKED")
-    throw new Error(
-      "Production pricing provider requires commercial-use confirmation.",
-    );
-  const base = config.pricing_backend_url;
-  const headers = {
-    apikey: config.pricing_backend_publishable_key,
-    Authorization: `Bearer ${config.pricing_backend_publishable_key}`,
-  };
-  const query = (resource) =>
-    fetch(`${base}/rest/v1/${resource}`, { headers }).then(async (response) => {
-      if (!response.ok)
-        throw new Error("Pricing service is currently unavailable.");
-      return response.json();
-    });
-  const [client, conditions, cards, pricing] = await Promise.all([
-    query(
-      `tcg_clients?id=eq.${encodeURIComponent(config.client_id)}&active=eq.true&select=*`,
-    ),
-    query("tcg_conditions?select=code,name,sort_order&order=sort_order"),
-    query(
-      "tcg_cards?active=eq.true&select=id,name,card_number,set_code,set_name",
-    ),
-    query(
-      `tcg_pricing?client_id=eq.${encodeURIComponent(config.client_id)}&active=eq.true&select=card_id,condition_code,reference_cents,currency,source_name,source_updated_at,active`,
-    ),
-  ]);
-  if (!client[0]) throw new Error("Client configuration is not published.");
-  const latest = pricing.reduce(
-    (value, record) =>
-      record.source_updated_at > value ? record.source_updated_at : value,
-    "",
-  );
-  const ageDays = latest
-    ? Math.floor((Date.now() - Date.parse(`${latest}T00:00:00Z`)) / 86400000)
-    : Infinity;
-  const stale = ageDays > Number(config.stale_threshold_days ?? 7);
-  return {
-    conditions,
-    cards,
-    pricing,
-    data_status: stale
-      ? `REFERENCE PRICING IS STALE — last updated ${latest || "unknown"}`
-      : `REFERENCE PRICING UPDATED ${latest}`,
-    source_updated_at: latest,
-    stale,
-    ageDays,
-    client: client[0],
-  };
-}
-
-let dataset;
-try {
-  dataset = await loadDataset();
-} catch (error) {
-  document.querySelector("[data-data-status]").textContent = error.message;
-  document.querySelector("[data-pricing-status]").textContent =
-    "Pricing is unavailable. Please try again later or visit the shop.";
-  throw error;
-}
-
-const state = { card: null, condition: null };
+const conditions = [
+  { name: "Near Mint", code: "NM" },
+  { name: "Lightly Played", code: "LP" },
+  { name: "Moderately Played", code: "MP" },
+  { name: "Heavily Played", code: "HP" },
+  { name: "Damaged", code: "DMG" },
+];
+const state = { card: null, condition: null, request: 0, loading: false };
 const searchInput = document.querySelector("#card-search");
 const searchResults = document.querySelector("#search-results");
 const searchMessage = document.querySelector("#search-message");
@@ -111,59 +26,65 @@ const calculateButton = document.querySelector("#calculate-button");
 const resultEmpty = document.querySelector("#result-empty");
 const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
-const productionBlocked =
-  config.pricing_mode === "production" &&
-  dataset.stale &&
-  !config.allow_stale_pricing;
+const resultPanel = document.querySelector("#result-panel");
 
 for (const element of document.querySelectorAll("[data-client-name]"))
   element.textContent = config.business_name;
 document.querySelector("[data-disclaimer]").textContent = config.disclaimer;
 document.querySelector("[data-data-status]").textContent =
-  config.pricing_mode === "sample" ? config.data_status : dataset.data_status;
-document.querySelector("[data-pricing-status]").textContent = productionBlocked
-  ? "Reference pricing is stale. Final offers require in-store verification."
-  : config.pricing_mode === "sample"
-    ? "Development sample data is shown for demonstration only."
-    : `Reference pricing updated ${dataset.source_updated_at}.`;
+  "Live provider pricing — final offer subject to in-store verification.";
+document.querySelector("[data-pricing-status]").textContent =
+  "Search results and reference pricing are retrieved live from JustTCG.";
 document.documentElement.style.setProperty("--brick", config.primary_color);
 document.documentElement.style.setProperty("--yellow", config.secondary_color);
 
-dataset.conditions.forEach((condition) => {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "condition-option";
-  button.textContent = condition.name;
-  button.setAttribute("aria-pressed", "false");
-  button.addEventListener("click", () => {
-    state.condition = condition;
-    document.querySelectorAll(".condition-option").forEach((option) => {
-      option.classList.remove("is-selected");
-      option.setAttribute("aria-pressed", "false");
-    });
-    button.classList.add("is-selected");
-    button.setAttribute("aria-pressed", "true");
-    calculateButton.disabled = !state.card;
-    renderResult();
-  });
-  conditionList.append(button);
-});
+function setUnavailable(title, message) {
+  resultEmpty.hidden = true;
+  resultReady.hidden = true;
+  resultUnavailable.hidden = false;
+  resultUnavailable.querySelector("strong").textContent = title;
+  resultUnavailable.querySelector("p").textContent = message;
+}
 
-function renderSearchResults() {
-  const query = searchInput.value;
-  searchResults.replaceChildren();
-  if (!query.trim()) {
-    searchMessage.textContent = "Start typing to see matching cards.";
-    return;
+function setSearchLoading(loading) {
+  state.loading = loading;
+  searchInput.setAttribute("aria-busy", String(loading));
+  if (loading) searchMessage.textContent = "Searching live card data…";
+}
+
+function renderConditions() {
+  for (const condition of conditions) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "condition-option";
+    button.textContent = condition.name;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => {
+      state.condition = condition;
+      document.querySelectorAll(".condition-option").forEach((option) => {
+        option.classList.remove("is-selected");
+        option.setAttribute("aria-pressed", "false");
+      });
+      button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", "true");
+      calculateButton.disabled = !state.card || state.loading;
+      resultEmpty.hidden = false;
+      resultReady.hidden = true;
+      resultUnavailable.hidden = true;
+    });
+    conditionList.append(button);
   }
-  const matches = searchCards(dataset.cards, query).slice(0, 8);
-  if (!matches.length) {
+}
+
+function renderSearchResults(cards) {
+  searchResults.replaceChildren();
+  if (!cards.length) {
     searchMessage.textContent =
       "No matching cards found. Try a card number or set code.";
     return;
   }
-  searchMessage.textContent = `${matches.length} matching card${matches.length === 1 ? "" : "s"}. Select one to continue.`;
-  matches.forEach((card) => {
+  searchMessage.textContent = `${cards.length} matching card${cards.length === 1 ? "" : "s"}. Select one to continue.`;
+  cards.slice(0, 8).forEach((card) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "search-result";
@@ -182,54 +103,64 @@ function renderSearchResults() {
       searchResults.replaceChildren();
       searchMessage.textContent = "Card selected. Choose a condition below.";
       calculateButton.disabled = !state.condition;
-      renderResult();
+      resultEmpty.hidden = false;
+      resultReady.hidden = true;
+      resultUnavailable.hidden = true;
     });
     searchResults.append(button);
   });
 }
 
-function renderResult() {
-  if (!state.card || !state.condition) return;
-  if (productionBlocked) {
-    resultEmpty.hidden = true;
-    resultReady.hidden = true;
-    resultUnavailable.hidden = false;
-    resultUnavailable.querySelector("strong").textContent =
-      "Pricing unavailable because the reference dataset is stale.";
-    resultUnavailable.querySelector("p").textContent =
-      "Final offer requires in-store verification.";
-    return;
-  }
-  let pricing;
+async function searchCards(query) {
+  const requestId = ++state.request;
+  setSearchLoading(true);
   try {
-    pricing = findPricing(dataset.pricing, {
-      cardId: state.card.id,
-      conditionCode: state.condition.code,
-    });
+    const response = await fetch(`/api/cards?q=${encodeURIComponent(query)}`);
+    const body = await response.json().catch(() => ({}));
+    if (requestId !== state.request) return;
+    if (!response.ok)
+      throw new Error(body.error || "Live pricing provider is unavailable.");
+    renderSearchResults(Array.isArray(body.cards) ? body.cards : []);
   } catch (error) {
-    resultEmpty.hidden = true;
-    resultReady.hidden = true;
-    resultUnavailable.hidden = false;
-    resultUnavailable.querySelector("strong").textContent =
-      "Online estimate unavailable because pricing data is ambiguous.";
-    resultUnavailable.querySelector("p").textContent = error.message;
+    if (requestId !== state.request) return;
+    searchResults.replaceChildren();
+    searchMessage.textContent = error.message;
+  } finally {
+    if (requestId === state.request) setSearchLoading(false);
+  }
+}
+
+let searchTimer;
+searchInput.addEventListener("input", () => {
+  window.clearTimeout(searchTimer);
+  state.card = null;
+  calculateButton.disabled = true;
+  resultEmpty.hidden = false;
+  resultReady.hidden = true;
+  resultUnavailable.hidden = true;
+  const query = searchInput.value.trim();
+  if (query.length < 2) {
+    state.request += 1;
+    searchResults.replaceChildren();
+    searchMessage.textContent = "Start typing to see matching cards.";
     return;
   }
-  resultEmpty.hidden = true;
-  resultReady.hidden = Boolean(!pricing);
-  resultUnavailable.hidden = Boolean(pricing);
-  if (!pricing) {
-    resultUnavailable.querySelector("strong").textContent =
-      "Online estimate unavailable: pricing unavailable for this condition.";
-    resultUnavailable.querySelector("p").textContent =
-      "We never invent a price or substitute another condition.";
+  searchTimer = window.setTimeout(() => searchCards(query), 300);
+});
+
+function renderResult() {
+  if (!state.card || !state.condition || state.loading) return;
+  const pricing = state.card.pricing?.[state.condition.code];
+  if (!pricing || !Number.isInteger(pricing.reference_cents)) {
+    setUnavailable(
+      "Online estimate unavailable: pricing unavailable for this condition.",
+      "We never invent a price or substitute another condition.",
+    );
     return;
   }
-  const buyRate =
-    config.buy_rate ?? formatRate(dataset.client.buy_rate_basis_points);
   const result = calculateOffer(
     pricing.reference_cents,
-    parsePercentageToBasisPoints(buyRate),
+    parsePercentageToBasisPoints(config.buy_rate ?? "60%"),
   );
   document.querySelector("#offer-value").textContent = formatMoney(
     result.offerCents,
@@ -243,8 +174,12 @@ function renderResult() {
     result.rateBasisPoints,
   );
   document.querySelector("#result-card-label").textContent =
-    `${state.card.name} · ${state.condition.name}`;
+    `${state.card.name} · ${state.card.card_number} · ${state.condition.name}`;
+  resultEmpty.hidden = true;
+  resultReady.hidden = false;
+  resultUnavailable.hidden = true;
+  resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-searchInput.addEventListener("input", renderSearchResults);
 calculateButton.addEventListener("click", renderResult);
+renderConditions();
