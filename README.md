@@ -53,3 +53,11 @@ Customers can read active clients, cards, conditions, and active pricing through
 ## Remaining launch dependency
 
 The code and database boundary are functional, but the repository cannot honestly be called green until the shop supplies an authorized pricing dataset and a real admin account is assigned. Those are operational inputs, not fabricated defaults.
+
+## Official TCGplayer provider
+
+The repository now includes a server-side `TCGplayerProvider`, normalization layer, weekly sync engine, deterministic fixtures, and a Supabase Edge Function status boundary. The adapter uses the documented TCGplayer OAuth client-credentials flow and official catalog/pricing endpoints only. It discovers categories dynamically, pages through groups/products, batches pricing requests, retries 429/5xx responses with bounded backoff, maps only explicit condition labels, rejects missing market prices, records freshness, and reports category-level failures without deleting last-known-good pricing.
+
+The current environment has **no authorized TCGplayer credentials**, so the deployed provider status is intentionally `NOT_CONFIGURED`. Live TCGplayer synchronization cannot be enabled until authorized TCGplayer API access is supplied. TCGplayer documentation states that existing developer access is required and new API access is not currently being granted. When access is supplied, keep `TCGPLAYER_PUBLIC_KEY` and `TCGPLAYER_PRIVATE_KEY` server-side as Supabase Edge Function secrets; never place them in `data/config.json` or browser JavaScript.
+
+The provider’s reference price is the official API `marketPrice` for a product/condition subtype. If `marketPrice` is absent, the row is unavailable; the adapter does not substitute low, mid, high, direct-low, or another condition. TCGplayer category discovery remains dynamic and reports `DISCOVERED`, `AUTHORIZED`, `SYNCED`, `PARTIAL`, `FAILED`, or `UNAVAILABLE` per category.

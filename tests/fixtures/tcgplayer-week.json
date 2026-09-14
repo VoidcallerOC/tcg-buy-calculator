@@ -1,0 +1,61 @@
+{
+  "categories": [
+    { "categoryId": 99, "name": "Fixture TCG", "displayName": "Fixture TCG" }
+  ],
+  "groups": [
+    { "groupId": 1001, "name": "Current Week Set" },
+    { "groupId": 1002, "name": "Last Week Set" }
+  ],
+  "products": [
+    {
+      "productId": 501,
+      "name": "Current Card",
+      "cleanName": "Current Card",
+      "categoryId": 99,
+      "groupId": 1001,
+      "extendedData": [{ "name": "Card Number", "value": "FX-001" }]
+    },
+    {
+      "productId": 502,
+      "name": "Stale Card",
+      "cleanName": "Stale Card",
+      "categoryId": 99,
+      "groupId": 1002,
+      "extendedData": [{ "name": "Card Number", "value": "FX-002" }]
+    },
+    {
+      "productId": 503,
+      "name": "Missing Card",
+      "cleanName": "Missing Card",
+      "categoryId": 99,
+      "groupId": 1002,
+      "extendedData": [{ "name": "Card Number", "value": "FX-003" }]
+    }
+  ],
+  "prices": [
+    {
+      "productId": 501,
+      "marketPrice": 19.99,
+      "subTypeName": "Near Mint",
+      "sourceUpdatedAt": "2026-09-14"
+    },
+    {
+      "productId": 502,
+      "marketPrice": 9.99,
+      "subTypeName": "Near Mint",
+      "sourceUpdatedAt": "2026-09-01"
+    },
+    {
+      "productId": 503,
+      "marketPrice": null,
+      "subTypeName": "Near Mint",
+      "sourceUpdatedAt": "2026-09-14"
+    },
+    {
+      "productId": 504,
+      "marketPrice": 2.5,
+      "subTypeName": "Unknown Finish",
+      "sourceUpdatedAt": "2026-09-14"
+    }
+  ]
+}

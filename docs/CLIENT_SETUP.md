@@ -32,3 +32,7 @@ Hard Hittin uses a 60% buy rate and remains the reference client. The Thousand S
 - [ ] Production mode enabled only after pricing exists
 - [ ] Vercel deployment verified
 - [ ] Stale, unavailable, invalid CSV, and unauthorized states tested
+
+## Official TCGplayer access
+
+Live TCGplayer synchronization is credential-gated and uses only the documented official API. Supply authorized developer access, configure `TCGPLAYER_PUBLIC_KEY` and `TCGPLAYER_PRIVATE_KEY` as Supabase Edge Function secrets, verify the provider status changes from `NOT_CONFIGURED` to ready, and run the sync preview. Do not place either secret in this repository, Vercel public configuration, or browser code. If access is unavailable, the correct status is `TCGplayer provider not configured`; do not substitute scraping or third-party datasets.

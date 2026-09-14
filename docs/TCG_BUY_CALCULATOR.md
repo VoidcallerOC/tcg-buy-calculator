@@ -41,3 +41,13 @@ If production pricing is unavailable, the customer shows an explicit unavailable
 ## Development versus production
 
 Development is the default checked-in mode and uses sample JSON for repeatable local and browser tests. Production mode reads Supabase records and requires a real authenticated administrator plus an authorized maintained pricing dataset. The system is functionally wired for production, but those external operational inputs must exist before the calculator can honestly be marked green.
+
+## Official TCGplayer synchronization
+
+`lib/tcgplayer-provider.js` is the provider boundary. It implements the documented OAuth client-credentials flow against `api.tcgplayer.com`, dynamic category/group/product discovery, pagination, bounded pricing batches, retry handling for rate limits and server errors, and credential-gated configuration. `lib/tcgplayer-normalizer.js` converts provider records into internal products and pricing records. `lib/tcgplayer-sync.js` runs a weekly sync model with category-level status, checkpoint callbacks, condition mapping, market-price selection, freshness classification, and failure isolation. Raw provider responses do not enter the customer UI.
+
+The provider uses only official TCGplayer API access. There is no webpage scraping, unofficial endpoint, reverse-engineered API, browser automation, or third-party dataset. The current environment has no `TCGPLAYER_PUBLIC_KEY` or `TCGPLAYER_PRIVATE_KEY`, so the deployed `tcgplayer-sync` Edge Function reports `TCGplayer provider not configured`. Live synchronization cannot be enabled until authorized TCGplayer API access is supplied. The exact secrets belong only in the server-side Edge Function configuration.
+
+The reference price rule is explicit: use the official API `marketPrice` returned for the matching product/condition subtype. Missing market price is unavailable; the adapter never silently substitutes low, mid, high, direct-low, or another condition. Provider conditions are mapped through an explicit table and unknown labels are rejected. Every normalized row carries provider/version, source product ID, fetched/effective timestamps, source update timestamp when supplied, and freshness status.
+
+The applied sync metadata migration adds `tcg_sync_runs`, `tcg_sync_categories`, provider provenance, freshness, fetched/effective timestamps, and sync IDs to pricing history. Failed or partial categories are recorded; previously valid active pricing is not deleted because a provider request failed.

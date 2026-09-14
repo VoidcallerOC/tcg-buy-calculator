@@ -14,6 +14,7 @@ const message = document.querySelector("#import-message");
 const summary = document.querySelector("#import-summary");
 const errors = document.querySelector("#import-errors");
 const publishButton = document.querySelector("#publish-button");
+const providerStatus = document.querySelector("#provider-status");
 let session = null;
 let previewRows = null;
 let conditions = [];
@@ -59,6 +60,16 @@ async function signIn() {
     conditions = await api(
       "/rest/v1/tcg_conditions?select=code,name&order=sort_order",
     );
+    const statusResponse = await fetch(`${base}/functions/v1/tcgplayer-sync`, {
+      headers: {
+        ...publicHeaders,
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+    const status = await statusResponse.json();
+    providerStatus.textContent = status.configured
+      ? `TCGplayer provider: ${status.status}.`
+      : "TCGplayer provider not configured. Live synchronization is disabled until authorized credentials are supplied.";
     loginPanel.hidden = true;
     importPanel.hidden = false;
     sessionMessage.textContent = `Signed in as ${email}. Upload a CSV to preview it before server-side publishing.`;
