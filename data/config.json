@@ -8,5 +8,10 @@
   "currency": "USD",
   "disclaimer": "This is an estimated buy offer based on maintained reference pricing data. Final offers are subject to in-person inspection, authenticity verification, and final condition assessment.",
   "contact": "Bring your cards into the shop for a final assessment.",
-  "data_status": "Development sample data — replace with an authorized maintained pricing dataset before launch."
+  "data_status": "DEVELOPMENT SAMPLE DATA — NOT LIVE PRICING",
+  "pricing_mode": "sample",
+  "pricing_backend_url": "https://dnkhtmtgtauctyvzktck.supabase.co",
+  "pricing_backend_publishable_key": "sb_publishable_a1d91190Ou8zOlULV0wH7g_aNcV7a43",
+  "stale_threshold_days": 7,
+  "allow_stale_pricing": false
 }

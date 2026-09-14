@@ -6,10 +6,75 @@ import {
 } from "./lib/money.js";
 import { findPricing, searchCards } from "./lib/lookup.js";
 
-const [config, dataset] = await Promise.all([
-  fetch("./data/config.json").then((response) => response.json()),
-  fetch("./data/sample-pricing.json").then((response) => response.json()),
-]);
+const config = await fetch("./data/config.json").then((response) => {
+  if (!response.ok) throw new Error("Client configuration unavailable.");
+  return response.json();
+});
+
+async function loadDataset() {
+  if (config.pricing_mode !== "production") {
+    const dataset = await fetch("./data/sample-pricing.json").then((response) =>
+      response.json(),
+    );
+    return { ...dataset, data_status: config.data_status, stale: false };
+  }
+  const base = config.pricing_backend_url;
+  const headers = {
+    apikey: config.pricing_backend_publishable_key,
+    Authorization: `Bearer ${config.pricing_backend_publishable_key}`,
+  };
+  const query = (resource) =>
+    fetch(`${base}/rest/v1/${resource}`, { headers }).then(async (response) => {
+      if (!response.ok)
+        throw new Error("Pricing service is currently unavailable.");
+      return response.json();
+    });
+  const [client, conditions, cards, pricing] = await Promise.all([
+    query(
+      `tcg_clients?id=eq.${encodeURIComponent(config.client_id)}&active=eq.true&select=*`,
+    ),
+    query("tcg_conditions?select=code,name,sort_order&order=sort_order"),
+    query(
+      "tcg_cards?active=eq.true&select=id,name,card_number,set_code,set_name",
+    ),
+    query(
+      `tcg_pricing?client_id=eq.${encodeURIComponent(config.client_id)}&active=eq.true&select=card_id,condition_code,reference_cents,currency,source_name,source_updated_at,active`,
+    ),
+  ]);
+  if (!client[0]) throw new Error("Client configuration is not published.");
+  const latest = pricing.reduce(
+    (value, record) =>
+      record.source_updated_at > value ? record.source_updated_at : value,
+    "",
+  );
+  const ageDays = latest
+    ? Math.floor((Date.now() - Date.parse(`${latest}T00:00:00Z`)) / 86400000)
+    : Infinity;
+  const stale = ageDays > Number(config.stale_threshold_days ?? 7);
+  return {
+    conditions,
+    cards,
+    pricing,
+    data_status: stale
+      ? `REFERENCE PRICING IS STALE — last updated ${latest || "unknown"}`
+      : `REFERENCE PRICING UPDATED ${latest}`,
+    source_updated_at: latest,
+    stale,
+    ageDays,
+    client: client[0],
+  };
+}
+
+let dataset;
+try {
+  dataset = await loadDataset();
+} catch (error) {
+  document.querySelector("[data-data-status]").textContent = error.message;
+  document.querySelector("[data-pricing-status]").textContent =
+    "Pricing is unavailable. Please try again later or visit the shop.";
+  throw error;
+}
+
 const state = { card: null, condition: null };
 const searchInput = document.querySelector("#card-search");
 const searchResults = document.querySelector("#search-results");
@@ -19,12 +84,21 @@ const calculateButton = document.querySelector("#calculate-button");
 const resultEmpty = document.querySelector("#result-empty");
 const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
+const productionBlocked =
+  config.pricing_mode === "production" &&
+  dataset.stale &&
+  !config.allow_stale_pricing;
 
-document.querySelectorAll("[data-client-name]").forEach((element) => {
+for (const element of document.querySelectorAll("[data-client-name]"))
   element.textContent = config.business_name;
-});
 document.querySelector("[data-disclaimer]").textContent = config.disclaimer;
-document.querySelector("[data-data-status]").textContent = config.data_status;
+document.querySelector("[data-data-status]").textContent =
+  config.pricing_mode === "sample" ? config.data_status : dataset.data_status;
+document.querySelector("[data-pricing-status]").textContent = productionBlocked
+  ? "Reference pricing is stale. Final offers require in-store verification."
+  : config.pricing_mode === "sample"
+    ? "Development sample data is shown for demonstration only."
+    : `Reference pricing updated ${dataset.source_updated_at}.`;
 document.documentElement.style.setProperty("--brick", config.primary_color);
 document.documentElement.style.setProperty("--yellow", config.secondary_color);
 
@@ -66,7 +140,15 @@ function renderSearchResults() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "search-result";
-    button.innerHTML = `<span><strong>${card.name}</strong><small>${card.set_name}</small></span><span>${card.card_number}</span>`;
+    const details = document.createElement("span");
+    const name = document.createElement("strong");
+    const set = document.createElement("small");
+    const number = document.createElement("span");
+    name.textContent = card.name;
+    set.textContent = card.set_name;
+    number.textContent = card.card_number;
+    details.append(name, set);
+    button.append(details, number);
     button.addEventListener("click", () => {
       state.card = card;
       searchInput.value = `${card.name} · ${card.card_number}`;
@@ -81,17 +163,46 @@ function renderSearchResults() {
 
 function renderResult() {
   if (!state.card || !state.condition) return;
-  const pricing = findPricing(dataset.pricing, {
-    cardId: state.card.id,
-    conditionCode: state.condition.code,
-  });
+  if (productionBlocked) {
+    resultEmpty.hidden = true;
+    resultReady.hidden = true;
+    resultUnavailable.hidden = false;
+    resultUnavailable.querySelector("strong").textContent =
+      "Pricing unavailable because the reference dataset is stale.";
+    resultUnavailable.querySelector("p").textContent =
+      "Final offer requires in-store verification.";
+    return;
+  }
+  let pricing;
+  try {
+    pricing = findPricing(dataset.pricing, {
+      cardId: state.card.id,
+      conditionCode: state.condition.code,
+    });
+  } catch (error) {
+    resultEmpty.hidden = true;
+    resultReady.hidden = true;
+    resultUnavailable.hidden = false;
+    resultUnavailable.querySelector("strong").textContent =
+      "Online estimate unavailable because pricing data is ambiguous.";
+    resultUnavailable.querySelector("p").textContent = error.message;
+    return;
+  }
   resultEmpty.hidden = true;
   resultReady.hidden = Boolean(!pricing);
   resultUnavailable.hidden = Boolean(pricing);
-  if (!pricing) return;
+  if (!pricing) {
+    resultUnavailable.querySelector("strong").textContent =
+      "Online estimate unavailable: pricing unavailable for this condition.";
+    resultUnavailable.querySelector("p").textContent =
+      "We never invent a price or substitute another condition.";
+    return;
+  }
+  const buyRate =
+    config.buy_rate ?? formatRate(dataset.client.buy_rate_basis_points);
   const result = calculateOffer(
     pricing.reference_cents,
-    parsePercentageToBasisPoints(config.buy_rate),
+    parsePercentageToBasisPoints(buyRate),
   );
   document.querySelector("#offer-value").textContent = formatMoney(
     result.offerCents,

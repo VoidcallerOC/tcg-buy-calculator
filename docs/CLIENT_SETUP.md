@@ -1,25 +1,34 @@
 # Client setup: a new Forge-CT calculator deployment
 
-Forge-CT owns one calculator application and configures each shop through data. A new client should not receive a fork of this repository.
+Forge-CT operates one calculator application and configures each shop through data. A new client must not receive a source-code fork.
 
 ## Setup sequence
 
-1. Create a client record with a stable identifier, business name, logo asset, colors, currency, disclaimer, contact details, and active state.
-2. Set the client buy rate. Store it as a validated percentage; do not put the rate into calculator source code.
-3. Prepare an authorized pricing CSV using the documented eight-column format.
-4. Run the import preview. Resolve missing fields, invalid conditions, invalid prices, duplicate rows, and card/set matching errors.
-5. Authenticate as an administrator and confirm the transactional import in the production server-side workflow. Record create/update/skip/error counts and pricing history.
-6. Point the deployment’s client identifier at the new configuration and verify the customer flow on mobile and desktop.
-7. Confirm that an unavailable card/condition says “Online estimate unavailable for this card/condition.” The application must never invent a price.
+1. Create a row in `public.tcg_clients` with a stable identifier, business name, logo text, colors, currency, validated buy-rate basis points, disclaimer, contact details, stale threshold, and stale-use policy.
+2. Create the shop administrator in Supabase Auth and add the user UUID to `public.tcg_client_admins` for the client. This is a protected operation; never put a service-role key in browser code.
+3. Prepare an authorized pricing CSV with the required eight-column format.
+4. Sign in at `/admin/`, upload the CSV, resolve validation errors and duplicate conflicts, and review the preview counts.
+5. Explicitly publish the preview. The server-side transactional function revalidates rows, upserts cards, deactivates prior active prices, inserts the new active prices, records pricing history, and returns a summary. A failure leaves the previous dataset unchanged.
+6. Configure `data/config.json` for the client identifier and production pricing mode, then deploy the same repository through Vercel.
+7. Verify customer search, every supported condition, unavailable pricing, stale behavior, disclaimer text, and mobile layout.
 
-## Branding checklist
+## Pricing controls
 
-Branding belongs in configuration: logo, business name, primary and secondary colors, appropriate typography, buttons, accents, buy percentage, disclaimer, and contact information. Shared components remain unchanged.
+Use an authorized provider or a maintained internal dataset. Include source name and ISO `source_updated_at` values. Do not scrape unauthorized sites, fabricate live prices, or describe sample data as current. The stale threshold is configurable per client; the customer must see a stale warning or unavailable state when the configured policy disallows stale estimates.
 
-## Production controls
+## Example clients
 
-The current Forge-CT repository is a static site and includes a preview-only import page to demonstrate safe parsing. Before a live client deployment, Forge-CT must provide an authenticated server-side database adapter and admin route. That route must validate inputs again, prevent customer access, upsert instead of duplicate, retain history, and never delete absent records from a partial CSV.
+Hard Hittin uses a 60% buy rate and remains the reference client. The Thousand Sunny would use a different client row, branding, administrator assignment, and maintained pricing dataset. No `TheSunnyCalculator` or `HardHittinCalculator` component is needed.
 
-## Example
+## Launch checklist
 
-Hard Hittin uses a 60% buy rate and the initial development configuration. The Sunny would use the same calculator and a different client configuration and maintained dataset. No `TheSunnyCalculator` or `HardHittinCalculator` component is needed.
+- [ ] Authorized pricing source and update cadence documented
+- [ ] Supabase client row created
+- [ ] Real admin Auth account created
+- [ ] Admin UUID assigned to `tcg_client_admins`
+- [ ] Controlled CSV preview passes
+- [ ] Controlled CSV publish succeeds
+- [ ] Pricing history contains the import
+- [ ] Production mode enabled only after pricing exists
+- [ ] Vercel deployment verified
+- [ ] Stale, unavailable, invalid CSV, and unauthorized states tested

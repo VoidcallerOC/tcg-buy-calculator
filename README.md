@@ -1,25 +1,55 @@
 # Forge-CT TCG Buy Calculator
 
-A reusable, white-label TCG buying calculator owned and maintained by Forge-CT. The first client configuration is Hard Hittin; future clients such as The Sunny should require configuration and pricing data, not a copied application.
+A small, white-label TCG buying calculator for Forge-CT clients. Hard Hittin is the first client; The Thousand Sunny can use the same application through client configuration and a separate pricing dataset.
 
-## Run locally
+## Current status
 
-Install dependencies with `npm install`. Run `npm test` for formatting and calculation tests. Serve the repository with `python3 -m http.server 4173` and open `http://localhost:4173/`. The browser regression suite can be run with `npm run test:browser` after installing the Playwright browser runtime.
+The repository has a working customer calculator, integer-cent offer engine, deterministic card lookup, explicit condition handling, safe CSV validation, authenticated admin sign-in/publishing UI, and a real Supabase/Postgres production schema with transactional pricing import RPC. The checked-in browser configuration remains in **development sample mode** until an authorized pricing dataset is imported and the client is switched to production mode.
 
-The included pricing records are clearly marked development sample data. Replace them with an authorized maintained pricing dataset before launch. No TCGplayer API, scraper, or fake live pricing integration is included.
+Sample prices are never presented as live prices.
 
-## Project structure
+## Local development
 
-- `index.html`, `app.js`, and `styles.css`: mobile-first customer calculator.
-- `data/config.json`: white-label client configuration; Hard Hittin is configured at 60%.
-- `data/sample-pricing.json`: development-only sample cards and pricing.
-- `lib/money.js`: integer-cent calculation engine.
-- `lib/lookup.js`: card and pricing lookup layer.
-- `lib/csv-import.js`: safe CSV validation and import preview parser.
-- `admin/`: preview-only admin import workflow.
-- `docs/TCG_BUY_CALCULATOR.md`: architecture, operations, security, and provider guidance.
-- `docs/CLIENT_SETUP.md`: instructions for configuring a new shop without copying the codebase.
+```bash
+npm install
+npm test
+npm run test:browser
+python3 -m http.server 4173
+```
 
-## Production boundary
+Open `http://localhost:4173/`. The browser suite uses the sample dataset and does not require Supabase authentication.
 
-This repository is a static application and does not currently include a database or authentication server. The admin page therefore validates and previews CSV files only; it never persists or publishes an upload. Production must connect the parser to an authenticated server-side database adapter with transactional upserts, pricing history, admin authorization, and server-side validation before live imports are enabled.
+## Production architecture
+
+The frontend is a static Vercel-compatible site. Supabase provides Postgres, row-level security, authentication, and the server-side transactional publish function. The browser uses only the Supabase project URL and publishable key; no service-role key or database credential is shipped to the client.
+
+The production schema is in [`supabase/migrations/20260914210000_tcg_calculator.sql`](supabase/migrations/20260914210000_tcg_calculator.sql) and has been applied to the configured ForgeCT Supabase project. It creates clients, conditions, cards, pricing, pricing history, client-admin assignments, and import records. A partial unique index prevents more than one active price per client/card/condition. The `tcg_publish_pricing_import` function validates authorization and data, deactivates prior active prices, records history, and publishes the complete import in one transaction.
+
+## Production setup
+
+1. Create an administrator in the ForgeCT Supabase Auth project.
+2. Insert that user’s UUID into `public.tcg_client_admins` for `client_id = 'hard-hittin'` using a protected database/admin workflow. Never expose a service-role key in the browser.
+3. Obtain an authorized maintained pricing dataset. Do not scrape or proxy an unauthorized provider.
+4. Sign in at `/admin/`, upload the eight-column CSV, review validation counts, and publish it. The browser preview cannot publish without an authenticated Supabase session and server-side RPC authorization.
+5. Change `data/config.json` from `pricing_mode: "sample"` to `pricing_mode: "production"` only after the production dataset exists. Keep the Supabase project URL and publishable key; these are public client settings, not secrets.
+6. Deploy the repository through the linked Vercel Git project. The static frontend reads production cards and pricing through RLS-protected public read policies.
+
+## CSV format
+
+Required headers are:
+
+`card_name`, `set_name`, `set_code`, `card_number`, `condition`, `reference_market_low`, `source_name`, `source_updated_at`
+
+Prices are parsed into integer cents. Rows must contain required values, supported conditions, valid non-negative prices, and ISO dates. Duplicate rows are rejected. Imported values are displayed as text, not HTML. The production RPC validates again and never deletes records merely because they are absent from a partial upload.
+
+## Freshness and errors
+
+Production pricing carries source and update dates. `stale_threshold_days` is configurable in the client configuration; the current documented default is 7 days. When the production dataset is stale and `allow_stale_pricing` is false, the customer sees an unavailable state requiring in-store verification rather than a silently current-looking estimate. Network, missing-client, missing-price, duplicate-price, and stale-price states are explicit.
+
+## Security model
+
+Customers can read active clients, cards, conditions, and active pricing through RLS policies. Administrators must authenticate with Supabase Auth and be assigned to the client. Import publication is server-side through a `security definer` function that checks `auth.uid()`, validates all rows again, performs transactional writes, and records history. No credentials, API keys, or service-role secrets are committed.
+
+## Remaining launch dependency
+
+The code and database boundary are functional, but the repository cannot honestly be called green until the shop supplies an authorized pricing dataset and a real admin account is assigned. Those are operational inputs, not fabricated defaults.

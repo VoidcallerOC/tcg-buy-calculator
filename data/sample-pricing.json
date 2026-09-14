@@ -1,4 +1,9 @@
 {
+  "dataset_version": "development-sample-2026-09-01",
+  "data_status": "DEVELOPMENT SAMPLE DATA — NOT LIVE PRICING",
+  "source": "Development sample only; no authorized pricing provider is connected.",
+  "source_updated_at": "2026-09-01",
+  "imported_at": "2026-09-01",
   "conditions": [
     { "name": "Near Mint", "code": "NM" },
     { "name": "Lightly Played", "code": "LP" },

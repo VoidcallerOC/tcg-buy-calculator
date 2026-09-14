@@ -11,36 +11,64 @@
   <body>
     <main class="shell">
       <header class="topbar">
-        <a class="brand" href="/">Forge-CT <span>/</span> Pricing admin</a
-        ><span class="status-pill">Preview only</span>
+        <a class="brand" href="/">Forge-CT <span>/</span> Pricing admin</a>
+        <span class="status-pill">Authenticated publishing</span>
       </header>
       <section class="admin-hero">
         <p class="eyebrow">Maintained pricing dataset</p>
-        <h1>Review an import before it touches production.</h1>
+        <h1>Review and publish a pricing update.</h1>
         <p class="lede">
-          This static repository provides validation and preview only.
-          Production persistence must be wired to an authenticated admin
-          endpoint; no uploaded CSV is sent or saved by this page.
+          Preview runs in the browser. Publishing requires a
+          Supabase-authenticated admin account and is performed transactionally
+          on the server.
         </p>
       </section>
-      <section class="calculator-card">
+      <section id="login-panel" class="calculator-card">
         <div class="step-heading">
           <span>01</span>
           <div>
-            <p class="eyebrow">Upload CSV</p>
-            <h2>Choose a pricing update</h2>
+            <p class="eyebrow">Admin sign-in</p>
+            <h2>Authenticate before publishing</h2>
           </div>
         </div>
+        <label class="field-label" for="admin-email">Email</label>
+        <input id="admin-email" type="email" autocomplete="username" />
+        <label class="field-label" for="admin-password">Password</label>
+        <input
+          id="admin-password"
+          type="password"
+          autocomplete="current-password"
+        />
+        <button id="login-button" class="button" type="button">
+          Sign in <span aria-hidden="true">→</span>
+        </button>
+        <p id="login-message" class="field-help">
+          Your account must be assigned to the client in the production
+          database.
+        </p>
+      </section>
+      <section id="import-panel" class="calculator-card" hidden>
+        <div class="step-heading">
+          <span>02</span>
+          <div>
+            <p class="eyebrow">Upload CSV</p>
+            <h2>Preview a pricing update</h2>
+          </div>
+        </div>
+        <p id="session-message" class="field-help"></p>
         <input id="csv-file" type="file" accept=".csv,text/csv" />
         <p id="import-message" class="field-help">
           Required columns are checked before any update is considered.
         </p>
         <div id="import-summary" class="import-summary" hidden></div>
         <div id="import-errors" class="import-errors" hidden></div>
+        <button id="publish-button" class="button" type="button" disabled>
+          Publish validated import <span aria-hidden="true">→</span>
+        </button>
       </section>
       <footer class="footer-row">
         <a href="/">← Back to calculator</a
-        ><span>Explicit confirmation is required in production.</span>
+        ><span>Publishing is server-side and transactional.</span>
       </footer>
     </main>
   </body>
