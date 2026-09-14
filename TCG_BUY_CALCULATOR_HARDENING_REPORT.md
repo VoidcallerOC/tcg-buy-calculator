@@ -1,66 +1,73 @@
-# TCG BUY CALCULATOR HARDENING REPORT
+# TCG BUY CALCULATOR — PRODUCTION COMPLETION REPORT
 
 ## OVERALL VERDICT
 
-**🟡 SOLID FOUNDATION — PRICING/BACKEND REQUIRED**
+**YELLOW — FUNCTIONAL, BLOCKED BY EXTERNAL OPERATIONAL INPUTS**
 
-The repository is a trustworthy static MVP foundation, but it must not be treated as a live pricing or buying system until an authorized pricing source and authenticated server-side publishing boundary exist.
+The application now has a real Supabase/Postgres persistence layer, RLS-protected customer read path, authenticated admin publishing workflow, transactional imports, pricing history, duplicate-active-price protection, and Vercel deployment wiring. It is not marked green because no real admin account has been assigned and no authorized production pricing dataset has been imported.
 
-## CURRENT SCORE
+## WHAT CHANGED
 
-| Area                  |    Score | Assessment                                                                                          |
-| --------------------- | -------: | --------------------------------------------------------------------------------------------------- |
-| Architecture          |     9/10 | Small, reusable static architecture preserved.                                                      |
-| Calculation Engine    |     9/10 | Integer cents, basis points, safe-range validation, and explicit rounding.                          |
-| Business Logic        |     8/10 | Configurable rate and explicit condition selection; future rule extension points remain documented. |
-| Pricing Model         |     5/10 | Honest sample dataset with metadata, but no authorized live provider.                               |
-| Data Safety           |     9/10 | CSV validation, duplicate detection, non-destructive preview, and safe rendering.                   |
-| Security              |     9/10 | No committed secrets; imported values no longer reach dynamic HTML.                                 |
-| Testing               |     8/10 | Unit edge cases and browser customer flow pass.                                                     |
-| UX                    |     8/10 | Clear search, condition, estimate, unavailable state, and disclaimers.                              |
-| White-Label Readiness |     9/10 | Client configuration remains data-driven and reusable.                                              |
-| Production Readiness  |     6/10 | Static foundation is strong; pricing, persistence, auth, and server authority remain.               |
-| **Overall**           | **8/10** | **Solid foundation, not yet live-production ready.**                                                |
+The existing small static architecture was preserved. A production Supabase migration was applied to the configured ForgeCT project. It creates clients, conditions, cards, pricing, pricing history, client-admin assignments, and import records. It adds indexes, foreign keys, row-level security, and a partial unique index enforcing one active price per client/card/condition.
 
-## WHAT WAS ALREADY SOLID
+The admin page now supports Supabase email/password sign-in, CSV preview, explicit publish confirmation, and server-side publishing through `tcg_publish_pricing_import`. The database function revalidates rows, checks client-admin authorization, updates pricing transactionally, preserves prior pricing in history, and returns an import summary. Failed imports roll back pricing changes.
 
-The repository already had a focused static architecture, reusable white-label configuration, an integer-cent calculation model, deterministic card search, explicit condition controls, a safe unavailable-pricing state, a CSV parser with duplicate-row protection, a preview-only admin workflow, clear sample-data disclaimers, and a useful documentation structure. The Hard Hittin configuration and 60% buy rate were preserved.
+The customer app can now run in either explicit sample mode or production mode. Production mode reads the client, conditions, cards, and active pricing records from Supabase using a publishable browser key only. It calculates freshness from source update dates and displays stale or unavailable states rather than silently presenting outdated estimates. Sample mode remains the default for repeatable local/browser tests and is clearly labeled as non-live data.
 
-## WHAT YOU CHANGED
+The prior hardening remains in place: integer-cent and basis-point money calculations, safe-range validation, deterministic lookup, duplicate active pricing rejection, safe DOM rendering, robust CSV validation, explicit condition handling, and no secrets or unauthorized pricing provider.
 
-The money module now validates negative, malformed, over-precise, and oversized values, uses `BigInt` for intermediate offer multiplication, enforces safe integer ranges, and retains nearest-cent rounding. Pricing lookup now throws on multiple active records for the same card and condition instead of silently taking the first record. The customer and admin interfaces now render imported or dataset values through safe DOM APIs rather than `innerHTML`. CSV validation now rejects missing required values, malformed dates, invalid prices, invalid conditions, duplicate rows, and malformed quoted fields. The sample dataset now records explicit development-only status and source/update/import metadata. Documentation was corrected and expanded around the current MVP boundary, freshness, uniqueness, security, deployment, and future backend requirements.
+## WHAT IS ACTUALLY FUNCTIONAL
 
-## TESTS ADDED
+| Capability                                     | Status                                      |
+| ---------------------------------------------- | ------------------------------------------- |
+| Customer calculator in development/sample mode | Functional and tested                       |
+| Integer-cent offer calculation                 | Functional and tested                       |
+| Card search and explicit condition selection   | Functional and tested                       |
+| Missing/ambiguous pricing states               | Functional and tested                       |
+| Supabase production schema                     | Applied to ForgeCT project                  |
+| Public production client read path             | Smoke-tested with seeded Hard Hittin client |
+| Authenticated admin sign-in boundary           | Implemented; requires real assigned user    |
+| CSV preview                                    | Functional                                  |
+| Server-side transactional publish              | Implemented in Supabase RPC                 |
+| Pricing history and import records             | Implemented in schema/function              |
+| Vercel Git deployment                          | Linked and preview deployment READY         |
+| Authorized live pricing source                 | Not supplied                                |
 
-Unit coverage now includes `$0.00`, `$0.01`, `$0.99`, `$19.99`, `$100.00`, 0%, 100%, rounding, malformed and negative money, invalid percentages, oversized values, search by name/number/set code/set name, whitespace and no-result search, inactive pricing, missing pricing, duplicate active pricing, CSV required fields, dates, duplicate rows, quoted malicious-looking text, malformed prices, malformed conditions, and the non-destructive preview behavior.
+## TESTS RUN
 
-## TEST RESULTS
+- `npm test`: **passed** — formatting and 6 unit tests.
+- `npm run test:browser`: **passed** — 2 Playwright customer-flow tests.
+- `git diff --check`: **passed**.
+- Supabase schema inspection: **passed** — all calculator tables, foreign keys, RLS, indexes, and seeded client/conditions present.
+- Supabase REST smoke test: **passed** — the seeded Hard Hittin client returned through the public read path.
+- Vercel deployment inspection: **passed** — deployment `dpl_G9zpiM7MGpZ3wM4PhHriR84VdL28` reached `READY`.
+- Direct anonymous HTTP access to the Vercel preview is protected by the team’s Vercel SSO deployment protection; this is expected and prevented an unauthenticated external browser smoke test of the protected preview URL.
 
-- `npm test`: **passed** — Prettier check passed and 6 unit tests passed.
-- `npm run test:browser`: **passed** — 2 Playwright customer-flow tests passed.
-- The initial test attempts were blocked only by missing local npm dependencies and the Playwright browser runtime; the declared dependencies and Chromium runtime were installed, then both suites passed.
+## DATABASE STATUS
+
+**Applied and healthy.** The schema is deployed to Supabase project `ForgeCT` (`dnkhtmtgtauctyvzktck`). The database currently contains the Hard Hittin client and five conditions, but zero cards and zero pricing rows because sample prices were not copied into production.
+
+## AUTHENTICATION STATUS
+
+**Boundary implemented; operational assignment pending.** Supabase Auth is the admin identity provider. The admin UI requires a valid session, and the publish function requires membership in `tcg_client_admins`. A real administrator must be created in Supabase Auth and assigned to `hard-hittin` through a protected database/admin workflow.
+
+## PRICING-SOURCE STATUS
+
+**No authorized production source supplied.** The repository does not scrape, proxy, fabricate, or claim live pricing. The production import path accepts a shop-maintained authorized dataset with source name and update date. A controlled CSV must be imported after the admin account is assigned.
 
 ## SECURITY RESULTS
 
-No API keys, credentials, tokens, or secrets were found in tracked project files. No fake live pricing integration was introduced. The remaining application dynamic rendering uses safe DOM APIs; imported card names, set names, source names, and parser error text are inserted as text nodes. CSV values are treated as untrusted. The static admin page does not claim authentication or persistence.
+No service-role keys, database passwords, or credentials were committed. The browser contains only a Supabase publishable key. RLS restricts customer reads to active records and admin reads to assigned clients. Server-side publish authorization uses the authenticated JWT and client-admin assignment. Imported text is rendered as text rather than HTML. Duplicate active pricing is blocked at the data layer.
 
-## PRODUCTION BLOCKERS
+## REMAINING BLOCKERS AND EXACT NEXT ACTIONS
 
-1. An authorized pricing provider or maintained internal pricing dataset must be selected and integrated.
-2. Pricing freshness policy, stale-data behavior, source authorization, and failure handling must be enforced at the provider/server boundary.
-3. Production imports require an authenticated and authorized admin endpoint with server-side revalidation, transactional upserts, uniqueness constraints, history, versioning, rollback, audit logging, and safe publishing.
-4. Authoritative production configuration, pricing, and calculation inputs should not rely solely on mutable client-side static assets.
-
-## INTENTIONALLY NOT BUILT
-
-No backend, database, authentication system, pricing scraper, fake API, real-time claim, client-specific fork, or unnecessary framework was added. The preview page remains preview-only because persistence and access control would require a real server boundary.
-
-## PRICING DEPENDENCY
-
-Before this becomes a live pricing/buying system, Forge-CT needs a legally authorized source with documented access rights, update cadence, source metadata, freshness timestamps, dataset versioning, and a defined stale-data policy. The source must feed a server-side validated import pipeline; sample records must be replaced, not rebranded as live data.
+1. **Create an admin account:** create the shop administrator in ForgeCT Supabase Auth and add the resulting Auth user UUID to `public.tcg_client_admins` with `client_id = 'hard-hittin'`.
+2. **Import authorized pricing:** sign in at `/admin/`, upload the maintained eight-column CSV, review the preview, and publish it.
+3. **Switch production mode:** change `pricing_mode` from `sample` to `production` only after cards and pricing exist, then push the configuration and redeploy.
+4. **Run the authenticated smoke test:** verify sign-in, preview, publish, history, customer pricing, stale behavior, invalid CSV rejection, and unauthorized access.
 
 ## FINAL ANSWER
 
 **Would I trust this repository as the foundation for a real multi-client TCG buy calculator? YES.**
 
-I would trust it as a small, reusable engineering foundation because the calculation, lookup, configuration, CSV, preview, and UI boundaries are clear and now safer against malformed data, duplicate pricing, and HTML injection. I would not trust the current static sample dataset to produce authoritative live offers until the documented pricing and backend requirements are implemented.
+**Would I call the deployed configuration green for live shop use tonight? NO.** The software and database boundary are now genuinely functional, but the required administrator identity and authorized pricing dataset are external operational inputs that were not available and were not fabricated.
