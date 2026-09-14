@@ -20,10 +20,22 @@ async function loadDataset() {
     return { ...dataset, data_status: config.data_status, stale: false };
   }
   const gate = evaluateProductionGate({
-    commercialUseStatus: config.tcgcsv_commercial_use_status,
-    derivedPricingStatus: config.tcgcsv_derived_pricing_status,
-    attributionStatus: config.tcgcsv_attribution_status,
-    attributionSatisfied: config.tcgcsv_attribution_implemented === true,
+    commercialUseStatus:
+      config.pricing_provider === "justtcg"
+        ? config.justtcg_commercial_use_status
+        : config.tcgcsv_commercial_use_status,
+    derivedPricingStatus:
+      config.pricing_provider === "justtcg"
+        ? config.justtcg_derived_pricing_status
+        : config.tcgcsv_derived_pricing_status,
+    attributionStatus:
+      config.pricing_provider === "justtcg"
+        ? config.justtcg_attribution_status
+        : config.tcgcsv_attribution_status,
+    attributionSatisfied:
+      config.pricing_provider === "justtcg"
+        ? config.justtcg_attribution_implemented === true
+        : config.tcgcsv_attribution_implemented === true,
     conditionPolicyStatus: config.condition_policy_status,
     supabaseConfigured: Boolean(
       config.pricing_backend_url && config.pricing_backend_publishable_key,

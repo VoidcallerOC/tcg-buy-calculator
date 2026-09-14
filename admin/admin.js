@@ -145,7 +145,7 @@ async function signIn() {
       throw new Error("Production readiness configuration is incomplete.");
     conditions = conditionRows;
     renderReadiness({ client, policies: policyRows, compliance });
-    const statusResponse = await fetch(`${base}/functions/v1/tcgcsv-sync`, {
+    const statusResponse = await fetch(`${base}/functions/v1/justtcg-sync`, {
       headers: {
         ...publicHeaders,
         Authorization: `Bearer ${session.access_token}`,
@@ -153,8 +153,8 @@ async function signIn() {
     });
     const status = await statusResponse.json();
     providerStatus.textContent = status.configured
-      ? `TCGCSV provider: ${status.status}. Source updated ${status.source_updated_at || "unknown"}.`
-      : "TCGCSV provider is unavailable. Live synchronization is disabled until the source responds.";
+      ? `JustTCG provider: ${status.status}. Paid-plan authorization remains ${status.authorization_status || "pending"}.`
+      : "JustTCG provider is not configured. Production synchronization is disabled until the server-side key and paid plan are verified.";
     policyPanel.hidden = false;
     loginPanel.hidden = true;
     importPanel.hidden = false;

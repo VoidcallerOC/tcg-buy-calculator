@@ -54,7 +54,13 @@ Customers can read active clients, cards, conditions, and active pricing through
 
 The code and database boundary are functional. Hard Hittin’s approved condition-neutral online policy and 60% buy rate are configured. The repository cannot honestly be called green until TCGCSV commercial-use, derived-pricing redistribution, and attribution authorization are documented, a real admin account is assigned, and authorized production pricing is published. Those are operational and external inputs, not fabricated defaults.
 
-## TCGCSV provider
+## Pricing providers
+
+JustTCG is the intended production provider. Its API adapter is server-side only, uses the `JUSTTCG_API_KEY` secret, normalizes card variants into the existing pricing model, retains source and fetch timestamps, and never exposes provider credentials to the customer browser. JustTCG production use remains blocked until an active paid plan and provider compliance evidence are recorded. See [`docs/JUSTTCG_SOURCE_NOTES.md`](docs/JUSTTCG_SOURCE_NOTES.md).
+
+TCGCSV remains available only as a legacy/reference implementation while its external authorization is unresolved. It is not a production fallback for JustTCG.
+
+### Legacy TCGCSV provider
 
 The repository now includes a server-side `TCGCSVProvider`, normalization layer, weekly sync engine, deterministic fixtures, and a JWT-protected Supabase Edge Function status boundary. It uses the documented TCGCSV JSON endpoints for categories, groups, products, and group prices; checks `last-updated.txt`; sends a descriptive User-Agent; paces requests; and respects the documented daily-sync and request-volume guidance. Categories are discovered dynamically, pricing is batched by product group, missing market prices are rejected, and category-level failures do not delete last-known-good pricing.
 

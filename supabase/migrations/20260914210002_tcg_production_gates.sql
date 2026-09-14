@@ -72,8 +72,8 @@ declare
   approved_conditions integer;
 begin
   select * into compliance from public.tcg_source_compliance where client_id = new.client_id;
-  if compliance.commercial_use_status is distinct from 'CONFIRMED'
-    or compliance.derived_pricing_status is distinct from 'CONFIRMED'
+  if compliance.commercial_use_status is distinct from 'AUTHORIZED'
+    or compliance.derived_pricing_status is distinct from 'AUTHORIZED'
     or (compliance.attribution_status = 'REQUIRED' and not compliance.attribution_implemented)
     or compliance.attribution_status = 'UNCLEAR' then
     raise exception using errcode = '42501', message = 'Production pricing blocked: provider authorization is incomplete.';

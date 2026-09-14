@@ -10,6 +10,7 @@
   "contact": "Bring your cards into the shop for a final assessment.",
   "data_status": "DEVELOPMENT SAMPLE DATA — NOT LIVE PRICING",
   "pricing_mode": "sample",
+  "pricing_provider": "justtcg",
   "pricing_backend_url": "https://dnkhtmtgtauctyvzktck.supabase.co",
   "pricing_backend_publishable_key": "sb_publishable_a1d91190Ou8zOlULV0wH7g_aNcV7a43",
   "stale_threshold_days": 7,
@@ -22,5 +23,9 @@
   "condition_policy_version": "1.0",
   "condition_policy_effective_date": "2026-09-14",
   "condition_policy_approved_by": "Hard Hittin",
-  "production_readiness": "BLOCKED"
+  "production_readiness": "BLOCKED",
+  "justtcg_commercial_use_status": "UNCLEAR",
+  "justtcg_derived_pricing_status": "UNCLEAR",
+  "justtcg_attribution_status": "UNCLEAR",
+  "justtcg_attribution_implemented": false
 }
