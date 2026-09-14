@@ -60,7 +60,7 @@ async function signIn() {
     conditions = await api(
       "/rest/v1/tcg_conditions?select=code,name&order=sort_order",
     );
-    const statusResponse = await fetch(`${base}/functions/v1/tcgplayer-sync`, {
+    const statusResponse = await fetch(`${base}/functions/v1/tcgcsv-sync`, {
       headers: {
         ...publicHeaders,
         Authorization: `Bearer ${session.access_token}`,
@@ -68,8 +68,8 @@ async function signIn() {
     });
     const status = await statusResponse.json();
     providerStatus.textContent = status.configured
-      ? `TCGplayer provider: ${status.status}.`
-      : "TCGplayer provider not configured. Live synchronization is disabled until authorized credentials are supplied.";
+      ? `TCGCSV provider: ${status.status}. Source updated ${status.source_updated_at || "unknown"}.`
+      : "TCGCSV provider is unavailable. Live synchronization is disabled until the source responds.";
     loginPanel.hidden = true;
     importPanel.hidden = false;
     sessionMessage.textContent = `Signed in as ${email}. Upload a CSV to preview it before server-side publishing.`;

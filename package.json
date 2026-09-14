@@ -6,7 +6,7 @@
   "description": "Reusable white-label TCG buying calculator for Forge-CT clients",
   "scripts": {
     "format:check": "prettier --check .",
-    "test:calculator": "node --test lib/calculator.test.js lib/tcgplayer.test.js",
+    "test:calculator": "node --test lib/calculator.test.js lib/tcgplayer.test.js lib/tcgcsv-provider.test.js",
     "test:browser": "playwright test",
     "test": "npm run format:check && npm run test:calculator"
   },

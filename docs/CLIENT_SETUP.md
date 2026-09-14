@@ -33,6 +33,6 @@ Hard Hittin uses a 60% buy rate and remains the reference client. The Thousand S
 - [ ] Vercel deployment verified
 - [ ] Stale, unavailable, invalid CSV, and unauthorized states tested
 
-## Official TCGplayer access
+## TCGCSV source
 
-Live TCGplayer synchronization is credential-gated and uses only the documented official API. Supply authorized developer access, configure `TCGPLAYER_PUBLIC_KEY` and `TCGPLAYER_PRIVATE_KEY` as Supabase Edge Function secrets, verify the provider status changes from `NOT_CONFIGURED` to ready, and run the sync preview. Do not place either secret in this repository, Vercel public configuration, or browser code. If access is unavailable, the correct status is `TCGplayer provider not configured`; do not substitute scraping or third-party datasets.
+TCGCSV synchronization uses the documented server-side JSON endpoints. The sync process must check `last-updated.txt`, use the descriptive application User-Agent, respect the documented daily cadence and request pacing, preview and validate the complete category result, and publish through the existing transactional Supabase path. Configure an explicit variation-to-condition map before publishing. Do not assume `Normal`, `Holofoil`, or `Reverse Holofoil` means Near Mint; unmapped variations must remain unavailable. If the source is unavailable or a category fails, preserve previous valid prices and report the category failure.
