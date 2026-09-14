@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Estimate your TCG card buy offer from maintained reference pricing data."
+    />
+    <title>Buy Calculator | Forge-CT</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/"
+          >Forge-CT <span>/</span>
+          <strong data-client-name>Hard Hittin</strong></a
+        >
+        <span class="status-pill">Estimate tool</span>
+      </header>
+
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Card buy calculator</p>
+          <h1>Know what your cards could be worth before you walk in.</h1>
+          <p class="lede">
+            Search a card, choose its condition, and get an estimated buy offer
+            based on the shop’s maintained reference pricing.
+          </p>
+        </div>
+        <div class="hero-mark" aria-hidden="true">01<span>→</span>05</div>
+      </section>
+
+      <section class="calculator-grid" aria-label="Buy offer calculator">
+        <div class="calculator-card">
+          <div class="step-heading">
+            <span>01</span>
+            <div>
+              <p class="eyebrow">Find your card</p>
+              <h2>Search by name, number, or set</h2>
+            </div>
+          </div>
+          <label class="field-label" for="card-search">Card search</label>
+          <input
+            id="card-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Try “Luffy”, “OP17”, or “OP17-001”"
+          />
+          <div id="search-results" class="search-results"></div>
+          <p id="search-message" class="field-help">
+            Start typing to see matching cards.
+          </p>
+
+          <div class="step-heading step-heading--compact">
+            <span>02</span>
+            <div>
+              <p class="eyebrow">Choose condition</p>
+              <h2>How does the card look?</h2>
+            </div>
+          </div>
+          <div
+            id="condition-list"
+            class="condition-list"
+            role="radiogroup"
+            aria-label="Card condition"
+          ></div>
+          <button id="calculate-button" class="button" type="button" disabled>
+            Calculate estimated offer <span aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <aside id="result-panel" class="result-card" aria-live="polite">
+          <p class="eyebrow">Estimated offer</p>
+          <div id="result-empty" class="result-empty">
+            <span class="result-number">—</span>
+            <h2>Your estimate will appear here.</h2>
+            <p>
+              Select a card and condition to see the maintained reference price
+              and configured buy rate.
+            </p>
+          </div>
+          <div id="result-ready" hidden>
+            <p class="result-kicker">Estimated offer</p>
+            <p id="offer-value" class="offer-value">$0.00</p>
+            <div class="result-lines">
+              <div>
+                <span>Reference Market Low</span
+                ><strong id="reference-value">$0.00</strong>
+              </div>
+              <div>
+                <span>Client Buy Rate</span><strong id="rate-value">60%</strong>
+              </div>
+            </div>
+            <p id="result-card-label" class="result-card-label"></p>
+          </div>
+          <div id="result-unavailable" hidden class="unavailable">
+            <strong
+              >Online estimate unavailable for this card/condition.</strong
+            >
+            <p>
+              No maintained reference price was found. We never invent a price.
+            </p>
+          </div>
+          <p class="disclaimer" data-disclaimer></p>
+        </aside>
+      </section>
+
+      <footer class="footer-row">
+        <span data-data-status>Development sample data only.</span
+        ><a href="/">Built by Forge-CT</a>
+      </footer>
+    </main>
+  </body>
+</html>

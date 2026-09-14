@@ -1,0 +1,12 @@
+{
+  "client_id": "hard-hittin",
+  "business_name": "Hard Hittin",
+  "logo_text": "HARD HITTIN",
+  "primary_color": "#e86a3c",
+  "secondary_color": "#f3c969",
+  "buy_rate": "60%",
+  "currency": "USD",
+  "disclaimer": "This is an estimated buy offer based on maintained reference pricing data. Final offers are subject to in-person inspection, authenticity verification, and final condition assessment.",
+  "contact": "Bring your cards into the shop for a final assessment.",
+  "data_status": "Development sample data — replace with an authorized maintained pricing dataset before launch."
+}

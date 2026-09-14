@@ -1,0 +1,49 @@
+.admin-hero {
+  padding: clamp(4rem, 9vw, 7rem) 0 3rem;
+}
+.admin-hero h1 {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 400;
+  line-height: 0.95;
+  max-width: 760px;
+  margin: 0.4rem 0 1.3rem;
+}
+.admin-hero .lede {
+  margin: 0;
+  max-width: 680px;
+}
+.import-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.import-summary strong,
+.import-summary span {
+  padding: 0.7rem 0.8rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-family: "DM Mono", monospace;
+  font-size: 0.75rem;
+}
+.import-summary strong {
+  background: var(--ink);
+  color: white;
+}
+.import-errors {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff0ed;
+  border-left: 3px solid var(--brick);
+  color: #8f3526;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+input[type="file"] {
+  width: 100%;
+  padding: 1rem;
+  background: var(--paper);
+  border: 1px dashed var(--line);
+  font-size: 0.85rem;
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pricing Import Preview | Forge-CT</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="admin.css" />
+    <script type="module" src="admin.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/">Forge-CT <span>/</span> Pricing admin</a
+        ><span class="status-pill">Preview only</span>
+      </header>
+      <section class="admin-hero">
+        <p class="eyebrow">Maintained pricing dataset</p>
+        <h1>Review an import before it touches production.</h1>
+        <p class="lede">
+          This static repository provides validation and preview only.
+          Production persistence must be wired to an authenticated admin
+          endpoint; no uploaded CSV is sent or saved by this page.
+        </p>
+      </section>
+      <section class="calculator-card">
+        <div class="step-heading">
+          <span>01</span>
+          <div>
+            <p class="eyebrow">Upload CSV</p>
+            <h2>Choose a pricing update</h2>
+          </div>
+        </div>
+        <input id="csv-file" type="file" accept=".csv,text/csv" />
+        <p id="import-message" class="field-help">
+          Required columns are checked before any update is considered.
+        </p>
+        <div id="import-summary" class="import-summary" hidden></div>
+        <div id="import-errors" class="import-errors" hidden></div>
+      </section>
+      <footer class="footer-row">
+        <a href="/">← Back to calculator</a
+        ><span>Explicit confirmation is required in production.</span>
+      </footer>
+    </main>
+  </body>
+</html>

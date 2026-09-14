@@ -1,0 +1,90 @@
+{
+  "conditions": [
+    { "name": "Near Mint", "code": "NM" },
+    { "name": "Lightly Played", "code": "LP" },
+    { "name": "Moderately Played", "code": "MP" },
+    { "name": "Heavily Played", "code": "HP" },
+    { "name": "Damaged", "code": "DMG" }
+  ],
+  "cards": [
+    {
+      "id": "op17-001",
+      "name": "Monkey.D.Dragon",
+      "card_number": "OP17-001",
+      "set_code": "OP17",
+      "set_name": "500 Years in the Future",
+      "active": true
+    },
+    {
+      "id": "op05-060",
+      "name": "Monkey.D.Luffy",
+      "card_number": "OP05-060",
+      "set_code": "OP05",
+      "set_name": "Awakening of the New Era",
+      "active": true
+    },
+    {
+      "id": "op01-016",
+      "name": "Nami",
+      "card_number": "OP01-016",
+      "set_code": "OP01",
+      "set_name": "Romance Dawn",
+      "active": true
+    },
+    {
+      "id": "op07-061",
+      "name": "Boa Hancock",
+      "card_number": "OP07-061",
+      "set_code": "OP07",
+      "set_name": "500 Years in the Future",
+      "active": true
+    }
+  ],
+  "pricing": [
+    {
+      "card_id": "op17-001",
+      "condition_code": "NM",
+      "reference_cents": 2000,
+      "currency": "USD",
+      "source_name": "Development sample — replace before launch",
+      "source_updated_at": "2026-09-01",
+      "active": true
+    },
+    {
+      "card_id": "op05-060",
+      "condition_code": "NM",
+      "reference_cents": 1499,
+      "currency": "USD",
+      "source_name": "Development sample — replace before launch",
+      "source_updated_at": "2026-09-01",
+      "active": true
+    },
+    {
+      "card_id": "op05-060",
+      "condition_code": "LP",
+      "reference_cents": 1200,
+      "currency": "USD",
+      "source_name": "Development sample — replace before launch",
+      "source_updated_at": "2026-09-01",
+      "active": true
+    },
+    {
+      "card_id": "op01-016",
+      "condition_code": "NM",
+      "reference_cents": 850,
+      "currency": "USD",
+      "source_name": "Development sample — replace before launch",
+      "source_updated_at": "2026-09-01",
+      "active": true
+    },
+    {
+      "card_id": "op07-061",
+      "condition_code": "NM",
+      "reference_cents": 5000,
+      "currency": "USD",
+      "source_name": "Development sample — replace before launch",
+      "source_updated_at": "2026-09-01",
+      "active": true
+    }
+  ]
+}
