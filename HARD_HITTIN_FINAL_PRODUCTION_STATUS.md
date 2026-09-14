@@ -4,7 +4,7 @@
 
 **YELLOW — SOFTWARE COMPLETE / PROVIDER ACTIVATION REQUIRED**
 
-JustTCG is now the intended production provider. Its official paid-tier terms permit end-user display, derived analytics, and server-side caching, while prohibiting raw-data redistribution and API substitution. The deployment does not yet have a verified paid plan or server-side `JUSTTCG_API_KEY`, so provider authorization remains unresolved.
+JustTCG is now the intended production provider. Its official paid-tier terms permit end-user display, derived analytics, and server-side caching, while prohibiting raw-data redistribution and API substitution. The server-side `JUSTTCG_API_KEY` is now configured in Supabase Edge Function Secrets, but the paid plan and controlled production verification remain unresolved.
 
 The software, Hard Hittin configuration, condition-neutral online policy, calculator math, provider boundary, Supabase schema, authentication boundary, transactional publishing path, category classification, freshness handling, and automated tests are implemented. Production pricing activation remains blocked because TCGCSV commercial-use, derived-pricing redistribution, and attribution authorization are unresolved. This is an external blocker, not a coding failure.
 

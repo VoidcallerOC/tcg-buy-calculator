@@ -20,13 +20,14 @@ References:
 ## Current authorization state
 
 - Provider: **JustTCG**
+- Credential: **CONFIGURED server-side in Supabase Edge Function Secrets**
 - Commercial use: **UNCLEAR** until an active paid plan is configured and recorded
 - Derived pricing: **UNCLEAR** until the paid-plan evidence is recorded
 - Attribution: **UNCLEAR**
 - Overall provider authorization: **PENDING**
 - Production: **BLOCKED**
 
-An API key alone is not treated as commercial authorization. The deployment must use a paid plan and must not expose the key to the browser.
+An API key alone is not treated as commercial authorization. The deployment must use a paid plan and must not expose the key to the browser. The current Edge Function secret confirms credential configuration only; it does not verify the subscription tier.
 
 ## Implemented
 
