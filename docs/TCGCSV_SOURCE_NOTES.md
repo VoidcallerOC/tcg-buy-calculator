@@ -14,3 +14,9 @@ Documented endpoint paths:
 Responses generally contain `success`, `errors`, and `results`; products contain `productId`, name, category/group IDs, modified time, and extended data such as card number; prices are one-to-many by product and variation and include `marketPrice`, low/mid/high, direct-low, and `subTypeName`. Prices are USD. TCGCSV documentation explicitly notes that `marketPrice` does not guarantee a condition and can reflect whatever condition has recent sales. Therefore the application must not label an unmapped `subTypeName` as Near Mint/LP/etc.; the provider uses an explicit variation-to-condition mapping and rejects unknown variations.
 
 The source documentation links the underlying data to TCGplayer API exports but is treated here as TCGCSV data, not as a direct TCGplayer API integration.
+
+## Commercial-use gate
+
+The reviewed TCGCSV FAQ says that users may process the cached JSON/CSV files and gives implementation guidance, but the reviewed documentation does not present a clear commercial-use license, redistribution license, warranty, attribution requirement, or terms document for embedding derived pricing in a commercial buying calculator. This implementation therefore treats commercial authorization as **UNCONFIRMED** and does not publish TCGCSV-derived prices into production.
+
+There is a second data-model gate: TCGCSV documents that `marketPrice` is not condition-specific and may reflect whatever condition has recent sales. The existing calculator has five condition choices. No condition is assigned automatically; an explicit approved business mapping or a condition-specific source is required before production publishing.

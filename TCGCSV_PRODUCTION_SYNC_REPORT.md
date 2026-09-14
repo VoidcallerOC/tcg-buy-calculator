@@ -10,9 +10,9 @@ No production pricing sync has been completed in this run. The source status fun
 
 ## Status
 
-**YELLOW — PROVIDER READY, REAL SYNC PENDING**
+**RED — LIVE PUBLISH BLOCKED PENDING COMMERCIAL-USE CONFIRMATION AND CONDITION MAPPING**
 
-The system must not be called live until a real TCGCSV synchronization completes and the customer calculator reads the resulting production pricing.
+The system must not be called live until a real TCGCSV synchronization completes, the customer calculator reads the resulting production pricing, TCGCSV commercial use is confirmed, and an approved mapping exists from TCGCSV variations to the calculator’s five conditions.
 
 ## Provider implementation
 
@@ -26,7 +26,7 @@ The server-side provider uses the documented endpoints:
 
 It applies the documented User-Agent and request pacing, dynamically discovers categories and groups, preserves stable product IDs, joins one-to-many product variations to prices, rejects missing market prices, and reports failed categories without deleting prior valid data.
 
-TCGCSV `marketPrice` is the selected reference field. The provider does not substitute low, mid, high, or direct-low values. Because TCGCSV documents that market price does not guarantee condition, a variation-to-condition mapping is required; unknown variations are unavailable rather than mislabeled.
+TCGCSV `marketPrice` is the selected reference field. The provider does not substitute low, mid, high, or direct-low values. Because TCGCSV documents that market price does not guarantee condition, a variation-to-condition mapping is required; unknown variations are unavailable rather than mislabeled. No production mapping has been approved.
 
 ## Category verification
 
@@ -131,10 +131,15 @@ Live source discovery completed at 2026-09-14T22:11:57.617Z. TCGCSV returned 94 
 | Naruto Card Game | 93 | — | — | — | — | — | DISCOVERED |
 | Rush of Ikorr | 94 | — | — | — | — | — | DISCOVERED |
 
+## Verified blockers
+
+1. The reviewed TCGCSV documentation does not provide a clear commercial-use or redistribution license for embedding derived pricing in this commercial buying calculator.
+2. TCGCSV `marketPrice` is not condition-specific, while the calculator presents five conditions. Automatically assigning a condition would be unsafe and misleading.
+
 ## Tests
 
-- `npm test`: pending final run after TCGCSV provider addition.
-- `npm run test:browser`: existing sample-mode browser coverage remains required.
+- `npm test`: **PASS** — 12 tests passed.
+- `npm run test:browser`: **PASS** — 2 browser tests passed.
 - TCGCSV provider tests include documented path usage, User-Agent handling, product-to-group price joining, source freshness, and explicit variation mapping.
 
 ## Production
@@ -147,4 +152,4 @@ TCGCSV is fetched server-side only. The customer browser does not call TCGCSV di
 
 ## Exact next action
 
-Run the server-side TCGCSV sync preview, review the category-by-category report and unmapped-variation rejections, then publish only the validated result through the existing transactional Supabase import path.
+Obtain written confirmation that this commercial use of TCGCSV data is permitted and approve a documented variation-to-condition policy; only then run the server-side sync preview and publish validated records through the existing transactional Supabase import path.
