@@ -28,6 +28,16 @@ const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
 const resultPanel = document.querySelector("#result-panel");
 
+function isPricingUsable(pricing) {
+  if (!pricing || !Number.isSafeInteger(pricing.reference_cents)) return false;
+  if (config.allow_stale_pricing) return true;
+  if (!pricing.source_updated_at) return true;
+  const updatedAt = new Date(pricing.source_updated_at).getTime();
+  if (!Number.isFinite(updatedAt)) return false;
+  const thresholdMs = Number(config.stale_threshold_days ?? 7) * 86400000;
+  return Date.now() - updatedAt <= thresholdMs;
+}
+
 for (const element of document.querySelectorAll("[data-client-name]"))
   element.textContent = config.business_name;
 document.querySelector("[data-disclaimer]").textContent = config.disclaimer;
@@ -88,6 +98,7 @@ function renderSearchResults(cards) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "search-result";
+    button.setAttribute("aria-pressed", "false");
     const details = document.createElement("span");
     const name = document.createElement("strong");
     const set = document.createElement("small");
@@ -99,8 +110,13 @@ function renderSearchResults(cards) {
     button.append(details, number);
     button.addEventListener("click", () => {
       state.card = card;
+      document.querySelectorAll(".search-result").forEach((option) => {
+        option.classList.remove("is-selected");
+        option.setAttribute("aria-pressed", "false");
+      });
+      button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", "true");
       searchInput.value = `${card.name} · ${card.card_number}`;
-      searchResults.replaceChildren();
       searchMessage.textContent = "Card selected. Choose a condition below.";
       calculateButton.disabled = !state.condition;
       resultEmpty.hidden = false;
@@ -151,10 +167,15 @@ searchInput.addEventListener("input", () => {
 function renderResult() {
   if (!state.card || !state.condition || state.loading) return;
   const pricing = state.card.pricing?.[state.condition.code];
-  if (!pricing || !Number.isInteger(pricing.reference_cents)) {
+  if (!pricing || !isPricingUsable(pricing)) {
+    const stale = pricing?.source_updated_at && !config.allow_stale_pricing;
     setUnavailable(
-      "Online estimate unavailable: pricing unavailable for this condition.",
-      "We never invent a price or substitute another condition.",
+      stale
+        ? "Online estimate unavailable: reference pricing is stale."
+        : "Online estimate unavailable: pricing unavailable for this condition.",
+      stale
+        ? "Please verify the card in store. We never present stale pricing as current."
+        : "We never invent a price or substitute another condition.",
     );
     return;
   }
