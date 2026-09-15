@@ -3,6 +3,7 @@ import { parseMoneyToCents } from "../lib/money.js";
 
 const API_BASE_URL = "https://api.justtcg.com/v1";
 const MAX_RESULTS = 20;
+const CARD_NUMBER_RE = /\b([A-Z]{1,8}\d{1,4})[-\s]?([A-Z]?\d{1,4})\b/i;
 
 function json(res, status, body) {
   res.status(status).setHeader("Cache-Control", "no-store").json(body);
@@ -47,6 +48,39 @@ function normalizeCard(card) {
   };
 }
 
+function searchPlan(query) {
+  const match = query.match(CARD_NUMBER_RE);
+  if (!match) return [{ q: query }];
+  const number = `${match[1]}-${match[2]}`.toUpperCase();
+  const setToken = match[1].toUpperCase();
+  const name = query.replace(match[0], " ").replace(/\s+/g, " ").trim();
+  const plan = [{ q: query }, { number }];
+  if (name) plan.push({ q: name, number });
+  plan.push({ q: setToken, number });
+  return plan;
+}
+
+async function requestCards(apiKey, params) {
+  const searchParams = new URLSearchParams({
+    game: process.env.JUSTTCG_GAME_ID || "one-piece",
+    limit: String(MAX_RESULTS),
+    offset: "0",
+  });
+  for (const [key, value] of Object.entries(params)) {
+    if (value) searchParams.set(key, value);
+  }
+  const response = await fetch(`${API_BASE_URL}/cards?${searchParams}`, {
+    headers: { Accept: "application/json", "x-api-key": apiKey },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error("Live pricing provider request failed.");
+    error.status = response.status;
+    throw error;
+  }
+  return Array.isArray(body.data) ? body.data : [];
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -64,27 +98,18 @@ export default async function handler(req, res) {
       error: "Live pricing provider is not configured.",
     });
 
-  const params = new URLSearchParams({
-    q: query,
-    game: process.env.JUSTTCG_GAME_ID || "one-piece",
-    limit: String(MAX_RESULTS),
-    offset: "0",
-  });
   try {
-    const response = await fetch(`${API_BASE_URL}/cards?${params}`, {
-      headers: { Accept: "application/json", "x-api-key": apiKey },
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      return json(res, response.status >= 500 ? 502 : response.status, {
-        error: "Live pricing provider request failed.",
-      });
+    let rawCards = [];
+    for (const params of searchPlan(query)) {
+      rawCards = await requestCards(apiKey, params);
+      if (rawCards.length) break;
     }
-    const cards = (Array.isArray(body.data) ? body.data : [])
-      .map(normalizeCard)
-      .filter(Boolean);
+    const cards = rawCards.map(normalizeCard).filter(Boolean);
     return json(res, 200, { cards });
-  } catch {
-    return json(res, 502, { error: "Live pricing provider is unavailable." });
+  } catch (error) {
+    const status = Number(error?.status) || 502;
+    return json(res, status >= 500 ? 502 : status, {
+      error: "Live pricing provider request failed.",
+    });
   }
 }

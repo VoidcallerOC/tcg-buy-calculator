@@ -22,6 +22,16 @@ function responseMock() {
   };
 }
 
+function providerResponse(data) {
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return { data };
+    },
+  };
+}
+
 test("JustTCG endpoint normalizes searched cards and condition prices", async () => {
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.JUSTTCG_API_KEY;
@@ -29,27 +39,19 @@ test("JustTCG endpoint normalizes searched cards and condition prices", async ()
   let request;
   globalThis.fetch = async (url, options) => {
     request = { url, options };
-    return {
-      ok: true,
-      status: 200,
-      async json() {
-        return {
-          data: [
-            {
-              id: "one-piece-op14-119-dracule-mihawk",
-              name: "Dracule Mihawk",
-              number: "OP14-119",
-              set: "OP14",
-              set_name: "The Azure Sea's Seven",
-              variants: [
-                { condition: "Near Mint", price: 12.34, uuid: "variant-1" },
-                { condition: "Damaged", price: 1.25, uuid: "variant-2" },
-              ],
-            },
-          ],
-        };
+    return providerResponse([
+      {
+        id: "one-piece-op14-119-dracule-mihawk",
+        name: "Dracule Mihawk",
+        number: "OP14-119",
+        set: "OP14",
+        set_name: "The Azure Sea's Seven",
+        variants: [
+          { condition: "Near Mint", price: 12.34, uuid: "variant-1" },
+          { condition: "Damaged", price: 1.25, uuid: "variant-2" },
+        ],
       },
-    };
+    ]);
   };
   const res = responseMock();
   await handler(
@@ -62,6 +64,35 @@ test("JustTCG endpoint normalizes searched cards and condition prices", async ()
   assert.equal(res.body.cards[0].card_number, "OP14-119");
   assert.equal(res.body.cards[0].pricing.NM.reference_cents, 1234);
   assert.equal(res.body.cards[0].pricing.DMG.reference_cents, 125);
+  globalThis.fetch = originalFetch;
+  if (originalKey === undefined) delete process.env.JUSTTCG_API_KEY;
+  else process.env.JUSTTCG_API_KEY = originalKey;
+});
+
+test("JustTCG endpoint retries a combined card-number search with number filters", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.JUSTTCG_API_KEY;
+  process.env.JUSTTCG_API_KEY = "server-only-test-key";
+  const urls = [];
+  globalThis.fetch = async (url) => {
+    urls.push(url);
+    if (urls.length < 2) return providerResponse([]);
+    return providerResponse([
+      {
+        id: "mihawk",
+        name: "Dracule Mihawk",
+        number: "OP14-119",
+        set: "op14-one-piece",
+        set_name: "The Azure Sea's Seven",
+        variants: [{ condition: "Near Mint", price: 10 }],
+      },
+    ]);
+  };
+  const res = responseMock();
+  await handler({ method: "GET", query: { q: "OP14-119" } }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.cards[0].card_number, "OP14-119");
+  assert.match(urls[1], /number=OP14-119/);
   globalThis.fetch = originalFetch;
   if (originalKey === undefined) delete process.env.JUSTTCG_API_KEY;
   else process.env.JUSTTCG_API_KEY = originalKey;

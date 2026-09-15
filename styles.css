@@ -244,6 +244,8 @@ a {
   min-height: 410px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .result-card:after {
   content: "";
@@ -254,6 +256,7 @@ a {
   border-radius: 50%;
   right: -80px;
   bottom: -90px;
+  pointer-events: none;
 }
 .result-card .eyebrow {
   color: var(--yellow);
@@ -321,11 +324,8 @@ a {
   margin: 1rem 0 0;
 }
 .disclaimer {
-  position: absolute;
-  bottom: 1.5rem;
-  left: clamp(1.5rem, 4vw, 2.6rem);
-  right: clamp(1.5rem, 4vw, 2.6rem);
-  margin: 0;
+  position: relative;
+  margin: auto 0 0;
 }
 .unavailable {
   margin: 5rem 0 7rem;

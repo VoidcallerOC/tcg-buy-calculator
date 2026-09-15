@@ -178,7 +178,7 @@ function renderResult() {
   resultEmpty.hidden = true;
   resultReady.hidden = false;
   resultUnavailable.hidden = true;
-  resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 calculateButton.addEventListener("click", renderResult);
