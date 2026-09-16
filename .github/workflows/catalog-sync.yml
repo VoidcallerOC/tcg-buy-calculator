@@ -32,4 +32,4 @@ jobs:
           JUSTTCG_API_KEY: ${{ secrets.JUSTTCG_API_KEY }}
           SUPABASE_URL: https://agscctnjusfqcpisirsq.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          JUSTTCG_PAGE_SIZE: "20"
+          JUSTTCG_PAGE_SIZE: "100"
