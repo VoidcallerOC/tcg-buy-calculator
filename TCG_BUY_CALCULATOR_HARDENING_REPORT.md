@@ -24,7 +24,7 @@ The prior hardening remains in place: integer-cent and basis-point money calcula
 | Integer-cent offer calculation                 | Functional and tested                       |
 | Card search and explicit condition selection   | Functional and tested                       |
 | Missing/ambiguous pricing states               | Functional and tested                       |
-| Supabase production schema                     | Applied to TCG Calculator project                  |
+| Supabase production schema                     | Applied to TCG Calculator project           |
 | Public production client read path             | Smoke-tested with seeded Hard Hittin client |
 | Authenticated admin sign-in boundary           | Implemented; requires real assigned user    |
 | CSV preview                                    | Functional                                  |

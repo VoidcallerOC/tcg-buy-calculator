@@ -12,11 +12,11 @@ The first accessibility patch temporarily assigned `role="radio"` to native butt
 
 ## What Was Fixed
 
-| File | Changes |
-| --- | --- |
-| `api/cards.js` | Added resilient provider-data normalization, safe timestamp normalization for Unix and ISO values, malformed-variant skipping, explicit invalid-response handling, request timeout handling, whitespace normalization, and continued server-only API-key use. |
-| `app.js` | Added stale-price rejection honoring `stale_threshold_days` and `allow_stale_pricing`; made stale/unavailable states explicit; retained selected result cards with visible selected state; added accessible pressed-state updates; preserved native button semantics. |
-| `styles.css` | Added visible keyboard focus rings and a minimum touch target for condition controls without changing the approved visual system. |
+| File           | Changes                                                                                                                                                                                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api/cards.js` | Added resilient provider-data normalization, safe timestamp normalization for Unix and ISO values, malformed-variant skipping, explicit invalid-response handling, request timeout handling, whitespace normalization, and continued server-only API-key use.         |
+| `app.js`       | Added stale-price rejection honoring `stale_threshold_days` and `allow_stale_pricing`; made stale/unavailable states explicit; retained selected result cards with visible selected state; added accessible pressed-state updates; preserved native button semantics. |
+| `styles.css`   | Added visible keyboard focus rings and a minimum touch target for condition controls without changing the approved visual system.                                                                                                                                     |
 
 No unsafe HTML rendering was introduced. Provider values continue to be rendered through `textContent` and created DOM nodes.
 
@@ -32,12 +32,12 @@ The local sandbox also had no `JUSTTCG_API_KEY` environment variable, so a direc
 
 ## Test Results
 
-| Check | Result |
-| --- | --- |
-| `npm test` | **PASS** — formatting and all 26 unit/API tests passed. |
-| `npm run test:browser` | **PASS** — all 3 browser tests passed, including the narrow mobile journey. |
-| Build | **N/A** — `package.json` defines no build script; this is a static Vercel-compatible application with a serverless API route. |
-| `git diff --check` | **PASS** |
+| Check                  | Result                                                                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`             | **PASS** — formatting and all 26 unit/API tests passed.                                                                       |
+| `npm run test:browser` | **PASS** — all 3 browser tests passed, including the narrow mobile journey.                                                   |
+| Build                  | **N/A** — `package.json` defines no build script; this is a static Vercel-compatible application with a serverless API route. |
+| `git diff --check`     | **PASS**                                                                                                                      |
 
 The browser tests cover search, selection, condition selection, 60% cent-based calculation, unavailable pricing, and 390px mobile layout. They use deterministic route fixtures and do not prove live-provider availability.
 
