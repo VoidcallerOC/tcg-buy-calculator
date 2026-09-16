@@ -19,6 +19,7 @@ const conditions = [
 ];
 const state = { card: null, condition: null, request: 0, loading: false };
 const searchInput = document.querySelector("#card-search");
+const gameSelect = document.querySelector("#game-select");
 const searchResults = document.querySelector("#search-results");
 const searchMessage = document.querySelector("#search-message");
 const conditionList = document.querySelector("#condition-list");
@@ -27,6 +28,22 @@ const resultEmpty = document.querySelector("#result-empty");
 const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
 const resultPanel = document.querySelector("#result-panel");
+
+const gamesResponse = await fetch("/api/games").catch(() => null);
+if (gamesResponse?.ok) {
+  const gamesBody = await gamesResponse.json().catch(() => ({}));
+  const games = Array.isArray(gamesBody.games) ? gamesBody.games : [];
+  if (games.length) {
+    gameSelect.replaceChildren(
+      ...games.map((game) => {
+        const option = document.createElement("option");
+        option.value = game.provider_game_id ?? game.id;
+        option.textContent = game.name ?? option.value;
+        return option;
+      }),
+    );
+  }
+}
 
 function isPricingUsable(pricing) {
   if (!pricing || !Number.isSafeInteger(pricing.reference_cents)) return false;
@@ -131,7 +148,9 @@ async function searchCards(query) {
   const requestId = ++state.request;
   setSearchLoading(true);
   try {
-    const response = await fetch(`/api/cards?q=${encodeURIComponent(query)}`);
+    const response = await fetch(
+      `/api/cards?game=${encodeURIComponent(gameSelect.value)}&q=${encodeURIComponent(query)}`,
+    );
     const body = await response.json().catch(() => ({}));
     if (requestId !== state.request) return;
     if (!response.ok)
@@ -162,6 +181,14 @@ searchInput.addEventListener("input", () => {
     return;
   }
   searchTimer = window.setTimeout(() => searchCards(query), 300);
+});
+
+gameSelect.addEventListener("change", () => {
+  state.card = null;
+  searchResults.replaceChildren();
+  searchMessage.textContent =
+    "Start typing to search this game’s indexed catalog.";
+  calculateButton.disabled = true;
 });
 
 function renderResult() {
