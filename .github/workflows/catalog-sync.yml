@@ -26,9 +26,10 @@ jobs:
               exit 1
             fi
           done
-      - run: node scripts/sync-catalog.mjs
+      - name: Run full catalog sync
+        run: node scripts/sync-catalog.mjs
         env:
           JUSTTCG_API_KEY: ${{ secrets.JUSTTCG_API_KEY }}
           SUPABASE_URL: https://agscctnjusfqcpisirsq.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          JUSTTCG_PAGE_SIZE: "100"
+          JUSTTCG_PAGE_SIZE: "20"
