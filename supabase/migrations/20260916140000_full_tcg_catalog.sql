@@ -85,7 +85,7 @@ create table if not exists public.tcg_catalog_prices (
 create unique index if not exists tcg_catalog_one_active_price on public.tcg_catalog_prices (variant_id, condition_code) where active;
 create index if not exists tcg_catalog_prices_lookup_idx on public.tcg_catalog_prices (condition_code, active, source_updated_at desc);
 
-create table if not exists public.tcg_sync_runs (
+create table if not exists public.tcg_catalog_sync_runs (
   id uuid primary key default gen_random_uuid(),
   provider text not null,
   kind text not null check (kind in ('catalog', 'pricing')),
@@ -99,14 +99,14 @@ create table if not exists public.tcg_sync_runs (
   started_at timestamptz not null default now(),
   finished_at timestamptz
 );
-create index if not exists tcg_sync_runs_latest_idx on public.tcg_sync_runs (provider, kind, started_at desc);
+create index if not exists tcg_catalog_sync_runs_latest_idx on public.tcg_catalog_sync_runs (provider, kind, started_at desc);
 
 alter table public.tcg_games enable row level security;
 alter table public.tcg_sets enable row level security;
 alter table public.tcg_catalog_cards enable row level security;
 alter table public.tcg_card_variants enable row level security;
 alter table public.tcg_catalog_prices enable row level security;
-alter table public.tcg_sync_runs enable row level security;
+alter table public.tcg_catalog_sync_runs enable row level security;
 
 drop policy if exists tcg_public_games on public.tcg_games;
 create policy tcg_public_games on public.tcg_games for select using (active);
@@ -120,7 +120,7 @@ drop policy if exists tcg_public_prices on public.tcg_catalog_prices;
 create policy tcg_public_prices on public.tcg_catalog_prices for select using (active);
 
 grant select on public.tcg_games, public.tcg_sets, public.tcg_catalog_cards, public.tcg_card_variants, public.tcg_catalog_prices to anon, authenticated;
-grant select on public.tcg_sync_runs to authenticated;
+grant select on public.tcg_catalog_sync_runs to authenticated;
 
 create or replace function public.tcg_catalog_search(p_game_id uuid, p_query text, p_limit integer default 8)
 returns table (id uuid, game_id uuid, name text, card_number text, set_name text, set_code text, image_url text, rarity text)
