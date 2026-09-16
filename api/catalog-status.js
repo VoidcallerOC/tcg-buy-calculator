@@ -11,11 +11,9 @@ export default async function handler(req, res) {
   const base = String(process.env.SUPABASE_URL ?? "").replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!base || !key)
-    return res
-      .status(503)
-      .json({
-        error: "Catalog status requires server-side Supabase credentials.",
-      });
+    return res.status(503).json({
+      error: "Catalog status requires server-side Supabase credentials.",
+    });
   const headers = {
     apikey: key,
     Authorization: `Bearer ${key}`,
@@ -51,12 +49,10 @@ export default async function handler(req, res) {
         readCount("tcg_catalog_sync_runs", false),
         readLatest(),
       ]);
-    return res
-      .status(200)
-      .json({
-        counts: { games, sets, cards, variants, prices, sync_runs: syncRuns },
-        latest_sync: latest,
-      });
+    return res.status(200).json({
+      counts: { games, sets, cards, variants, prices, sync_runs: syncRuns },
+      latest_sync: latest,
+    });
   } catch (error) {
     return res.status(502).json({ error: error.message });
   }

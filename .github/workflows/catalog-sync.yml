@@ -1,0 +1,23 @@
+name: Full catalog sync
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+permissions:
+  contents: read
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: node scripts/sync-catalog.mjs
+        env:
+          JUSTTCG_API_KEY: ${{ secrets.JUSTTCG_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JUSTTCG_PAGE_SIZE: "100"
