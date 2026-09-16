@@ -36,11 +36,11 @@ The deployed `/api/games` endpoint returned the live JustTCG `/games` response w
 
 These are provider-reported baselines, not indexed database counts.
 
-## ForgeCT database verification
+## TCG Calculator database verification
 
-The prior ForgeCT migrations were already applied. The new non-destructive migration `full_multi_tcg_catalog` was applied successfully as migration `20260916173015` after reconciling a pre-existing legacy `tcg_sync_runs` table by using the separate `tcg_catalog_sync_runs` table.
+The prior TCG Calculator migrations were already applied. The new non-destructive migration `full_multi_tcg_catalog` was applied successfully as migration `20260916173015` after reconciling a pre-existing legacy `tcg_sync_runs` table by using the separate `tcg_catalog_sync_runs` table.
 
-Current exact catalog counts queried from ForgeCT:
+Current exact catalog counts queried from TCG Calculator:
 
 | Metric            | Count |
 | ----------------- | ----: |

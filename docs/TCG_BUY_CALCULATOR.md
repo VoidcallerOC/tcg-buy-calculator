@@ -32,7 +32,7 @@ The checked-in `data/config.json` retains Hard Hittin, 60%, USD, branding, discl
 
 ## Deployment
 
-The repository is Vercel-compatible and contains no build step beyond serving static assets. Link the GitHub repository to a Vercel project and deploy the production branch after the operational setup is complete. Supabase schema application is already complete for the configured ForgeCT project. Vercel environment variables are not needed for the public read path because the URL and publishable key are public configuration; service-role keys must remain in protected server/database tooling and must never be committed.
+The repository is Vercel-compatible and contains no build step beyond serving static assets. Link the GitHub repository to a Vercel project and deploy the production branch after the operational setup is complete. Supabase schema application is already complete for the configured TCG Calculator project. Vercel environment variables are not needed for the public read path because the URL and publishable key are public configuration; service-role keys must remain in protected server/database tooling and must never be committed.
 
 ## Troubleshooting and rollback
 

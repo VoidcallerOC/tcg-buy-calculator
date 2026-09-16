@@ -23,11 +23,11 @@ Open `http://localhost:4173/`. The browser suite uses the sample dataset and doe
 
 The frontend is a static Vercel-compatible site. Supabase provides Postgres, row-level security, authentication, and the server-side transactional publish function. The browser uses only the Supabase project URL and publishable key; no service-role key or database credential is shipped to the client.
 
-The production schema is in [`supabase/migrations/20260914210000_tcg_calculator.sql`](supabase/migrations/20260914210000_tcg_calculator.sql) and has been applied to the configured ForgeCT Supabase project. It creates clients, conditions, cards, pricing, pricing history, client-admin assignments, and import records. A partial unique index prevents more than one active price per client/card/condition. The `tcg_publish_pricing_import` function validates authorization and data, deactivates prior active prices, records history, and publishes the complete import in one transaction.
+The production schema is in [`supabase/migrations/20260914210000_tcg_calculator.sql`](supabase/migrations/20260914210000_tcg_calculator.sql) and has been applied to the dedicated TCG Calculator Supabase project. It creates clients, conditions, cards, pricing, pricing history, client-admin assignments, and import records. A partial unique index prevents more than one active price per client/card/condition. The `tcg_publish_pricing_import` function validates authorization and data, deactivates prior active prices, records history, and publishes the complete import in one transaction.
 
 ## Production setup
 
-1. Create an administrator in the ForgeCT Supabase Auth project.
+1. Create an administrator in the dedicated TCG Calculator Supabase Auth project.
 2. Insert that user’s UUID into `public.tcg_client_admins` for `client_id = 'hard-hittin'` using a protected database/admin workflow. Never expose a service-role key in the browser.
 3. Obtain an authorized maintained pricing dataset. Do not scrape or proxy an unauthorized provider.
 4. Sign in at `/admin/`, upload the eight-column CSV, review validation counts, and publish it. The browser preview cannot publish without an authenticated Supabase session and server-side RPC authorization.
