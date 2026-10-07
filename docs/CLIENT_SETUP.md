@@ -1,6 +1,6 @@
-# Client setup: a new Forge-CT calculator deployment
+# Client setup: a new calculator deployment
 
-Forge-CT operates one calculator application and configures each shop through data. A new client must not receive a source-code fork.
+One calculator application is configured per shop through data. A new client must not receive a source-code fork.
 
 ## Setup sequence
 
@@ -9,16 +9,17 @@ Forge-CT operates one calculator application and configures each shop through da
 3. Prepare an authorized pricing CSV with the required eight-column format.
 4. Sign in at `/admin/`, upload the CSV, resolve validation errors and duplicate conflicts, and review the preview counts.
 5. Explicitly publish the preview. The server-side transactional function revalidates rows, upserts cards, deactivates prior active prices, inserts the new active prices, records pricing history, and returns a summary. A failure leaves the previous dataset unchanged.
-6. Configure `data/config.json` for the client identifier and production pricing mode, then deploy the same repository through Vercel.
-7. Verify customer search, every supported condition, unavailable pricing, stale behavior, disclaimer text, and mobile layout.
+6. Configure `data/config.json` for the client identifier and production pricing mode, then deploy the same repository through Vercel project `tcg-buy-calculator`.
+7. Set `JUSTTCG_API_KEY` on that Vercel project (Production + Preview) when using live JustTCG lookups.
+8. Verify customer search, every supported condition, unavailable pricing, stale behavior, disclaimer text, and mobile layout.
 
 ## Pricing controls
 
 Use an authorized provider or a maintained internal dataset. Include source name and ISO `source_updated_at` values. Do not scrape unauthorized sites, fabricate live prices, or describe sample data as current. The stale threshold is configurable per client; the customer must see a stale warning or unavailable state when the configured policy disallows stale estimates.
 
-## Example clients
+## Default client
 
-Hard Hittin uses a 60% buy rate and remains the reference client. The Thousand Sunny would use a different client row, branding, administrator assignment, and maintained pricing dataset. No `TheSunnyCalculator` or `HardHittinCalculator` component is needed.
+The checked-in default client uses a **60% buy rate**, condition-neutral online multipliers (100% market reference for NM/LP/MP/HP/DMG), and generic TCG Buy Calculator branding. Additional shops use a different client row, branding, administrator assignment, and maintained pricing dataset. No shop-specific calculator source component is needed.
 
 ## Launch checklist
 
@@ -30,6 +31,7 @@ Hard Hittin uses a 60% buy rate and remains the reference client. The Thousand S
 - [ ] Controlled CSV publish succeeds
 - [ ] Pricing history contains the import
 - [ ] Production mode enabled only after pricing exists
+- [ ] `JUSTTCG_API_KEY` set on Vercel `tcg-buy-calculator`
 - [ ] Vercel deployment verified
 - [ ] Stale, unavailable, invalid CSV, and unauthorized states tested
 

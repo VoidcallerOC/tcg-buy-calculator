@@ -2,7 +2,7 @@
 
 ## Current status
 
-The calculator software is complete and Hard Hittin’s policy is approved. TCGCSV authorization remains **PENDING / UNCLEAR**. Production pricing activation is blocked until written authorization is received and recorded.
+The calculator software is complete and the condition-neutral online policy is approved. TCGCSV authorization remains **PENDING / UNCLEAR**. Production pricing activation is blocked until written authorization is received and recorded.
 
 The GitHub integration cannot create issues in the external TCGCSV repository. This is an external permission limitation, not a calculator software failure. Do not treat it as authorization evidence.
 
@@ -21,7 +21,7 @@ Submit the request manually through one of those official channels. Do not infer
 
 **Body:**
 
-Hello. We are building a card-buying calculator for Hard Hittin Card Shop (`hard-hittin`) that would use TCGCSV’s documented server-side JSON endpoints as a market-reference source.
+Hello. We are building a card-buying calculator (TCG Buy Calculator, client id `default`) that would use TCGCSV’s documented server-side JSON endpoints as a market-reference source.
 
 Before enabling production use, could you please confirm in writing:
 
@@ -36,7 +36,7 @@ The application would:
 - fetch data server-side only;
 - respect the documented daily sync cadence, request pacing, User-Agent, and request-volume limits;
 - identify the value as a “TCGCSV market reference,” not as condition-specific pricing;
-- apply Hard Hittin’s separate shop policy and 60% buy rate to calculate an estimated offer;
+- apply the shop’s separate condition-neutral policy and 60% buy rate to calculate an estimated offer;
 - display a final-offer disclaimer stating that physical inspection and shop policy may change the result.
 
 We will not publish TCGCSV-derived production pricing until this authorization and any attribution requirements are clarified. Thank you.
