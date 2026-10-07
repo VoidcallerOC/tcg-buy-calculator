@@ -184,11 +184,23 @@ searchInput.addEventListener("input", () => {
 });
 
 gameSelect.addEventListener("change", () => {
+  window.clearTimeout(searchTimer);
+  state.request += 1;
   state.card = null;
+  state.loading = false;
+  searchInput.setAttribute("aria-busy", "false");
   searchResults.replaceChildren();
-  searchMessage.textContent =
-    "Start typing to search this game’s indexed catalog.";
   calculateButton.disabled = true;
+  resultEmpty.hidden = false;
+  resultReady.hidden = true;
+  resultUnavailable.hidden = true;
+  const query = searchInput.value.trim();
+  if (query.length < 2) {
+    searchMessage.textContent =
+      "Start typing to search this game’s indexed catalog.";
+    return;
+  }
+  searchTimer = window.setTimeout(() => searchCards(query), 300);
 });
 
 function renderResult() {
