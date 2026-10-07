@@ -1,0 +1,262 @@
+{
+  "demo": true,
+  "notice": "DEMO DATA. Card names, sets and numbers are real; every price is an illustrative placeholder, not market data, and must never be shown as a live quote.",
+  "cards": [
+    {
+      "id": "demo-pokemon-199-165",
+      "game": "pokemon",
+      "name": "Charizard ex",
+      "set_name": "Scarlet & Violet—151",
+      "card_number": "199/165",
+      "rarity": "Special Illustration Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 20000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 17000,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 14000,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 10000,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 6000,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-pokemon-58-102",
+      "game": "pokemon",
+      "name": "Pikachu",
+      "set_name": "Base Set",
+      "card_number": "58/102",
+      "rarity": "Common",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 1000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 800,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 700,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 500,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 300,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-one-piece-card-game-op05-119",
+      "game": "one-piece-card-game",
+      "name": "Monkey.D.Luffy",
+      "set_name": "Awakening of the New Era",
+      "card_number": "OP05-119",
+      "rarity": "Secret Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 15000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 12800,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 10500,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 7500,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 4500,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-one-piece-card-game-op01-025",
+      "game": "one-piece-card-game",
+      "name": "Roronoa Zoro",
+      "set_name": "Romance Dawn",
+      "card_number": "OP01-025",
+      "rarity": "Super Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 2000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 1700,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 1400,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 1000,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 600,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-magic-the-gathering-107",
+      "game": "magic-the-gathering",
+      "name": "Sheoldred, the Apocalypse",
+      "set_name": "Dominaria United",
+      "card_number": "107",
+      "rarity": "Mythic Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 8000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 6800,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 5600,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 4000,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 2400,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-magic-the-gathering-146",
+      "game": "magic-the-gathering",
+      "name": "Lightning Bolt",
+      "set_name": "Magic 2010",
+      "card_number": "146",
+      "rarity": "Common",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 200,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 170,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 140,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 100,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 60,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-yugioh-macr-en036",
+      "game": "yugioh",
+      "name": "Ash Blossom & Joyous Spring",
+      "set_name": "Maximum Crisis",
+      "card_number": "MACR-EN036",
+      "rarity": "Secret Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 3000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 2600,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 2100,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 1500,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 900,
+          "demo": true
+        }
+      }
+    },
+    {
+      "id": "demo-yugioh-lob-en001",
+      "game": "yugioh",
+      "name": "Blue-Eyes White Dragon",
+      "set_name": "Legend of Blue Eyes White Dragon",
+      "card_number": "LOB-EN001",
+      "rarity": "Ultra Rare",
+      "image_url": null,
+      "demo": true,
+      "pricing": {
+        "NM": {
+          "reference_cents": 10000,
+          "demo": true
+        },
+        "LP": {
+          "reference_cents": 8500,
+          "demo": true
+        },
+        "MP": {
+          "reference_cents": 7000,
+          "demo": true
+        },
+        "HP": {
+          "reference_cents": 5000,
+          "demo": true
+        },
+        "DMG": {
+          "reference_cents": 3000,
+          "demo": true
+        }
+      }
+    }
+  ]
+}
