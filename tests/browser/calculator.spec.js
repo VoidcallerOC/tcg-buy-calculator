@@ -91,4 +91,65 @@ test.describe("TCG buy calculator", () => {
       await page.locator("body").evaluate((body) => body.scrollWidth),
     ).toBeLessThanOrEqual(390);
   });
+
+  test("ignores in-flight search results after the game changes", async ({
+    page,
+  }) => {
+    let releaseFirst;
+    const firstGate = new Promise((resolve) => {
+      releaseFirst = resolve;
+    });
+    let call = 0;
+    await page.unroute("**/api/cards?**");
+    await page.route("**/api/cards?**", async (route) => {
+      call += 1;
+      if (call === 1) {
+        await firstGate;
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            cards: [
+              {
+                id: "stale",
+                name: "Stale One Piece Hit",
+                card_number: "OP05-060",
+                set_name: "Stale Set",
+                pricing: { NM: { reference_cents: 1499 } },
+              },
+            ],
+          }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          cards: [
+            {
+              id: "fresh",
+              name: "Fresh Pokemon Hit",
+              card_number: "SV01-001",
+              set_name: "Scarlet & Violet",
+              pricing: { NM: { reference_cents: 500 } },
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto("/");
+    const firstRequest = page.waitForRequest("**/api/cards?**");
+    await page.getByLabel("Card search").fill("Hit");
+    await firstRequest;
+    await page.getByLabel("Game").selectOption("pokemon");
+    releaseFirst();
+    await expect(
+      page.getByRole("button", { name: /Fresh Pokemon Hit/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Stale One Piece Hit/ }),
+    ).toHaveCount(0);
+  });
 });
