@@ -249,21 +249,25 @@ searchInput.addEventListener("input", () => {
 });
 
 gameSelect.addEventListener("change", () => {
+  window.clearTimeout(searchTimer);
+  state.request += 1;
   state.card = null;
   state.condition = null;
   document.querySelectorAll(".condition-option").forEach((option) => {
     option.classList.remove("is-selected");
     option.setAttribute("aria-pressed", "false");
   });
-  window.clearTimeout(searchTimer);
-  state.request += 1;
+  setSearchLoading(false);
   searchResults.replaceChildren();
-  searchMessage.textContent =
-    "Start typing to search this game’s indexed catalog.";
   calculateButton.disabled = true;
   resetResult();
   const query = searchInput.value.trim();
-  if (query.length >= 2) searchCards(query);
+  if (query.length < 2) {
+    searchMessage.textContent =
+      "Start typing to search this game’s indexed catalog.";
+    return;
+  }
+  searchTimer = window.setTimeout(() => searchCards(query), 300);
 });
 
 function renderResult() {

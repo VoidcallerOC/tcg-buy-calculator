@@ -153,11 +153,24 @@ export default async function handler(req, res) {
       error: "Search must be between 2 and 120 characters.",
     });
   try {
-    const indexed = await catalogSearch(query, ALIASES[game] ?? game);
-    const cards = indexed ?? (await providerSearch(query, game));
+    let cards = null;
+    let source = "provider-fallback";
+    try {
+      const indexed = await catalogSearch(query, ALIASES[game] ?? game);
+      if (indexed !== null) {
+        cards = indexed;
+        source = "indexed-catalog";
+      }
+    } catch {
+      /* Indexed catalog unavailable — fall through to live provider. */
+    }
+    if (cards === null) {
+      cards = await providerSearch(query, game);
+      source = "provider-fallback";
+    }
     return json(res, 200, {
       game: ALIASES[game] ?? game,
-      source: indexed ? "indexed-catalog" : "provider-fallback",
+      source,
       cards,
     });
   } catch (error) {

@@ -578,7 +578,7 @@ test("cancel mid-scan stops the camera and ignores late results", async () => {
   assert.equal(session.state.status, SCAN_STATE.IDLE);
 });
 
-// ---------- Calculator integration (Hard Hittin 60% unchanged) ----------
+// ---------- Calculator integration (60% buy rate unchanged) ----------
 
 test("a scanned card enters calculateOffer at the configured 60% buy rate", async () => {
   const { session } = harness();

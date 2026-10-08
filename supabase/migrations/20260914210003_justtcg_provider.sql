@@ -15,7 +15,7 @@ set provider = 'JustTCG',
     response_url = 'https://justtcg.com/terms',
     terms_checked_at = '2026-09-14',
     terms_url = 'https://justtcg.com/terms'
-where client_id = 'hard-hittin';
+where client_id = 'default';
 
 create or replace function public.tcg_assert_production_publish_allowed()
 returns trigger language plpgsql security definer set search_path = public

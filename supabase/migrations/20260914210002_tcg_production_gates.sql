@@ -55,7 +55,7 @@ cross join (values ('NM', 'Near Mint'), ('LP', 'Lightly Played'), ('MP', 'Modera
 on conflict (client_id, condition_code) do nothing;
 
 insert into public.tcg_source_compliance (client_id, provider, commercial_use_status, derived_pricing_status, attribution_status, permission_evidence)
-values ('hard-hittin', 'TCGCSV', 'UNCLEAR', 'UNCLEAR', 'UNCLEAR', 'Official documentation reviewed; no commercial-use or derived-price redistribution license identified.')
+values ('default', 'TCGCSV', 'UNCLEAR', 'UNCLEAR', 'UNCLEAR', 'Official documentation reviewed; no commercial-use or derived-price redistribution license identified.')
 on conflict (client_id) do nothing;
 
 alter table public.tcg_condition_policies enable row level security;
