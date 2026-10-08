@@ -28,6 +28,7 @@ const resultEmpty = document.querySelector("#result-empty");
 const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
 const resultPanel = document.querySelector("#result-panel");
+const scanButton = document.querySelector("#scan-button");
 
 const gamesResponse = await fetch("/api/games").catch(() => null);
 if (gamesResponse?.ok) {
@@ -65,6 +66,12 @@ document.querySelector("[data-pricing-status]").textContent =
 document.documentElement.style.setProperty("--brick", config.primary_color);
 document.documentElement.style.setProperty("--yellow", config.secondary_color);
 
+function resetResult() {
+  resultEmpty.hidden = false;
+  resultReady.hidden = true;
+  resultUnavailable.hidden = true;
+}
+
 function setUnavailable(title, message) {
   resultEmpty.hidden = true;
   resultReady.hidden = true;
@@ -95,12 +102,28 @@ function renderConditions() {
       button.classList.add("is-selected");
       button.setAttribute("aria-pressed", "true");
       calculateButton.disabled = !state.card || state.loading;
-      resultEmpty.hidden = false;
-      resultReady.hidden = true;
-      resultUnavailable.hidden = true;
+      resetResult();
     });
     conditionList.append(button);
   }
+}
+
+function selectCard(
+  card,
+  button,
+  message = "Card selected. Choose a condition below.",
+) {
+  state.card = card;
+  document.querySelectorAll(".search-result").forEach((option) => {
+    option.classList.remove("is-selected");
+    option.setAttribute("aria-pressed", "false");
+  });
+  button?.classList.add("is-selected");
+  button?.setAttribute("aria-pressed", "true");
+  searchInput.value = `${card.name} · ${card.card_number}`;
+  searchMessage.textContent = message;
+  calculateButton.disabled = !state.condition;
+  resetResult();
 }
 
 function renderSearchResults(cards) {
@@ -125,37 +148,29 @@ function renderSearchResults(cards) {
     number.textContent = card.card_number;
     details.append(name, set);
     button.append(details, number);
-    button.addEventListener("click", () => {
-      state.card = card;
-      document.querySelectorAll(".search-result").forEach((option) => {
-        option.classList.remove("is-selected");
-        option.setAttribute("aria-pressed", "false");
-      });
-      button.classList.add("is-selected");
-      button.setAttribute("aria-pressed", "true");
-      searchInput.value = `${card.name} · ${card.card_number}`;
-      searchMessage.textContent = "Card selected. Choose a condition below.";
-      calculateButton.disabled = !state.condition;
-      resultEmpty.hidden = false;
-      resultReady.hidden = true;
-      resultUnavailable.hidden = true;
-    });
+    button.addEventListener("click", () => selectCard(card, button));
     searchResults.append(button);
   });
+}
+
+// Shared by manual search and the scanner: live catalog via /api/cards.
+async function lookupCards(query, game) {
+  const response = await fetch(
+    `/api/cards?game=${encodeURIComponent(game)}&q=${encodeURIComponent(query)}`,
+  );
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok)
+    throw new Error(body.error || "Live pricing provider is unavailable.");
+  return Array.isArray(body.cards) ? body.cards : [];
 }
 
 async function searchCards(query) {
   const requestId = ++state.request;
   setSearchLoading(true);
   try {
-    const response = await fetch(
-      `/api/cards?game=${encodeURIComponent(gameSelect.value)}&q=${encodeURIComponent(query)}`,
-    );
-    const body = await response.json().catch(() => ({}));
+    const cards = await lookupCards(query, gameSelect.value);
     if (requestId !== state.request) return;
-    if (!response.ok)
-      throw new Error(body.error || "Live pricing provider is unavailable.");
-    renderSearchResults(Array.isArray(body.cards) ? body.cards : []);
+    renderSearchResults(cards);
   } catch (error) {
     if (requestId !== state.request) return;
     searchResults.replaceChildren();
@@ -165,14 +180,64 @@ async function searchCards(query) {
   }
 }
 
+// Scanner is an input method only. A confirmed card enters the same selection
+// path as a manual search result; calculateOffer / buy rate are unchanged.
+function confirmScannedCard(card) {
+  if (
+    card.game &&
+    [...gameSelect.options].some((option) => option.value === card.game) &&
+    gameSelect.value !== card.game
+  ) {
+    gameSelect.value = card.game;
+    state.condition = null;
+    document.querySelectorAll(".condition-option").forEach((option) => {
+      option.classList.remove("is-selected");
+      option.setAttribute("aria-pressed", "false");
+    });
+  }
+  state.request += 1;
+  renderSearchResults([card]);
+  selectCard(
+    card,
+    searchResults.querySelector(".search-result"),
+    "Card confirmed from your scan. Choose a condition below.",
+  );
+  conditionList.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+scanButton.addEventListener("click", async () => {
+  scanButton.disabled = true;
+  try {
+    const { openScanner } = await import("./scanner/scanner-ui.js");
+    openScanner({
+      search: lookupCards,
+      selectedGame: () => gameSelect.value,
+      isDemo: () => false,
+      onConfirm: confirmScannedCard,
+      onManual: (query) => {
+        if (query) {
+          searchInput.value = query;
+          searchInput.dispatchEvent(new Event("input"));
+        }
+        searchInput.focus();
+      },
+      returnFocus: scanButton,
+    });
+  } catch {
+    searchMessage.textContent =
+      "The scanner could not load. Search for your card by name, set, or number.";
+    searchInput.focus();
+  } finally {
+    scanButton.disabled = false;
+  }
+});
+
 let searchTimer;
 searchInput.addEventListener("input", () => {
   window.clearTimeout(searchTimer);
   state.card = null;
   calculateButton.disabled = true;
-  resultEmpty.hidden = false;
-  resultReady.hidden = true;
-  resultUnavailable.hidden = true;
+  resetResult();
   const query = searchInput.value.trim();
   if (query.length < 2) {
     state.request += 1;
@@ -187,13 +252,15 @@ gameSelect.addEventListener("change", () => {
   window.clearTimeout(searchTimer);
   state.request += 1;
   state.card = null;
-  state.loading = false;
-  searchInput.setAttribute("aria-busy", "false");
+  state.condition = null;
+  document.querySelectorAll(".condition-option").forEach((option) => {
+    option.classList.remove("is-selected");
+    option.setAttribute("aria-pressed", "false");
+  });
+  setSearchLoading(false);
   searchResults.replaceChildren();
   calculateButton.disabled = true;
-  resultEmpty.hidden = false;
-  resultReady.hidden = true;
-  resultUnavailable.hidden = true;
+  resetResult();
   const query = searchInput.value.trim();
   if (query.length < 2) {
     searchMessage.textContent =

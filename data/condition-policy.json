@@ -2,7 +2,7 @@
   "status": "APPROVED",
   "policy_version": "1.0",
   "effective_date": "2026-09-14",
-  "approved_by": "Hard Hittin",
+  "approved_by": "Product owner",
   "notes": "Online estimate uses the same market reference across selected conditions. Final offer is subject to physical inspection and shop policy.",
   "conditions": {
     "NM": {
@@ -11,7 +11,7 @@
       "enabled": true,
       "status": "APPROVED",
       "effective_date": "2026-09-14",
-      "approved_by": "Hard Hittin",
+      "approved_by": "Product owner",
       "policy_version": "1.0",
       "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
     },
@@ -21,7 +21,7 @@
       "enabled": true,
       "status": "APPROVED",
       "effective_date": "2026-09-14",
-      "approved_by": "Hard Hittin",
+      "approved_by": "Product owner",
       "policy_version": "1.0",
       "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
     },
@@ -31,7 +31,7 @@
       "enabled": true,
       "status": "APPROVED",
       "effective_date": "2026-09-14",
-      "approved_by": "Hard Hittin",
+      "approved_by": "Product owner",
       "policy_version": "1.0",
       "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
     },
@@ -41,7 +41,7 @@
       "enabled": true,
       "status": "APPROVED",
       "effective_date": "2026-09-14",
-      "approved_by": "Hard Hittin",
+      "approved_by": "Product owner",
       "policy_version": "1.0",
       "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
     },
@@ -51,7 +51,7 @@
       "enabled": true,
       "status": "APPROVED",
       "effective_date": "2026-09-14",
-      "approved_by": "Hard Hittin",
+      "approved_by": "Product owner",
       "policy_version": "1.0",
       "notes": "Condition-neutral online estimate; final offer subject to physical inspection."
     }

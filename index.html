@@ -7,16 +7,16 @@
       name="description"
       content="Estimate your TCG card buy offer from maintained reference pricing data."
     />
-    <title>Buy Calculator | Hard Hittin Card Shop</title>
+    <title>TCG Buy Calculator</title>
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
-        <a class="brand" href="https://hardhittincardshop.com/"
-          >Hard Hittin <span>/</span>
-          <strong data-client-name>Hard Hittin</strong></a
+        <a class="brand" href="/"
+          >TCG Buy Calculator <span>/</span>
+          <strong data-client-name>TCG Buy Calculator</strong></a
         >
         <span class="status-pill">Estimate tool</span>
       </header>
@@ -51,6 +51,29 @@
             <option value="disney-lorcana">Disney Lorcana</option>
             <option value="flesh-and-blood">Flesh and Blood</option>
           </select>
+          <button
+            id="scan-button"
+            class="button scan-cta"
+            type="button"
+            aria-haspopup="dialog"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"
+              />
+              <rect x="8.5" y="7" width="7" height="10" rx="1" />
+            </svg>
+            Scan a card
+          </button>
+          <p class="scan-divider"><span>or search by hand</span></p>
           <label class="field-label" for="card-search">Card search</label>
           <input
             id="card-search"
@@ -100,8 +123,7 @@
                 ><strong id="reference-value">$0.00</strong>
               </div>
               <div>
-                <span>Hard Hittin Buy Rate</span
-                ><strong id="rate-value">60%</strong>
+                <span>Buy Rate</span><strong id="rate-value">60%</strong>
               </div>
             </div>
             <p id="result-card-label" class="result-card-label"></p>
@@ -123,10 +145,45 @@
         <span data-data-status
           >Live provider pricing — final offer subject to in-store
           verification.</span
-        ><a href="https://hardhittincardshop.com/"
-          >Back to Hard Hittin Card Shop</a
         >
       </footer>
     </main>
+
+    <div
+      id="scanner"
+      class="scanner"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scanner-heading"
+      hidden
+    >
+      <div class="scanner-bar">
+        <div>
+          <span class="eyebrow">TCG Buy Calculator</span>
+          <h2 id="scanner-heading">Scan a card</h2>
+        </div>
+        <button
+          class="scanner-close"
+          type="button"
+          data-scan-close
+          aria-label="Close scanner"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="scanner-stage">
+        <video
+          id="scanner-video"
+          class="scanner-video"
+          playsinline
+          muted
+        ></video>
+        <div id="scanner-guide" class="scanner-guide" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
+        <p id="scanner-hint" class="scanner-hint" aria-live="polite"></p>
+      </div>
+      <div id="scanner-panel" class="scanner-panel" aria-live="polite"></div>
+    </div>
   </body>
 </html>
