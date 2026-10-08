@@ -17,8 +17,10 @@ The API base URL is `https://api.justtcg.com/v1`. Requests use the server-side `
 
 The official commercial-use guidance and Terms permit end-user display, derived analytics, server-side caching, historical storage, and charging for a product on an active paid subscription. Attribution is appreciated but not required on paid tiers. Raw-data feeds, bulk exports, API proxying, and pricing-API substitution are prohibited. The free tier is personal and non-commercial.
 
-Accordingly, the provider adapter is implemented, but production authorization remains **UNCLEAR** until Hard Hittin has an active paid JustTCG plan and the deployment records the applicable subscription/compliance evidence. An API key alone does not establish commercial authorization.
+Accordingly, the provider adapter is implemented, but production authorization remains **UNCLEAR** until this product has an active paid JustTCG plan and the deployment records the applicable subscription/compliance evidence. An API key alone does not establish commercial authorization.
+
+Configure `JUSTTCG_API_KEY` as a server-side secret on Vercel project `tcg-buy-calculator` only. Do not assume the key exists on any other project.
 
 ## Data interpretation
 
-JustTCG describes prices as volume-weighted averages of observed market activity. The calculator therefore labels the value as a market reference. JustTCG condition-specific variants are not substituted into Hard Hittin’s approved policy; all five shop conditions remain at 100% of the provider market reference, then the 60% buy rate is applied.
+JustTCG describes prices as volume-weighted averages of observed market activity. The calculator therefore labels the value as a market reference. JustTCG condition-specific variants are not substituted into the approved condition-neutral policy; all five shop conditions remain at 100% of the provider market reference, then the 60% buy rate is applied.

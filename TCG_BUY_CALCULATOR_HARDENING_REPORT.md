@@ -18,20 +18,20 @@ The prior hardening remains in place: integer-cent and basis-point money calcula
 
 ## WHAT IS ACTUALLY FUNCTIONAL
 
-| Capability                                     | Status                                      |
-| ---------------------------------------------- | ------------------------------------------- |
-| Customer calculator in development/sample mode | Functional and tested                       |
-| Integer-cent offer calculation                 | Functional and tested                       |
-| Card search and explicit condition selection   | Functional and tested                       |
-| Missing/ambiguous pricing states               | Functional and tested                       |
-| Supabase production schema                     | Applied to TCG Calculator project           |
-| Public production client read path             | Smoke-tested with seeded Hard Hittin client |
-| Authenticated admin sign-in boundary           | Implemented; requires real assigned user    |
-| CSV preview                                    | Functional                                  |
-| Server-side transactional publish              | Implemented in Supabase RPC                 |
-| Pricing history and import records             | Implemented in schema/function              |
-| Vercel Git deployment                          | Linked and preview deployment READY         |
-| Authorized live pricing source                 | Not supplied                                |
+| Capability                                     | Status                                   |
+| ---------------------------------------------- | ---------------------------------------- |
+| Customer calculator in development/sample mode | Functional and tested                    |
+| Integer-cent offer calculation                 | Functional and tested                    |
+| Card search and explicit condition selection   | Functional and tested                    |
+| Missing/ambiguous pricing states               | Functional and tested                    |
+| Supabase production schema                     | Applied to TCG Calculator project        |
+| Public production client read path             | Smoke-tested with seeded default client  |
+| Authenticated admin sign-in boundary           | Implemented; requires real assigned user |
+| CSV preview                                    | Functional                               |
+| Server-side transactional publish              | Implemented in Supabase RPC              |
+| Pricing history and import records             | Implemented in schema/function           |
+| Vercel Git deployment                          | Linked and preview deployment READY      |
+| Authorized live pricing source                 | Not supplied                             |
 
 ## TESTS RUN
 
@@ -39,17 +39,17 @@ The prior hardening remains in place: integer-cent and basis-point money calcula
 - `npm run test:browser`: **passed** — 2 Playwright customer-flow tests.
 - `git diff --check`: **passed**.
 - Supabase schema inspection: **passed** — all calculator tables, foreign keys, RLS, indexes, and seeded client/conditions present.
-- Supabase REST smoke test: **passed** — the seeded Hard Hittin client returned through the public read path.
+- Supabase REST smoke test: **passed** — the seeded default client returned through the public read path.
 - Vercel deployment inspection: **passed** — deployment `dpl_G9zpiM7MGpZ3wM4PhHriR84VdL28` reached `READY`.
 - Direct anonymous HTTP access to the Vercel preview is protected by the team’s Vercel SSO deployment protection; this is expected and prevented an unauthenticated external browser smoke test of the protected preview URL.
 
 ## DATABASE STATUS
 
-**Applied and healthy.** The schema is deployed to Supabase project `TCG Calculator` (`agscctnjusfqcpisirsq`). The database currently contains the Hard Hittin client and five conditions, but zero cards and zero pricing rows because sample prices were not copied into production.
+**Applied and healthy.** The schema is deployed to Supabase project `TCG Calculator` (`agscctnjusfqcpisirsq`). The database currently contains the default client and five conditions, but zero cards and zero pricing rows because sample prices were not copied into production.
 
 ## AUTHENTICATION STATUS
 
-**Boundary implemented; operational assignment pending.** Supabase Auth is the admin identity provider. The admin UI requires a valid session, and the publish function requires membership in `tcg_client_admins`. A real administrator must be created in Supabase Auth and assigned to `hard-hittin` through a protected database/admin workflow.
+**Boundary implemented; operational assignment pending.** Supabase Auth is the admin identity provider. The admin UI requires a valid session, and the publish function requires membership in `tcg_client_admins`. A real administrator must be created in Supabase Auth and assigned to `default` through a protected database/admin workflow.
 
 ## PRICING-SOURCE STATUS
 
@@ -61,7 +61,7 @@ No service-role keys, database passwords, or credentials were committed. The bro
 
 ## REMAINING BLOCKERS AND EXACT NEXT ACTIONS
 
-1. **Create an admin account:** create the shop administrator in TCG Calculator Supabase Auth and add the resulting Auth user UUID to `public.tcg_client_admins` with `client_id = 'hard-hittin'`.
+1. **Create an admin account:** create the shop administrator in TCG Calculator Supabase Auth and add the resulting Auth user UUID to `public.tcg_client_admins` with `client_id = 'default'`.
 2. **Import authorized pricing:** sign in at `/admin/`, upload the maintained eight-column CSV, review the preview, and publish it.
 3. **Switch production mode:** change `pricing_mode` from `sample` to `production` only after cards and pricing exist, then push the configuration and redeploy.
 4. **Run the authenticated smoke test:** verify sign-in, preview, publish, history, customer pricing, stale behavior, invalid CSV rejection, and unauthorized access.

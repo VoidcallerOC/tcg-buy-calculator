@@ -2,7 +2,7 @@
 
 ## Conclusion
 
-The calculator is **YELLOW — READY BUT OPERATIONAL INPUT REQUIRED**, with production synchronization deliberately **BLOCKED**. Hard Hittin's approved 60% buy rate and condition-neutral online policy are configured. The repository distinguishes a TCGCSV market reference from the shop policy and buy rate. It does not claim that TCGCSV grants commercial-use permission.
+The calculator is **YELLOW — READY BUT OPERATIONAL INPUT REQUIRED**, with production synchronization deliberately **BLOCKED**. The approved 60% buy rate and condition-neutral online policy are configured. The repository distinguishes a TCGCSV market reference from the shop policy and buy rate. It does not claim that TCGCSV grants commercial-use permission.
 
 ## TCGCSV
 
@@ -21,9 +21,9 @@ The code therefore records `tcgcsv_commercial_use_status: UNCLEAR`, `tcgcsv_deri
 
 ## Condition Policy
 
-The policy model is configurable and versioned. Hard Hittin approved a **condition-neutral online estimate** effective 2026-09-14, version 1.0. NM, LP, MP, HP, and DMG each use a 100% market-reference multiplier. This is a shop policy, not condition-specific TCGCSV pricing. Physical inspection and shop policy determine the final offer.
+The policy model is configurable and versioned. A **condition-neutral online estimate** was approved effective 2026-09-14, version 1.0. NM, LP, MP, HP, and DMG each use a 100% market-reference multiplier. This is a shop policy, not condition-specific TCGCSV pricing. Physical inspection and shop policy determine the final offer.
 
-TCGCSV `marketPrice` remains a **market reference**. It is not labeled as an NM, LP, MP, HP, or DMG price. The approved policy applies the same market reference across selected conditions before the 60% Hard Hittin buy rate is applied.
+TCGCSV `marketPrice` remains a **market reference**. It is not labeled as an NM, LP, MP, HP, or DMG price. The approved policy applies the same market reference across selected conditions before the 60% buy rate is applied.
 
 ## Catalog
 

@@ -1,4 +1,4 @@
-# HARD HITTIN — JUSTTCG PROVIDER MIGRATION STATUS
+# JUSTTCG PROVIDER MIGRATION STATUS
 
 ## Current status
 
@@ -20,14 +20,14 @@ References:
 ## Current authorization state
 
 - Provider: **JustTCG**
-- Credential: **CONFIGURED server-side in Supabase Edge Function Secrets**
+- Credential on Vercel `tcg-buy-calculator`: **UNVERIFIED / not configured** (env list empty as of 2026-10-07)
 - Commercial use: **UNCLEAR** until an active paid plan is configured and recorded
 - Derived pricing: **UNCLEAR** until the paid-plan evidence is recorded
 - Attribution: **UNCLEAR**
 - Overall provider authorization: **PENDING**
 - Production: **BLOCKED**
 
-An API key alone is not treated as commercial authorization. The deployment must use a paid plan and must not expose the key to the browser. The current Edge Function secret confirms credential configuration only; it does not verify the subscription tier.
+An API key alone is not treated as commercial authorization. Configure `JUSTTCG_API_KEY` on Vercel project `tcg-buy-calculator` only. Do not assume the key exists elsewhere.
 
 ## Implemented
 
@@ -38,14 +38,14 @@ An API key alone is not treated as commercial authorization. The deployment must
 - Non-negative numeric-price validation.
 - Freshness metadata from JustTCG `lastUpdated` timestamps.
 - JustTCG-only production provider selection with no TCGCSV fallback.
-- Existing Hard Hittin condition-neutral policy preserved at 100% for all five conditions.
+- Condition-neutral policy preserved at 100% for all five conditions.
 - Existing 60% buy-rate calculation preserved.
 - Existing authenticated, transactional Supabase publication path preserved.
 
 ## Remaining activation requirements
 
 1. Obtain an active paid JustTCG plan for the production application.
-2. Store `JUSTTCG_API_KEY` as a server-side deployment secret.
+2. Store `JUSTTCG_API_KEY` as a server-side secret on Vercel project `tcg-buy-calculator` (Production + Preview).
 3. Record the provider plan, terms URL, checked date, scope, restrictions, and evidence in the compliance record.
 4. Run a controlled server-side sync preview for the intended games.
 5. Validate identifiers, prices, timestamps, freshness, and catalog boundaries.

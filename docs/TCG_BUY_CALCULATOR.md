@@ -1,6 +1,6 @@
-# Forge-CT TCG Buy Calculator
+# TCG Buy Calculator
 
-The TCG Buy Calculator is a reusable white-label product owned and maintained by Forge-CT. Hard Hittin is the first client configuration; The Thousand Sunny can become another client through data and configuration rather than a copied application.
+The TCG Buy Calculator is a standalone generic product. Live demo: `https://tcg-buy-calculator.vercel.app`. Vercel project: `tcg-buy-calculator`. Additional shop deployments can use the same application through data and configuration rather than a copied codebase.
 
 ## Architecture
 
@@ -28,11 +28,11 @@ Customer read access is protected by RLS policies that expose only active public
 
 ## Client configuration
 
-The checked-in `data/config.json` retains Hard Hittin, 60%, USD, branding, disclaimer, and the Supabase project’s public URL/key. It is intentionally set to `pricing_mode: "sample"` until production pricing is imported. To launch a client, create its database client record, assign administrators, import an authorized dataset, configure the client identifier, and switch the deployment to production mode. No client-specific calculator source file is needed.
+The checked-in `data/config.json` uses the generic `default` client, a 60% buy rate, USD, neutral branding, disclaimer, and the Supabase project’s public URL/key. Configure `JUSTTCG_API_KEY` on Vercel project `tcg-buy-calculator` for live provider lookups. To launch a client, create its database client record, assign administrators, import an authorized dataset, configure the client identifier, and switch the deployment to production mode. No client-specific calculator source file is needed.
 
 ## Deployment
 
-The repository is Vercel-compatible and contains no build step beyond serving static assets. Link the GitHub repository to a Vercel project and deploy the production branch after the operational setup is complete. Supabase schema application is already complete for the configured TCG Calculator project. Vercel environment variables are not needed for the public read path because the URL and publishable key are public configuration; service-role keys must remain in protected server/database tooling and must never be committed.
+The repository is Vercel-compatible and contains no build step beyond serving static assets. Link the GitHub repository to Vercel project `tcg-buy-calculator` and deploy the production branch after the operational setup is complete. Supabase schema application is already complete for the configured TCG Calculator project. Set `JUSTTCG_API_KEY` (and optional catalog secrets) on this project; service-role keys must remain in protected server/database tooling and must never be committed.
 
 ## Troubleshooting and rollback
 
