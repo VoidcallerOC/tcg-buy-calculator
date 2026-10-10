@@ -52,48 +52,6 @@ const listNote = document.querySelector("#card-list-note");
 const scanNextButton = document.querySelector("#scan-next");
 const clearListButton = document.querySelector("#clear-list");
 
-const gamesResponse = await fetch("/api/games").catch(() => null);
-if (gamesResponse?.ok) {
-  const gamesBody = await gamesResponse.json().catch(() => ({}));
-  const games = Array.isArray(gamesBody.games) ? gamesBody.games : [];
-  if (games.length) {
-    // Keep the featured games (the static list) first, with their labels and
-    // the default selection; other provider games follow alphabetically.
-    const featured = [...gameSelect.options].map((option) => ({
-      value: option.value,
-      label: option.textContent.trim(),
-    }));
-    const selected = gameSelect.value;
-    const rank = (id) => {
-      const index = featured.findIndex((game) => game.value === id);
-      return index === -1 ? featured.length : index;
-    };
-    const ordered = games
-      .map((game) => ({
-        value: String(game.provider_game_id ?? game.id ?? ""),
-        label: String(game.name ?? ""),
-      }))
-      .filter((game) => game.value)
-      .sort(
-        (a, b) =>
-          rank(a.value) - rank(b.value) || a.label.localeCompare(b.label),
-      );
-    gameSelect.replaceChildren(
-      ...ordered.map((game) => {
-        const option = document.createElement("option");
-        option.value = game.value;
-        option.textContent =
-          featured.find((item) => item.value === game.value)?.label ||
-          game.label ||
-          game.value;
-        return option;
-      }),
-    );
-    if (ordered.some((game) => game.value === selected))
-      gameSelect.value = selected;
-  }
-}
-
 // "usable" | "missing" | "undated" | "stale". A price without a source date
 // cannot be shown as current, so it is never usable.
 function pricingState(pricing) {
@@ -524,6 +482,53 @@ gameSelect.addEventListener("change", () => {
   searchTimer = window.setTimeout(() => searchCards(query), 300);
 });
 
+// Merges the live game list into the static one. Runs after the listeners
+// are attached, so a slow /api/games never swallows early input; the
+// customer's state is reset only if the merge changes the selected game.
+async function loadGames() {
+  const gamesResponse = await fetch("/api/games").catch(() => null);
+  if (!gamesResponse?.ok) return;
+  const gamesBody = await gamesResponse.json().catch(() => ({}));
+  const games = Array.isArray(gamesBody.games) ? gamesBody.games : [];
+  if (!games.length) return;
+  // Keep the featured games (the static list) first, with their labels and
+  // the default selection; other provider games follow alphabetically.
+  const featured = [...gameSelect.options].map((option) => ({
+    value: option.value,
+    label: option.textContent.trim(),
+  }));
+  const selected = gameSelect.value;
+  const rank = (id) => {
+    const index = featured.findIndex((game) => game.value === id);
+    return index === -1 ? featured.length : index;
+  };
+  const ordered = games
+    .map((game) => ({
+      value: String(game.provider_game_id ?? game.id ?? ""),
+      label: String(game.name ?? ""),
+    }))
+    .filter((game) => game.value)
+    .sort(
+      (a, b) => rank(a.value) - rank(b.value) || a.label.localeCompare(b.label),
+    );
+  gameSelect.replaceChildren(
+    ...ordered.map((game) => {
+      const option = document.createElement("option");
+      option.value = game.value;
+      option.textContent =
+        featured.find((item) => item.value === game.value)?.label ||
+        game.label ||
+        game.value;
+      return option;
+    }),
+  );
+  if (ordered.some((game) => game.value === selected))
+    gameSelect.value = selected;
+  // The selected game is gone; anything entered for it no longer applies.
+  else if (searchInput.value.trim() || state.card || state.condition)
+    gameSelect.dispatchEvent(new Event("change"));
+}
+
 function renderResult() {
   if (!state.card || !state.condition || state.loading) return;
   const pricing = state.card.pricing?.[state.condition.code];
@@ -595,3 +600,4 @@ resultsToggle.addEventListener("click", () =>
 );
 renderConditions();
 updateCalculateState();
+loadGames();
