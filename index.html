@@ -137,9 +137,46 @@
               No maintained market reference was found. We never invent a price.
             </p>
           </div>
+          <button
+            id="add-to-list"
+            class="button add-to-list"
+            type="button"
+            hidden
+          >
+            Add to my list
+          </button>
           <p class="pricing-status" data-pricing-status></p>
           <p class="disclaimer" data-disclaimer></p>
         </aside>
+      </section>
+
+      <section
+        id="card-list"
+        class="card-list"
+        aria-labelledby="card-list-heading"
+        hidden
+      >
+        <div class="card-list-head">
+          <div>
+            <p class="eyebrow">Your cards</p>
+            <h2 id="card-list-heading">Cards in this visit</h2>
+          </div>
+          <span id="card-list-count" class="status-pill"></span>
+        </div>
+        <ol id="card-list-items" class="card-list-items"></ol>
+        <div class="card-list-total">
+          <span>Estimated total offer</span>
+          <strong id="card-list-total">$0.00</strong>
+        </div>
+        <p id="card-list-note" class="card-list-note" aria-live="polite"></p>
+        <div class="card-list-actions">
+          <button id="scan-next" class="button" type="button">
+            Scan next card
+          </button>
+          <button id="clear-list" class="button button--ghost" type="button">
+            Clear list
+          </button>
+        </div>
       </section>
 
       <footer class="footer-row">

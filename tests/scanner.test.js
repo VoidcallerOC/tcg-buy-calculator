@@ -15,6 +15,7 @@ import {
 } from "../scanner/camera-capture.js";
 import {
   bestSearchQuery,
+  correctClues,
   extractClues,
   hasUsableClues,
 } from "../scanner/card-identifier.js";
@@ -739,4 +740,100 @@ test("CameraCapture stops a stream granted after the scanner closed", async () =
   assert.equal(media.tracks[0].stopped, true);
   assert.equal(camera.stream, null);
   assert.equal(video.srcObject, null);
+});
+
+// ---------- Manual correction ----------
+
+test("corrected number is normalised and its game recognised from the format", () => {
+  const read = extractClues(ocrPasses("Nami\nOP01-0l6"));
+  const fixed = correctClues(
+    read,
+    { name: " Nami ", number: "OP0S-1l9" },
+    "pokemon",
+  );
+  assert.equal(fixed.corrected, true);
+  assert.deepEqual(fixed.names, ["Nami"]);
+  assert.deepEqual(
+    fixed.identifiers.map((item) => [item.game, item.query]),
+    [["one-piece-card-game", "OP05-119"]],
+  );
+});
+
+test("a number no pattern knows is searched as typed in the selected game", () => {
+  const fixed = correctClues(
+    null,
+    { name: "", number: "107" },
+    "magic-the-gathering",
+  );
+  assert.deepEqual(
+    fixed.identifiers.map((item) => [item.game, item.query]),
+    [["magic-the-gathering", "107"]],
+  );
+  assert.deepEqual(fixed.names, []);
+});
+
+test("blank correction yields no usable clues (nothing searched)", () => {
+  assert.equal(
+    hasUsableClues(correctClues(null, { name: " ", number: "" }, "pokemon")),
+    false,
+  );
+});
+
+test("rematch searches the corrected clues and can identify the card", async () => {
+  const searches = [];
+  const { session } = harness({
+    ocrText: ["Charizrd", ""],
+    search: async (query, game) => {
+      searches.push(`${game}:${query}`);
+      return fixtureSearch(query, game);
+    },
+  });
+  await session.open();
+  await session.capture();
+  assert.equal(session.state.status, SCAN_STATE.RESULT);
+  assert.notEqual(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  await session.rematch(
+    correctClues(
+      session.state.clues,
+      { name: "Charizard ex", number: "199/165" },
+      "pokemon",
+    ),
+  );
+  assert.equal(session.state.status, SCAN_STATE.RESULT);
+  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(session.state.clues.corrected, true);
+  assert.ok(searches.includes("pokemon:199/165"));
+});
+
+test("rematch is ignored while the camera is live (no stray searches)", async () => {
+  let searched = false;
+  const { session } = harness({
+    search: async () => {
+      searched = true;
+      return [];
+    },
+  });
+  await session.open();
+  await session.rematch(
+    correctClues(null, { name: "Charizard ex" }, "pokemon"),
+  );
+  assert.equal(session.state.status, SCAN_STATE.LIVE);
+  assert.equal(searched, false);
+});
+
+test("search failure keeps what was read so it can be corrected and retried", async () => {
+  let fail = true;
+  const { session } = harness({
+    search: async (query, game) => {
+      if (fail) throw new Error("Live pricing provider request failed.");
+      return fixtureSearch(query, game);
+    },
+  });
+  await session.open();
+  await session.capture();
+  assert.equal(session.state.code, SCAN_ERROR.SEARCH_FAILED);
+  assert.ok(session.state.clues.identifiers.length);
+  fail = false;
+  await session.rematch(session.state.clues);
+  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
 });

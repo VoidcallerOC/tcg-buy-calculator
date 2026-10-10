@@ -402,6 +402,115 @@ a {
 .footer-row a:hover {
   color: var(--brick);
 }
+.add-to-list {
+  position: relative;
+  margin: 1.25rem 0 0;
+  background: var(--yellow);
+  color: var(--ink);
+}
+.add-to-list:hover:not(:disabled) {
+  background: #fff;
+}
+.card-list {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.card-list-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.card-list-head h2 {
+  font-family: "Instrument Serif", serif;
+  font-size: 1.9rem;
+  font-weight: 400;
+  margin: 0 0 1rem;
+}
+.card-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.card-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.card-list-item strong,
+.card-list-item small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.card-list-item small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+.card-list-offer {
+  font-family: "DM Mono", monospace;
+  font-weight: 500;
+}
+.card-list-remove {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.card-list-remove:hover {
+  border-color: var(--brick);
+  color: var(--brick);
+}
+.card-list-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 0 0.25rem;
+}
+.card-list-total strong {
+  font-family: "Instrument Serif", serif;
+  font-size: 2.4rem;
+  font-weight: 400;
+  color: var(--brick);
+}
+.card-list-note {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  margin: 0.25rem 0 1rem;
+}
+.card-list-actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.65rem;
+}
+@media (max-width: 420px) {
+  .card-list {
+    padding: 1.1rem;
+  }
+  .card-list-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .card-list-remove {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .card-list-actions {
+    grid-template-columns: 1fr;
+  }
+}
 [hidden] {
   display: none !important;
 }
@@ -635,6 +744,39 @@ body.scanner-open {
 .scanner-capture {
   flex-basis: 100% !important;
   min-height: 3.5rem;
+}
+.scanner-correct {
+  margin: 0.5rem 0 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.scanner-correct summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.scanner-correct-form {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 0.75rem 0.75rem;
+}
+.scanner-field span {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+.scanner-field input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 1rem;
 }
 .scan-candidates {
   display: grid;

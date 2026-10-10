@@ -50,6 +50,22 @@ export function createScanSession({
   };
   const fail = (code, token, detail = {}) =>
     set({ status: SCAN_STATE.ERROR, code, ...detail }, token);
+  const match = async (clues, token) => {
+    if (!set({ status: SCAN_STATE.PROCESSING, step: "matching", clues }, token))
+      return;
+    try {
+      const result = await matchCatalog(clues, {
+        selectedGame: selectedGame(),
+        search,
+      });
+      set({ status: SCAN_STATE.RESULT, match: result, clues }, token);
+    } catch (error) {
+      fail(SCAN_ERROR.SEARCH_FAILED, token, {
+        message: error?.message,
+        clues,
+      });
+    }
+  };
 
   return {
     get state() {
@@ -119,19 +135,35 @@ export function createScanSession({
           },
           token,
         );
+      return match(clues, token);
+    },
+
+    // Search again with corrected clues (typed by the customer after a scan).
+    // The camera keeps running; nothing is matched without a search.
+    async rematch(clues) {
       if (
-        !set({ status: SCAN_STATE.PROCESSING, step: "matching", clues }, token)
+        state.status !== SCAN_STATE.RESULT &&
+        !(
+          state.status === SCAN_STATE.ERROR &&
+          state.code === SCAN_ERROR.SEARCH_FAILED
+        )
       )
         return;
-      try {
-        const match = await matchCatalog(clues, {
-          selectedGame: selectedGame(),
-          search,
-        });
-        set({ status: SCAN_STATE.RESULT, match, clues }, token);
-      } catch (error) {
-        fail(SCAN_ERROR.SEARCH_FAILED, token, { message: error?.message });
-      }
+      const token = ++run;
+      if (!hasUsableClues(clues))
+        return set(
+          {
+            status: SCAN_STATE.RESULT,
+            match: {
+              status: MATCH_STATUS.NOT_IDENTIFIED,
+              candidates: [],
+              reason: "no_text",
+            },
+            clues,
+          },
+          token,
+        );
+      return match(clues, token);
     },
 
     // Back to the live camera (camera keeps running between scans).

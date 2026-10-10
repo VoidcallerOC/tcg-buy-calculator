@@ -118,3 +118,42 @@ export function bestSearchQuery(clues) {
 export function hasUsableClues(clues) {
   return clues.identifiers.length > 0 || clues.names.length > 0;
 }
+
+// Owner/customer correction of a scan: what they typed replaces what was read.
+// A typed number is run through the same per-game patterns (so "OP0S-1l9"
+// still becomes OP05-119 and its game is recognised); a number no pattern
+// knows is searched as typed in the selected game. Nothing else is inferred.
+export function correctClues(clues, { name, number } = {}, fallbackGame) {
+  const typedName = String(name ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+  const typedNumber = String(number ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 40);
+  let identifiers = [];
+  if (typedNumber) {
+    identifiers = extractClues([{ text: typedNumber }]).identifiers;
+    if (!identifiers.some((item) => item.query))
+      identifiers = fallbackGame
+        ? [
+            {
+              game: fallbackGame,
+              query: typedNumber.toUpperCase(),
+              setCode: null,
+              raw: typedNumber,
+            },
+          ]
+        : [];
+  }
+  return {
+    identifiers: identifiers.filter((item) => item.query),
+    names: typedName ? [typedName] : [],
+    setCodes: clues?.setCodes ?? [],
+    language: clues?.language ?? null,
+    ocrConfidence: clues?.ocrConfidence ?? 0,
+    text: clues?.text ?? "",
+    corrected: true,
+  };
+}

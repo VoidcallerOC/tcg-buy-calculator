@@ -7,7 +7,7 @@ import { createTesseractEngine } from "./ocr-engine.js";
 import { createScanSession, SCAN_STATE, SCAN_ERROR } from "./scan-session.js";
 import { MATCH_STATUS } from "./catalog-matcher.js";
 import { gameLabel } from "./game-patterns.js";
-import { bestSearchQuery } from "./card-identifier.js";
+import { bestSearchQuery, correctClues } from "./card-identifier.js";
 
 const ERRORS = {
   [SCAN_ERROR.DENIED]: [
@@ -151,7 +151,9 @@ function createUi() {
     // Modal dialog: keep Tab focus inside the scanner.
     if (event.key !== "Tab") return;
     const focusable = [
-      ...root.querySelectorAll("button:not([disabled]), [href], input"),
+      ...root.querySelectorAll(
+        "button:not([disabled]), [href], input, summary",
+      ),
     ].filter((node) => node.offsetParent !== null);
     if (!focusable.length) return;
     const first = focusable[0];
@@ -179,6 +181,8 @@ function createUi() {
   const againButton = () =>
     button("Scan again", "button button--ghost", () => state.session.retry());
 
+  // What the camera read (or the customer typed) is text, not a verified
+  // card: say which, so it is never mistaken for the catalog match.
   function cluesLine(clues) {
     if (!clues) return null;
     const read = [
@@ -189,9 +193,63 @@ function createUi() {
       "p",
       "scanner-read",
       read.length
-        ? `Read from card: ${read.join(" · ")}`
+        ? `${clues.corrected ? "You entered" : "Read from card (text only, not verified)"}: ${read.join(" · ")}`
         : "No readable text found on the card.",
     );
+  }
+
+  // Manual correction: edit the name/number that were read, then search the
+  // catalog again. Open by default when nothing was identified.
+  function correctionForm(clues, open) {
+    const details = el("details", "scanner-correct");
+    details.open = open;
+    details.append(
+      el(
+        "summary",
+        "",
+        clues?.names?.length || clues?.identifiers?.length
+          ? "Fix what was read"
+          : "Type the card details",
+      ),
+    );
+    const form = el("form", "scanner-correct-form");
+    const field = (label, name, value, placeholder) => {
+      const wrap = el("label", "scanner-field");
+      const input = el("input");
+      input.name = name;
+      input.value = value;
+      input.placeholder = placeholder;
+      input.autocomplete = "off";
+      input.spellcheck = false;
+      wrap.append(el("span", "", label), input);
+      return wrap;
+    };
+    const readNumber = clues?.identifiers?.find((item) => item.query);
+    form.append(
+      field("Card name", "name", clues?.names?.[0] ?? "", "e.g. Charizard ex"),
+      field(
+        "Card number",
+        "number",
+        readNumber?.query ?? "",
+        "e.g. 199/165 or OP05-119",
+      ),
+    );
+    const submit = el("button", "button button--secondary", "Search again");
+    submit.type = "submit";
+    form.append(submit);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      state.session.rematch(
+        correctClues(
+          clues,
+          { name: data.get("name"), number: data.get("number") },
+          state.options.selectedGame(),
+        ),
+      );
+    });
+    details.append(form);
+    return details;
   }
 
   function candidate(item, primary) {
@@ -296,12 +354,19 @@ function createUi() {
         break;
       case SCAN_STATE.RESULT: {
         const { match, clues } = next;
+        const matchNote = el(
+          "p",
+          "scanner-note",
+          "Catalog match from the text on the card. Check the set and printing (foil, edition) yourself; condition is never judged from the photo.",
+        );
         if (match.status === MATCH_STATUS.IDENTIFIED) {
           hint.textContent = "Card found";
           fill(
             el("span", "eyebrow", "Card found"),
             candidate(match.candidates[0], true),
+            matchNote,
             cluesLine(clues),
+            correctionForm(clues, false),
             actions(againButton(), manualButton()),
           );
         } else if (match.status === MATCH_STATUS.NEEDS_CONFIRMATION) {
@@ -320,7 +385,9 @@ function createUi() {
                 : "Is this your card?",
             ),
             list,
+            matchNote,
             cluesLine(clues),
+            correctionForm(clues, false),
             actions(againButton(), manualButton()),
           );
         } else {
@@ -347,9 +414,10 @@ function createUi() {
                 ? "Hold the phone steady about 15–20 cm (6–8 in) from the card, wait for it to focus, then capture. Good light helps; avoid glare."
                 : notInDemo
                   ? "Demo mode can only match its few sample cards. With live pricing connected, the full catalog is searched."
-                  : "Try again with the whole card in the frame and less glare, or search by name.",
+                  : "Try again with the whole card in the frame and less glare, fix what was read below, or search by name.",
             ),
             cluesLine(clues),
+            correctionForm(clues, true),
             actions(againButton(), manualButton()),
           );
         }
@@ -367,6 +435,8 @@ function createUi() {
         );
         if (next.code === SCAN_ERROR.SEARCH_FAILED && next.message)
           fill(el("p", "scanner-read", next.message));
+        if (next.code === SCAN_ERROR.SEARCH_FAILED && next.clues)
+          fill(cluesLine(next.clues), correctionForm(next.clues, false));
         fill(
           actions(
             ...(canRetry

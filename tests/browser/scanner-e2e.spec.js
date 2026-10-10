@@ -207,3 +207,73 @@ test("Tab focus stays inside the scanner dialog", async ({ page }) => {
     ).toBe(true);
   }
 });
+
+test("misread card → correct the number → catalog match → list → scan next", async ({
+  page,
+}) => {
+  const searches = [];
+  await page.route("**/api/cards?**", async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const query = params.get("q") ?? "";
+    searches.push(`${params.get("game")}:${query}`);
+    const found = query === "199/165" || /charizard/i.test(query);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        cards: found
+          ? [
+              {
+                ...charizard,
+                id: "charizard",
+                pricing: {
+                  NM: { reference_cents: 20000, source_updated_at: fresh() },
+                },
+              },
+            ]
+          : [],
+      }),
+    });
+  });
+  // A name the catalog does not know and no readable collector number.
+  await fakeCamera(page, {
+    lines: [{ text: "Zqxvbn wkj", size: 44, x: 0.08, y: 0.1 }],
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  // Not identified: the correction form is already open.
+  const number = page.getByLabel("Card number");
+  await expect(number).toBeVisible();
+  await page.getByLabel("Card name").fill("");
+  await number.fill("199/165");
+  await page.getByRole("button", { name: "Search again" }).click();
+  // A number alone never auto-identifies: the customer confirms the match.
+  await expect(page.getByText("Needs confirmation")).toBeVisible();
+  await expect(page.locator(".scanner-read")).toHaveText(
+    "You entered: 199/165",
+  );
+  expect(searches).toContain("pokemon:199/165");
+  await page.getByRole("button", { name: "Use this card" }).click();
+  await expect(page.locator("#scanner")).toBeHidden();
+  expect(await page.evaluate(() => window.__liveTracks())).toBe(0);
+
+  await page.getByRole("button", { name: "Near Mint", exact: true }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText("$120.00");
+  await page.locator("#add-to-list").click();
+  await expect(page.locator("#card-list-total")).toHaveText("$120.00");
+
+  // The next card starts a fresh camera session from the list.
+  await page.getByRole("button", { name: "Scan next card" }).click();
+  await expect(page.getByRole("button", { name: "Capture" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Scan next card" }),
+  ).toBeFocused();
+  expect(await page.evaluate(() => window.__liveTracks())).toBe(0);
+});
