@@ -4,6 +4,7 @@ import {
   formatRate,
   parsePercentageToBasisPoints,
 } from "./lib/money.js";
+import { addEntry, removeEntry, summarize } from "./lib/offer-list.js";
 
 const config = await fetch("./data/config.json").then(async (response) => {
   if (!response.ok) throw new Error("Client configuration unavailable.");
@@ -17,7 +18,18 @@ const conditions = [
   { name: "Heavily Played", code: "HP" },
   { name: "Damaged", code: "DMG" },
 ];
-const state = { card: null, condition: null, request: 0, loading: false };
+const state = {
+  card: null,
+  condition: null,
+  request: 0,
+  loading: false,
+  // The result on screen, ready to add to the list; null when none is shown.
+  pending: null,
+  // Cards collected this visit. In memory only: a reload starts a fresh list,
+  // so no estimate outlives the page that priced it.
+  list: [],
+  added: 0,
+};
 const searchInput = document.querySelector("#card-search");
 const gameSelect = document.querySelector("#game-select");
 const searchResults = document.querySelector("#search-results");
@@ -31,6 +43,14 @@ const resultPanel = document.querySelector("#result-panel");
 const scanButton = document.querySelector("#scan-button");
 const calculateHint = document.querySelector("#calculate-hint");
 const resultsToggle = document.querySelector("#results-toggle");
+const addButton = document.querySelector("#add-to-list");
+const listSection = document.querySelector("#card-list");
+const listItems = document.querySelector("#card-list-items");
+const listCount = document.querySelector("#card-list-count");
+const listTotal = document.querySelector("#card-list-total");
+const listNote = document.querySelector("#card-list-note");
+const scanNextButton = document.querySelector("#scan-next");
+const clearListButton = document.querySelector("#clear-list");
 
 const gamesResponse = await fetch("/api/games").catch(() => null);
 if (gamesResponse?.ok) {
@@ -175,6 +195,8 @@ function resetResult() {
   resultEmpty.hidden = false;
   resultReady.hidden = true;
   resultUnavailable.hidden = true;
+  state.pending = null;
+  addButton.hidden = true;
 }
 
 function setUnavailable(title, message) {
@@ -183,6 +205,83 @@ function setUnavailable(title, message) {
   resultUnavailable.hidden = false;
   resultUnavailable.querySelector("strong").textContent = title;
   resultUnavailable.querySelector("p").textContent = message;
+}
+
+// Offer the result on screen for the list: priced, or listed as needing an
+// in-store price. Nothing is estimated here; it copies what was shown.
+function offerForList(entry) {
+  state.pending = entry;
+  addButton.textContent =
+    entry.offerCents === undefined
+      ? "Add to my list without an estimate"
+      : "Add to my list";
+  addButton.hidden = false;
+}
+
+function renderList() {
+  const summary = summarize(state.list);
+  listSection.hidden = summary.count === 0;
+  listItems.replaceChildren();
+  for (const item of state.list) {
+    const row = document.createElement("li");
+    row.className = "card-list-item";
+    const info = document.createElement("span");
+    const name = document.createElement("strong");
+    name.textContent = item.label;
+    const meta = document.createElement("small");
+    meta.textContent =
+      item.offerCents === null
+        ? `${item.condition} · ${item.unavailable}`
+        : `${item.condition} · market ${formatMoney(item.referenceCents, config.currency)}`;
+    info.append(name, meta);
+    const offer = document.createElement("span");
+    offer.className = "card-list-offer";
+    offer.textContent =
+      item.offerCents === null
+        ? "In store"
+        : formatMoney(item.offerCents, config.currency);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "card-list-remove";
+    remove.textContent = "Remove";
+    remove.setAttribute(
+      "aria-label",
+      `Remove ${item.label}, ${item.condition}`,
+    );
+    remove.addEventListener("click", () => {
+      state.list = removeEntry(state.list, item.key);
+      renderList();
+      (listSection.hidden ? scanButton : scanNextButton).focus();
+    });
+    row.append(info, offer, remove);
+    listItems.append(row);
+  }
+  listCount.textContent = `${summary.count} card${summary.count === 1 ? "" : "s"}`;
+  listTotal.textContent = formatMoney(summary.offerCents, config.currency);
+  listNote.textContent = [
+    summary.unpriced
+      ? `${summary.unpriced} card${summary.unpriced === 1 ? " has" : "s have"} no online estimate and ${summary.unpriced === 1 ? "is" : "are"} not in the total; the shop prices ${summary.unpriced === 1 ? "it" : "them"} in person.`
+      : null,
+    "Each estimate uses the market reference shown when it was added. Final offer after in-store inspection.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+// Back to step 1 for the next card; the list and the game stay as they are.
+function clearSelection(message) {
+  window.clearTimeout(searchTimer);
+  state.request += 1;
+  state.card = null;
+  clearCondition();
+  setSearchLoading(false);
+  searchInput.value = "";
+  searchResults.replaceChildren();
+  setResultsCollapsed(false);
+  searchMessage.textContent = message;
+  updateConditionNotes();
+  updateCalculateState();
+  resetResult();
 }
 
 function setSearchLoading(loading) {
@@ -330,8 +429,8 @@ function confirmScannedCard(card) {
   conditionList.scrollIntoView({ behavior: scrollBehavior, block: "center" });
 }
 
-scanButton.addEventListener("click", async () => {
-  scanButton.disabled = true;
+async function openScan(trigger) {
+  trigger.disabled = true;
   try {
     const { openScanner } = await import("./scanner/scanner-ui.js");
     openScanner({
@@ -346,15 +445,38 @@ scanButton.addEventListener("click", async () => {
         }
         searchInput.focus();
       },
-      returnFocus: scanButton,
+      returnFocus: trigger,
     });
   } catch {
     searchMessage.textContent =
       "The scanner could not load. Search for your card by name, set, or number.";
     searchInput.focus();
   } finally {
-    scanButton.disabled = false;
+    trigger.disabled = false;
   }
+}
+scanButton.addEventListener("click", () => openScan(scanButton));
+scanNextButton.addEventListener("click", () => openScan(scanNextButton));
+
+addButton.addEventListener("click", () => {
+  if (!state.pending) return;
+  state.added += 1;
+  state.list = addEntry(state.list, {
+    ...state.pending,
+    key: `card-${state.added}`,
+  });
+  const label = state.pending.label;
+  renderList();
+  clearSelection(`Added ${label}. Scan or search the next card.`);
+  listSection.scrollIntoView({ behavior: scrollBehavior, block: "nearest" });
+  scanNextButton.focus({ preventScroll: true });
+});
+
+clearListButton.addEventListener("click", () => {
+  if (!window.confirm("Remove every card from this list?")) return;
+  state.list = [];
+  renderList();
+  scanButton.focus();
 });
 
 let searchTimer;
@@ -422,6 +544,15 @@ function renderResult() {
       ],
     }[usability];
     setUnavailable(title, message);
+    offerForList({
+      label: cardLabel(state.card),
+      condition: state.condition.name,
+      unavailable: {
+        stale: "price out of date",
+        undated: "price has no date",
+        missing: "no price for this condition",
+      }[usability],
+    });
     return;
   }
   const result = calculateOffer(
@@ -448,6 +579,13 @@ function renderResult() {
   resultEmpty.hidden = true;
   resultReady.hidden = false;
   resultUnavailable.hidden = true;
+  offerForList({
+    label: cardLabel(state.card),
+    condition: state.condition.name,
+    offerCents: result.offerCents,
+    referenceCents: result.referenceCents,
+    sourceUpdatedAt: pricing.source_updated_at,
+  });
   resultPanel.scrollIntoView({ behavior: scrollBehavior, block: "start" });
 }
 

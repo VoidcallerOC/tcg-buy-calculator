@@ -14,7 +14,7 @@ An input method for the existing calculator: **physical card → camera → capt
 | Session               | `scan-session.js`                        | DOM-free state machine: idle → starting → live → processing → result / error                                                                                                         |
 | CandidateConfirmation | `scanner-ui.js`                          | Camera view, guide, and result panels. Hands the confirmed card to `app.js` (`confirmScannedCard`)                                                                                   |
 
-`app.js` loads the scanner only when **Scan a card** is tapped. The OCR engine (~8.8 MB) loads on the first capture.
+`app.js` loads the scanner only when **Scan a card** (or **Scan next card**) is tapped. The OCR engine (~8.8 MB) loads on the first capture.
 
 ## What "identified" means
 
@@ -26,6 +26,14 @@ Identification is **text-based**: the scanner reads printed text and looks the c
 - Errors (camera denied/unavailable/unsupported, capture failed, OCR engine unavailable, catalog lookup failed) each have their own message. Every state offers **Search manually**.
 
 Provider failures during matching are errors; they never fall back to demo data. In demo mode, matching uses only the 8-card demo catalog and the panel says so.
+
+## Correcting a scan
+
+Every result panel has **Fix what was read** (open by default when nothing was identified): the card name and number the scanner read, as editable fields. **Search again** runs the same matcher on the typed values (`correctClues` in `card-identifier.js`, `session.rematch`). A typed number goes through the per-game patterns, so look-alike characters are fixed and its game is recognised; an unknown format is searched as typed in the selected game. The panel then says **You entered** instead of **Read from card (text only, not verified)**, and a catalog match still needs **Use this card**. A number alone never auto-identifies.
+
+## Several cards in one visit
+
+After an estimate, **Add to my list** copies the card, condition, market reference and offer the calculator just showed into **Cards in this visit** (`lib/offer-list.js`). The step-1 search resets and **Scan next card** opens the camera again. The total is the sum of each card's own 60% offer in integer cents. A card with no usable estimate (missing, undated or stale price) can be listed as **In store** but is never priced or totalled. The list is in memory only: a reload starts a fresh list, so no estimate outlives the page that priced it. It makes no network requests and writes nothing.
 
 ## Supported games
 
