@@ -344,3 +344,43 @@ test.describe("pricing integrity", () => {
     await expect(page.locator("#offer-value")).toHaveText("$8.99");
   });
 });
+
+test("a live game list keeps featured games first and Pokémon selected", async ({
+  page,
+}) => {
+  await page.route("**/api/games", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        games: [
+          { provider_game_id: "cyberpunk-tcg", name: "Cyberpunk TCG" },
+          { provider_game_id: "digimon-card-game", name: "Digimon Card Game" },
+          {
+            provider_game_id: "flesh-and-blood-tcg",
+            name: "Flesh and Blood TCG",
+          },
+          {
+            provider_game_id: "one-piece-card-game",
+            name: "One Piece Card Game",
+          },
+          { provider_game_id: "pokemon", name: "Pokemon" },
+          { provider_game_id: "yugioh", name: "YuGiOh" },
+        ],
+      }),
+    }),
+  );
+  await page.goto("/");
+  await expect(page.getByLabel("Game")).toHaveValue("pokemon");
+  const options = await page
+    .locator("#game-select option")
+    .evaluateAll((items) => items.map((item) => item.textContent));
+  expect(options).toEqual([
+    "Pokémon",
+    "One Piece",
+    "Yu-Gi-Oh!",
+    "Flesh and Blood",
+    "Cyberpunk TCG",
+    "Digimon Card Game",
+  ]);
+});
