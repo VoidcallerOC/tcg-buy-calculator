@@ -328,6 +328,9 @@ export default async function handler(req, res) {
       cards = await providerSearch(query, game);
       source = "provider";
     }
+    // `game` is the provider game id the calculator and scanner select by,
+    // not the provider's display name.
+    cards = cards.map((card) => ({ ...card, game }));
     return json(
       res,
       200,

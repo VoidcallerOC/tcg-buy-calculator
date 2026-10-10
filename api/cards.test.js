@@ -72,6 +72,7 @@ async function search(query, extra = {}) {
 const mihawk = {
   id: "mihawk",
   name: "Dracule Mihawk",
+  game: "One Piece Card Game",
   number: "OP14-119",
   set: "OP14",
   set_name: "The Azure Sea's Seven",
@@ -205,6 +206,10 @@ test("searches by collector number first and keeps the key server-side", async (
       );
       assert.equal(res.body.cards.length, 2);
       assert.equal(res.body.pricing_source, "JustTCG");
+      assert.ok(
+        res.body.cards.every((card) => card.game === "one-piece-card-game"),
+        "cards carry the provider game id, not a display name",
+      );
       assert.match(res.headers["Cache-Control"], /s-maxage=300/);
       assert.doesNotMatch(JSON.stringify(res.body), /server-only-test-key/);
     },
