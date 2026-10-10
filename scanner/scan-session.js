@@ -2,7 +2,11 @@
 // CatalogMatcher, as a DOM-free state machine. The UI renders each state; the
 // confirmed card is handed back to the existing calculator by the caller.
 import { CameraError, CAMERA_ERROR } from "./camera-capture.js";
-import { extractClues, hasUsableClues } from "./card-identifier.js";
+import {
+  correctClues,
+  extractClues,
+  hasUsableClues,
+} from "./card-identifier.js";
 import { matchCatalog, MATCH_STATUS } from "./catalog-matcher.js";
 import { OcrUnavailableError } from "./ocr-engine.js";
 
@@ -22,6 +26,12 @@ export const SCAN_ERROR = {
   SEARCH_FAILED: "search_failed",
 };
 
+const NOT_IDENTIFIED = (reason) => ({
+  status: MATCH_STATUS.NOT_IDENTIFIED,
+  candidates: [],
+  reason,
+});
+
 /**
  * @param {object} deps
  * @param {{ start(view): Promise<void>, capture(view): any | Promise<any>, stop(view): void }} deps.camera
@@ -30,6 +40,8 @@ export const SCAN_ERROR = {
  * @param {(query: string, game: string) => Promise<object[]>} deps.search the calculator's lookup
  * @param {() => string} deps.selectedGame
  * @param {(state: object) => void} deps.onState
+ * @param {(frame, game: string) => Promise<{ name: string, number: string, game: string|null } | null>} [deps.identify]
+ *   optional AI reader; runs only when the customer asks for it
  */
 export function createScanSession({
   camera,
@@ -38,9 +50,11 @@ export function createScanSession({
   search,
   selectedGame,
   onState,
+  identify,
 }) {
   let run = 0;
   let view = null;
+  let lastFrame = null; // the captured photo, kept only for an AI request
   let state = { status: SCAN_STATE.IDLE };
   const set = (next, token) => {
     if (token !== undefined && token !== run) return false; // cancelled or superseded
@@ -99,11 +113,13 @@ export function createScanSession({
       const token = ++run;
       set({ status: SCAN_STATE.PROCESSING, step: "capturing" }, token);
       let frame;
+      lastFrame = null;
       try {
         frame = await camera.capture(view);
       } catch {
         return fail(SCAN_ERROR.CAPTURE_FAILED, token);
       }
+      lastFrame = frame;
       if (!set({ status: SCAN_STATE.PROCESSING, step: "reading" }, token))
         return;
       const passes = [];
@@ -166,6 +182,55 @@ export function createScanSession({
       return match(clues, token);
     },
 
+    // AI fallback, only on the customer's request: the AI's reading of the
+    // last photo becomes clues for the same catalog search. It never picks or
+    // prices a card itself.
+    get canIdentifyWithAi() {
+      return (
+        typeof identify === "function" &&
+        Boolean(lastFrame) &&
+        state.status === SCAN_STATE.RESULT &&
+        state.clues?.source !== "ai"
+      );
+    },
+
+    async identifyWithAi() {
+      if (!this.canIdentifyWithAi) return;
+      const previous = state;
+      const token = ++run;
+      set(
+        { status: SCAN_STATE.PROCESSING, step: "ai", clues: previous.clues },
+        token,
+      );
+      let card;
+      try {
+        card = await identify(lastFrame, selectedGame());
+      } catch (error) {
+        // Keep the OCR result and its correction form; say what failed.
+        return set({ ...previous, aiError: error?.message || "failed" }, token);
+      }
+      if (token !== run) return;
+      const clues = {
+        ...correctClues(
+          previous.clues,
+          { name: card?.name, number: card?.number },
+          card?.game || selectedGame(),
+        ),
+        corrected: false,
+        source: "ai",
+      };
+      if (!hasUsableClues(clues))
+        return set(
+          {
+            status: SCAN_STATE.RESULT,
+            match: NOT_IDENTIFIED("ai_unread"),
+            clues,
+          },
+          token,
+        );
+      return match(clues, token);
+    },
+
     // Back to the live camera (camera keeps running between scans).
     async retry() {
       return this.open(view);
@@ -173,6 +238,7 @@ export function createScanSession({
 
     close() {
       run += 1;
+      lastFrame = null;
       camera.stop(view);
       set({ status: SCAN_STATE.IDLE });
     },

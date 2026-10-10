@@ -15,7 +15,7 @@ npm run test:browser
 node scripts/dev-server.mjs 4173
 ```
 
-Open `http://localhost:4173/`. The dev server applies the `vercel.json` headers (including the CSP) and runs the `/api` functions; set `JUSTTCG_API_KEY` in your shell for live search. The browser suite mocks the card API and Supabase, and runs the real OCR engine against a fake camera. If the bundled Playwright browser is missing, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a local Chromium.
+Open `http://localhost:4173/`. The dev server applies the `vercel.json` headers (including the CSP) and runs the `/api` functions; set `JUSTTCG_API_KEY` in your shell for live search, and `ANTHROPIC_API_KEY` to enable the scanner's optional AI identification (see [`scanner/README.md`](scanner/README.md)). The browser suite mocks the card API and Supabase, and runs the real OCR engine against a fake camera. If the bundled Playwright browser is missing, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a local Chromium.
 
 ## Design system
 

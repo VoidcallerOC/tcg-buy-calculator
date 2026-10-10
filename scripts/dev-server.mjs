@@ -49,11 +49,24 @@ async function runApi(name, req, res, url) {
       return shim;
     },
   };
+  // Like Vercel: a JSON request body arrives parsed on req.body.
+  let body;
+  if (req.method === "POST") {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const text = Buffer.concat(chunks).toString("utf8");
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+  }
   await handler(
     {
       method: req.method,
       headers: req.headers,
       query: Object.fromEntries(url.searchParams),
+      body,
     },
     shim,
   );

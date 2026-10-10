@@ -77,6 +77,43 @@ const button = (label, className, onClick) => {
 
 let ui = null;
 
+const AI_TIMEOUT_MS = 35_000;
+const AI_MAX_SIDE = 1024;
+
+// The captured card as a JPEG (base64, no data: prefix), small enough to send.
+function frameToJpeg(frame) {
+  const scale = Math.min(1, AI_MAX_SIDE / Math.max(frame.width, frame.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(frame.width * scale));
+  canvas.height = Math.max(1, Math.round(frame.height * scale));
+  canvas.getContext("2d").drawImage(frame, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85).split(",")[1] ?? "";
+}
+
+// Sends one photo to this site's /api/identify; returns { name, number, game } or null.
+async function identifyWithServer(frame, game) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  try {
+    const response = await fetch("/api/identify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: frameToJpeg(frame), game }),
+      signal: controller.signal,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok)
+      throw new Error(body.error || "AI identification is unavailable.");
+    return body.card ?? null;
+  } catch (error) {
+    if (error?.name === "AbortError")
+      throw new Error("AI identification timed out.");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * @param {{ search: (q: string, game: string) => Promise<object[]>, selectedGame: () => string,
  *   isDemo: () => boolean, onConfirm: (card: object) => void, onManual: (query: string) => void, returnFocus?: HTMLElement }} options
@@ -122,8 +159,20 @@ function createUi() {
       search: (query, game) => state.options.search(query, game),
       selectedGame: () => state.options.selectedGame(),
       onState: (next) => render(next),
+      identify: identifyWithServer,
     }),
   };
+
+  // The AI button appears only when the server has a model key configured.
+  let aiEnabled = false;
+  fetch("/api/identify")
+    .then((response) => (response.ok ? response.json() : {}))
+    .then((body) => {
+      aiEnabled = body?.enabled === true;
+      if (aiEnabled && state.session.state.status === SCAN_STATE.RESULT)
+        render(state.session.state);
+    })
+    .catch(() => {});
 
   const close = () => {
     state.session.close();
@@ -193,7 +242,7 @@ function createUi() {
       "p",
       "scanner-read",
       read.length
-        ? `${clues.corrected ? "You entered" : "Read from card (text only, not verified)"}: ${read.join(" · ")}`
+        ? `${clues.corrected ? "You entered" : clues.source === "ai" ? "Read by AI (not verified)" : "Read from card (text only, not verified)"}: ${read.join(" · ")}`
         : "No readable text found on the card.",
     );
   }
@@ -250,6 +299,30 @@ function createUi() {
     });
     details.append(form);
     return details;
+  }
+
+  // Offered after OCR, never automatically: the photo leaves the device only
+  // when the customer taps the button.
+  function aiBlock(next, primary) {
+    if (!aiEnabled || !state.session.canIdentifyWithAi) return null;
+    const block = el("div", "scanner-ai");
+    block.append(
+      button(
+        "Identify with AI",
+        primary ? "button" : "button button--secondary",
+        () => state.session.identifyWithAi(),
+      ),
+      el(
+        "p",
+        "scanner-ai-note",
+        "Sends this card photo to our server, where Anthropic’s Claude AI reads the name and number. The photo isn’t saved by this site. You still confirm the card.",
+      ),
+    );
+    if (next.aiError)
+      block.append(
+        el("p", "scanner-read", `AI identification failed: ${next.aiError}`),
+      );
+    return block;
   }
 
   function candidate(item, primary) {
@@ -310,7 +383,7 @@ function createUi() {
           el(
             "p",
             "scanner-note",
-            "Your browser may ask to use the camera. Photos stay on this device.",
+            "Your browser may ask to use the camera. Photos stay on this device unless you choose AI identification.",
           ),
           actions(manualButton()),
         );
@@ -337,12 +410,16 @@ function createUi() {
             ? "Hold steady…"
             : next.step === "matching"
               ? "Looking up the card…"
-              : "Reading the card…";
+              : next.step === "ai"
+                ? "AI is reading the card…"
+                : "Reading the card…";
         fill(
           el(
             "p",
             "scanner-note",
-            "Reading printed text on the card. This can take a few seconds.",
+            next.step === "ai"
+              ? "Sending the photo for AI identification. This can take up to 20 seconds."
+              : "Reading printed text on the card. This can take a few seconds.",
           ),
           cluesLine(next.clues),
           actions(
@@ -357,7 +434,7 @@ function createUi() {
         const matchNote = el(
           "p",
           "scanner-note",
-          "Catalog match from the text on the card. Check the set and printing (foil, edition) yourself; condition is never judged from the photo.",
+          `Catalog match from ${clues?.source === "ai" ? "the AI’s reading of" : "the text on"} the card. Check the set and printing (foil, edition) yourself; condition is never judged from the photo.`,
         );
         if (match.status === MATCH_STATUS.IDENTIFIED) {
           hint.textContent = "Card found";
@@ -387,6 +464,7 @@ function createUi() {
             list,
             matchNote,
             cluesLine(clues),
+            aiBlock(next, false),
             correctionForm(clues, false),
             actions(againButton(), manualButton()),
           );
@@ -396,27 +474,33 @@ function createUi() {
           const notInDemo = state.options?.isDemo() && clues?.names?.length;
           // Nothing usable read: blur, glare, distance or a blank face look the same to OCR, so give the advice for all.
           const unread = match.reason === "no_text";
+          const aiUnread = match.reason === "ai_unread";
           fill(
             el("span", "eyebrow", "Could not identify"),
             el(
               "p",
               "scanner-title",
-              unread
-                ? "We couldn’t read the card."
-                : notInDemo
-                  ? `We read “${clues.names[0]}”, but it isn’t in the demo catalog.`
-                  : "We couldn’t confidently identify this card.",
+              aiUnread
+                ? "The AI couldn’t read this card either."
+                : unread
+                  ? "We couldn’t read the card."
+                  : notInDemo
+                    ? `We read “${clues.names[0]}”, but it isn’t in the demo catalog.`
+                    : "We couldn’t confidently identify this card.",
             ),
             el(
               "p",
               "scanner-note",
-              unread
-                ? "Hold the phone steady about 15–20 cm (6–8 in) from the card, wait for it to focus, then capture. Good light helps; avoid glare."
-                : notInDemo
-                  ? "Demo mode can only match its few sample cards. With live pricing connected, the full catalog is searched."
-                  : "Try again with the whole card in the frame and less glare, fix what was read below, or search by name.",
+              aiUnread
+                ? "Try another photo with the whole card in the frame and less glare, or type the card details below."
+                : unread
+                  ? "Hold the phone steady about 15–20 cm (6–8 in) from the card, wait for it to focus, then capture. Good light helps; avoid glare."
+                  : notInDemo
+                    ? "Demo mode can only match its few sample cards. With live pricing connected, the full catalog is searched."
+                    : "Try again with the whole card in the frame and less glare, fix what was read below, or search by name.",
             ),
             cluesLine(clues),
+            aiBlock(next, true),
             correctionForm(clues, true),
             actions(againButton(), manualButton()),
           );

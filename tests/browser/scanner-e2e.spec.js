@@ -277,3 +277,123 @@ test("misread card → correct the number → catalog match → list → scan ne
   ).toBeFocused();
   expect(await page.evaluate(() => window.__liveTracks())).toBe(0);
 });
+
+// AI fallback: /api/identify is mocked (no model call in tests). Real OCR
+// fails on a blank card first, then the customer asks for AI.
+test("unreadable card → Identify with AI → catalog match → confirmed offer", async ({
+  page,
+}) => {
+  const posts = [];
+  await page.route("**/api/identify", async (route) => {
+    const request = route.request();
+    if (request.method() === "GET")
+      return route.fulfill({ status: 200, body: '{"enabled":true}' });
+    posts.push(request.postDataJSON());
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        card: { name: "Charizard ex", number: "199/165", game: "pokemon" },
+      }),
+    });
+  });
+  const searches = [];
+  await page.route("**/api/cards?**", async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    searches.push(`${params.get("game")}:${params.get("q")}`);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        cards: [
+          {
+            ...charizard,
+            id: "charizard::holofoil",
+            printing: "Holofoil",
+            language: "English",
+            pricing: {
+              NM: { reference_cents: 20000, source_updated_at: fresh() },
+            },
+          },
+        ],
+      }),
+    });
+  });
+  await fakeCamera(page, { lines: [] });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("We couldn’t read the card.")).toBeVisible({
+    timeout: 150_000,
+  });
+  expect(posts).toHaveLength(0);
+  await expect(page.locator(".scanner-ai-note")).toContainText(
+    "Sends this card photo",
+  );
+  await page.getByRole("button", { name: "Identify with AI" }).click();
+  await expect(page.locator(".scanner-read")).toContainText(
+    "Read by AI (not verified)",
+  );
+  expect(posts).toHaveLength(1);
+  expect(posts[0].game).toBe("pokemon");
+  expect(posts[0].image).toMatch(/^[A-Za-z0-9+/]+=*$/);
+  // A JPEG starts with FF D8 (base64 "/9j/").
+  expect(posts[0].image.startsWith("/9j/")).toBe(true);
+  expect(searches).toContain("pokemon:199/165");
+  await expect(
+    page.getByRole("button", { name: "Identify with AI" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Use this card" }).first().click();
+  await expect(page.locator("#scanner")).toBeHidden();
+  expect(await page.evaluate(() => window.__liveTracks())).toBe(0);
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText("$120.00");
+});
+
+test("no AI button when the server has no model key; AI errors keep manual paths", async ({
+  page,
+}) => {
+  let enabled = false;
+  await page.route("**/api/identify", (route) =>
+    route.request().method() === "GET"
+      ? route.fulfill({ status: 200, body: JSON.stringify({ enabled }) })
+      : route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: '{"error":"AI identification is busy. Try again shortly."}',
+        }),
+  );
+  await page.route("**/api/cards?**", (route) =>
+    route.fulfill({ status: 200, body: '{"cards":[]}' }),
+  );
+  await fakeCamera(page, { lines: [] });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("We couldn’t read the card.")).toBeVisible({
+    timeout: 150_000,
+  });
+  await expect(
+    page.getByRole("button", { name: "Identify with AI" }),
+  ).toHaveCount(0);
+
+  // Same flow with AI configured but failing: the error is shown and the
+  // correction form and manual search remain.
+  enabled = true;
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await page.getByRole("button", { name: "Identify with AI" }).click();
+  await expect(page.locator(".scanner-ai .scanner-read")).toHaveText(
+    "AI identification failed: AI identification is busy. Try again shortly.",
+  );
+  await expect(
+    page.getByRole("button", { name: "Search manually" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Search again" }),
+  ).toBeAttached();
+});
