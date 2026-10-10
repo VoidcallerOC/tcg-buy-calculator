@@ -3,144 +3,243 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0b10" />
     <meta
       name="description"
       content="Estimate your TCG card buy offer from maintained reference pricing data."
     />
     <title>TCG Buy Calculator</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <main class="shell">
+    <a class="skip-link" href="#card-search">Skip to card search</a>
+    <div class="shell">
       <header class="topbar">
-        <a class="brand" href="/"
-          >TCG Buy Calculator <span>/</span>
-          <strong data-client-name>TCG Buy Calculator</strong></a
-        >
-        <span class="status-pill">Estimate tool</span>
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <strong data-client-name>TCG Buy Calculator</strong>
+        </a>
+        <span class="status-pill">
+          <span class="status-dot" aria-hidden="true"></span>Estimate tool
+        </span>
       </header>
 
-      <section class="hero">
-        <div>
+      <main>
+        <section class="hero" aria-labelledby="page-title">
           <p class="eyebrow">Card buy calculator</p>
-          <h1>Know what your cards could be worth before you walk in.</h1>
+          <h1 id="page-title">What will the shop pay for your card?</h1>
           <p class="lede">
-            Search a card, choose its condition, and get an estimated buy offer
-            based on the shop’s maintained reference pricing.
+            Scan or search a card, choose its condition, and get an estimated
+            buy offer from the shop’s market reference pricing.
           </p>
-        </div>
-        <div class="hero-mark" aria-hidden="true">01<span>→</span>05</div>
-      </section>
+          <ol class="flow" aria-label="How it works">
+            <li><span>1</span>Find your card</li>
+            <li><span>2</span>Choose condition</li>
+            <li><span>3</span>See your offer</li>
+          </ol>
+        </section>
 
-      <section class="calculator-grid" aria-label="Buy offer calculator">
-        <div class="calculator-card">
-          <div class="step-heading">
-            <span>01</span>
-            <div>
-              <p class="eyebrow">Find your card</p>
-              <h2>Search by name, number, or set</h2>
-            </div>
+        <section class="calculator-grid" aria-label="Buy offer calculator">
+          <div class="calculator-card">
+            <section class="step" aria-labelledby="step-find">
+              <div class="step-heading">
+                <span aria-hidden="true">1</span>
+                <div>
+                  <p class="eyebrow">Find your card</p>
+                  <h2 id="step-find">
+                    Scan it, or search by name, number, or set
+                  </h2>
+                </div>
+              </div>
+              <div class="find-row">
+                <div class="field">
+                  <label class="field-label" for="game-select">Game</label>
+                  <div class="select-wrap">
+                    <select id="game-select" class="game-select">
+                      <option value="pokemon">Pokémon</option>
+                      <option value="one-piece-card-game">One Piece</option>
+                      <option value="magic-the-gathering">
+                        Magic: The Gathering
+                      </option>
+                      <option value="yugioh">Yu-Gi-Oh!</option>
+                      <option value="disney-lorcana">Disney Lorcana</option>
+                      <option value="flesh-and-blood-tcg">
+                        Flesh and Blood
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  id="scan-button"
+                  class="button scan-cta"
+                  type="button"
+                  aria-haspopup="dialog"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"
+                    />
+                    <rect x="8.5" y="7" width="7" height="10" rx="1" />
+                  </svg>
+                  Scan a card
+                </button>
+              </div>
+              <p class="scan-divider"><span>or search by hand</span></p>
+              <label class="field-label" for="card-search">Card search</label>
+              <div class="search-field">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+                <input
+                  id="card-search"
+                  type="search"
+                  autocomplete="off"
+                  spellcheck="false"
+                  enterkeyhint="search"
+                  aria-describedby="search-message"
+                  aria-controls="search-results"
+                  placeholder="Try “Charizard”, “199/165”, or “OP05-119”"
+                />
+              </div>
+              <p id="search-message" class="field-help" aria-live="polite">
+                Start typing to see matching cards.
+              </p>
+              <div
+                id="search-results"
+                class="search-results"
+                role="group"
+                aria-label="Matching cards"
+              ></div>
+              <button
+                id="results-toggle"
+                class="button button--ghost results-toggle"
+                type="button"
+                aria-controls="search-results"
+                hidden
+              ></button>
+            </section>
+
+            <section class="step" aria-labelledby="step-condition">
+              <div class="step-heading">
+                <span aria-hidden="true">2</span>
+                <div>
+                  <p class="eyebrow">Choose condition</p>
+                  <h2 id="step-condition">How does the card look?</h2>
+                </div>
+              </div>
+              <div
+                id="condition-list"
+                class="condition-list"
+                role="group"
+                aria-label="Card condition"
+              ></div>
+            </section>
+
+            <section class="step step--action" aria-label="Calculate">
+              <button
+                id="calculate-button"
+                class="button button--primary calculate-button"
+                type="button"
+                aria-describedby="calculate-hint"
+                disabled
+              >
+                Calculate estimated offer <span aria-hidden="true">→</span>
+              </button>
+              <p id="calculate-hint" class="field-help calculate-hint">
+                Select a card and a condition to calculate.
+              </p>
+            </section>
           </div>
-          <label class="field-label" for="game-select">Game</label>
-          <select id="game-select" class="game-select">
-            <option value="pokemon">Pokémon</option>
-            <option value="one-piece-card-game">One Piece</option>
-            <option value="magic-the-gathering">Magic: The Gathering</option>
-            <option value="yugioh">Yu-Gi-Oh!</option>
-            <option value="disney-lorcana">Disney Lorcana</option>
-            <option value="flesh-and-blood-tcg">Flesh and Blood</option>
-          </select>
-          <button
-            id="scan-button"
-            class="button scan-cta"
-            type="button"
-            aria-haspopup="dialog"
+
+          <aside
+            id="result-panel"
+            class="result-card"
+            aria-labelledby="result-heading"
+            aria-live="polite"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path
-                d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"
-              />
-              <rect x="8.5" y="7" width="7" height="10" rx="1" />
-            </svg>
-            Scan a card
-          </button>
-          <p class="scan-divider"><span>or search by hand</span></p>
-          <label class="field-label" for="card-search">Card search</label>
-          <input
-            id="card-search"
-            type="search"
-            autocomplete="off"
-            placeholder="Try “Luffy”, “OP17”, or “OP17-001”"
-          />
-          <div id="search-results" class="search-results"></div>
-          <p id="search-message" class="field-help">
-            Start typing to see matching cards.
-          </p>
-
-          <div class="step-heading step-heading--compact">
-            <span>02</span>
-            <div>
-              <p class="eyebrow">Choose condition</p>
-              <h2>How does the card look?</h2>
-            </div>
-          </div>
-          <div
-            id="condition-list"
-            class="condition-list"
-            role="radiogroup"
-            aria-label="Card condition"
-          ></div>
-          <button id="calculate-button" class="button" type="button" disabled>
-            Calculate estimated offer <span aria-hidden="true">→</span>
-          </button>
-        </div>
-
-        <aside id="result-panel" class="result-card" aria-live="polite">
-          <p class="eyebrow">Estimated offer</p>
-          <div id="result-empty" class="result-empty">
-            <span class="result-number">—</span>
-            <h2>Your estimate will appear here.</h2>
-            <p>
-              Select a card and condition to see the maintained reference price
-              and configured buy rate.
+            <p id="result-heading" class="eyebrow">
+              <span class="step-chip" aria-hidden="true">3</span>Estimated offer
             </p>
-          </div>
-          <div id="result-ready" hidden>
-            <p class="result-kicker">Estimated offer</p>
-            <p id="offer-value" class="offer-value">$0.00</p>
-            <div class="result-lines">
-              <div>
-                <span>Market Reference</span
-                ><strong id="reference-value">$0.00</strong>
-              </div>
-              <div>
-                <span>Buy Rate</span><strong id="rate-value">60%</strong>
-              </div>
+            <div id="result-empty" class="result-empty">
+              <span class="result-number" aria-hidden="true">$—</span>
+              <h2>Your estimate will appear here.</h2>
+              <p>
+                Select a card and condition to see the market reference price
+                and the shop’s buy rate.
+              </p>
             </div>
-            <p id="result-card-label" class="result-card-label"></p>
-            <p id="result-source" class="result-card-label"></p>
-          </div>
-          <div id="result-unavailable" hidden class="unavailable">
-            <strong
-              >Online estimate unavailable for this card/condition.</strong
+            <div id="result-ready" class="result-ready" hidden>
+              <p id="offer-value" class="offer-value">$0.00</p>
+              <p id="result-card-label" class="result-card-label"></p>
+              <dl class="result-lines">
+                <div>
+                  <dt>
+                    Market Reference
+                    <span class="tag tag--source">JustTCG</span>
+                  </dt>
+                  <dd id="reference-value">$0.00</dd>
+                </div>
+                <div>
+                  <dt>Buy Rate <span class="tag">Shop policy</span></dt>
+                  <dd id="rate-value">60%</dd>
+                </div>
+              </dl>
+              <p id="result-source" class="result-source"></p>
+            </div>
+            <div
+              id="result-unavailable"
+              hidden
+              class="unavailable"
+              role="status"
             >
-            <p>
-              No maintained market reference was found. We never invent a price.
-            </p>
-          </div>
-          <p class="pricing-status" data-pricing-status></p>
-          <p class="disclaimer" data-disclaimer></p>
-        </aside>
-      </section>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"
+                />
+                <path d="M12 9v4M12 17h.01" />
+              </svg>
+              <strong
+                >Online estimate unavailable for this card/condition.</strong
+              >
+              <p>
+                No maintained market reference was found. We never invent a
+                price.
+              </p>
+            </div>
+            <div class="result-notes">
+              <p class="pricing-status" data-pricing-status></p>
+              <p class="disclaimer" data-disclaimer></p>
+            </div>
+          </aside>
+        </section>
+      </main>
 
       <footer class="footer-row">
         <span data-data-status
@@ -148,7 +247,7 @@
           verification.</span
         >
       </footer>
-    </main>
+    </div>
 
     <div
       id="scanner"
@@ -160,7 +259,7 @@
     >
       <div class="scanner-bar">
         <div>
-          <span class="eyebrow">TCG Buy Calculator</span>
+          <span class="eyebrow">Camera scanner</span>
           <h2 id="scanner-heading">Scan a card</h2>
         </div>
         <button
@@ -169,7 +268,16 @@
           data-scan-close
           aria-label="Close scanner"
         >
-          &times;
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
         </button>
       </div>
       <div class="scanner-stage">

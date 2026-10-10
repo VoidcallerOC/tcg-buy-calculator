@@ -141,6 +141,8 @@ test("publish is a separate explicit step and a server rejection changes nothing
     },
   });
   await signIn(page);
+  // Conditions load during sign-in; uploading earlier validates against none.
+  await expect(page.locator("#import-panel")).toBeVisible();
   await upload(
     page,
     `${HEADER}\nLuffy,Awakening,OP05,OP05-119,Near Mint,10.00,JustTCG,2026-10-09\n`,

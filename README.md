@@ -17,6 +17,10 @@ node scripts/dev-server.mjs 4173
 
 Open `http://localhost:4173/`. The dev server applies the `vercel.json` headers (including the CSP) and runs the `/api` functions; set `JUSTTCG_API_KEY` in your shell for live search. The browser suite mocks the card API and Supabase, and runs the real OCR engine against a fake camera. If the bundled Playwright browser is missing, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a local Chromium.
 
+## Design system
+
+The UI is plain HTML/CSS/ES modules (no framework or build step). Design tokens (colors, type, radii, spacing) live at the top of `styles.css`; `admin/admin.css` builds on them. `app.js` maps the client's `primary_color` and `secondary_color` from `data/config.json` onto `--accent` (buttons, fills) and `--accent-text` (accent text on the dark surface), so choose a `secondary_color` that keeps at least 4.5:1 contrast on `#13131b`.
+
 ## Production architecture
 
 The frontend is a static Vercel-compatible site. Supabase provides Postgres, row-level security, authentication, and the server-side transactional publish function. The browser uses only the Supabase project URL and publishable key; no service-role key or database credential is shipped to the client.
