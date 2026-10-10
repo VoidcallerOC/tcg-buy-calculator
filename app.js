@@ -35,14 +35,40 @@ if (gamesResponse?.ok) {
   const gamesBody = await gamesResponse.json().catch(() => ({}));
   const games = Array.isArray(gamesBody.games) ? gamesBody.games : [];
   if (games.length) {
+    // Keep the featured games (the static list) first, with their labels and
+    // the default selection; other provider games follow alphabetically.
+    const featured = [...gameSelect.options].map((option) => ({
+      value: option.value,
+      label: option.textContent,
+    }));
+    const selected = gameSelect.value;
+    const rank = (id) => {
+      const index = featured.findIndex((game) => game.value === id);
+      return index === -1 ? featured.length : index;
+    };
+    const ordered = games
+      .map((game) => ({
+        value: String(game.provider_game_id ?? game.id ?? ""),
+        label: String(game.name ?? ""),
+      }))
+      .filter((game) => game.value)
+      .sort(
+        (a, b) =>
+          rank(a.value) - rank(b.value) || a.label.localeCompare(b.label),
+      );
     gameSelect.replaceChildren(
-      ...games.map((game) => {
+      ...ordered.map((game) => {
         const option = document.createElement("option");
-        option.value = game.provider_game_id ?? game.id;
-        option.textContent = game.name ?? option.value;
+        option.value = game.value;
+        option.textContent =
+          featured.find((item) => item.value === game.value)?.label ||
+          game.label ||
+          game.value;
         return option;
       }),
     );
+    if (ordered.some((game) => game.value === selected))
+      gameSelect.value = selected;
   }
 }
 
