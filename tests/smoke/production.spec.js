@@ -18,26 +18,35 @@ const expectedOffer = (cents) =>
     Number((BigInt(cents) * 6000n + 5000n) / 10000n) / 100,
   );
 
-async function liveReference(request, query) {
-  const response = await request.get(
-    `/api/cards?game=pokemon&q=${encodeURIComponent(query)}`,
-  );
-  expect(response.ok()).toBe(true);
-  const body = await response.json();
-  const card = body.cards.find((item) => item.card_number === "199/165");
-  expect(card, "live catalog returns Charizard ex 199/165").toBeTruthy();
-  return card;
+// The expected offer comes from the card-search response the page itself
+// used: a separate request can hit a different CDN cache entry, and live
+// prices change during the day.
+function capturePokemonSearch(page) {
+  return page
+    .waitForResponse(
+      (response) =>
+        response.url().includes("/api/cards?") &&
+        response.url().includes("game=pokemon") &&
+        response.status() === 200,
+      { timeout: 150_000 },
+    )
+    .then((response) => response.json())
+    .then((body) => {
+      const card = body.cards.find((item) => item.card_number === "199/165");
+      expect(card, "live catalog returns Charizard ex 199/165").toBeTruthy();
+      return card;
+    });
 }
 
 test("manual search prices a live card at the 60% buy rate", async ({
   page,
-  request,
 }) => {
   const problems = watchConsole(page);
-  const card = await liveReference(request, "199/165");
   await page.goto("/");
   await expect(page.getByLabel("Game")).toHaveValue("pokemon");
+  const search = capturePokemonSearch(page);
   await page.getByLabel("Card search").fill("199/165");
+  const card = await search;
   await page
     .getByRole("button", { name: /Charizard ex.*199\/165/ })
     .first()
@@ -54,10 +63,8 @@ test("manual search prices a live card at the 60% buy rate", async ({
 
 test("camera scan → real OCR → live match → confirmed card → offer", async ({
   page,
-  request,
 }) => {
   const problems = watchConsole(page);
-  const card = await liveReference(request, "199/165");
   await page.addInitScript(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 720;
@@ -94,7 +101,9 @@ test("camera scan → real OCR → live match → confirmed card → offer", asy
   });
   await page.goto("/");
   await page.getByRole("button", { name: /Scan a card/ }).click();
+  const search = capturePokemonSearch(page);
   await page.getByRole("button", { name: "Capture" }).click();
+  const card = await search;
   const use = page.getByRole("button", { name: "Use this card" });
   await expect(use.first()).toBeVisible({ timeout: 150_000 });
   await expect(page.locator(".scanner-read")).toContainText("199/165");
