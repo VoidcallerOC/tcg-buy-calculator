@@ -4,9 +4,7 @@ A generic TCG buying calculator. Live demo: [https://tcg-buy-calculator.vercel.a
 
 ## Current status
 
-The repository has a working customer calculator, integer-cent offer engine, deterministic card lookup, explicit condition handling, safe CSV validation, authenticated admin sign-in/publishing UI, and a real Supabase/Postgres production schema with transactional pricing import RPC. The default client configuration uses a **60% buy rate** and a condition-neutral online policy. Camera card scanning (Dragon's Lair port) is integrated on the scanner branch / deploy.
-
-Sample prices are never presented as live prices.
+The customer calculator searches live JustTCG market references through the server-side `/api/cards` function (paid Starter plan, verified 2026-10-10), prices each printing/language separately, refuses undated or stale prices, and computes offers with the integer-cent engine at the configured **60% buy rate** under the approved condition-neutral policy. Camera scanning runs fully on-device (self-hosted Tesseract.js) and always asks the customer to confirm the card. See [`JUSTTCG_MIGRATION_STATUS.md`](JUSTTCG_MIGRATION_STATUS.md) for authorization evidence and open items.
 
 ## Local development
 
@@ -14,10 +12,10 @@ Sample prices are never presented as live prices.
 npm install
 npm test
 npm run test:browser
-python3 -m http.server 4173
+node scripts/dev-server.mjs 4173
 ```
 
-Open `http://localhost:4173/`. The browser suite uses the sample dataset and does not require Supabase authentication.
+Open `http://localhost:4173/`. The dev server applies the `vercel.json` headers (including the CSP) and runs the `/api` functions; set `JUSTTCG_API_KEY` in your shell for live search. The browser suite mocks the card API and Supabase, and runs the real OCR engine against a fake camera. If the bundled Playwright browser is missing, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a local Chromium.
 
 ## Production architecture
 

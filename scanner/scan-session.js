@@ -62,13 +62,20 @@ export function createScanSession({
       set({ status: SCAN_STATE.STARTING }, token);
       try {
         await camera.start(view);
-        set({ status: SCAN_STATE.LIVE }, token);
       } catch (error) {
         fail(
           error instanceof CameraError ? error.code : SCAN_ERROR.FAILED,
           token,
         );
+        return;
       }
+      // Closed (or superseded by close) while the camera was starting: the
+      // stream that just arrived must not keep running behind a hidden dialog.
+      if (token !== run) {
+        if (state.status === SCAN_STATE.IDLE) camera.stop(view);
+        return;
+      }
+      set({ status: SCAN_STATE.LIVE }, token);
     },
 
     async capture() {

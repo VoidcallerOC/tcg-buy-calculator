@@ -599,3 +599,144 @@ test("a scanned card enters calculateOffer at the configured 60% buy rate", asyn
     );
   }
 });
+
+// ---------- Teardown races and printings ----------
+
+test("same card number in two printings is never auto-identified", async () => {
+  const base = {
+    name: "Charizard ex",
+    set_name: "SV: Scarlet & Violet 151",
+    card_number: "199/165",
+  };
+  const clues = extractClues(ocrPasses("Charizard ex", "199/165"));
+  const match = await matchCatalog(clues, {
+    selectedGame: "pokemon",
+    search: async () => [
+      { ...base, id: "c::holofoil", printing: "Holofoil" },
+      { ...base, id: "c::reverse-holofoil", printing: "Reverse Holofoil" },
+    ],
+  });
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.deepEqual(match.candidates.map((item) => item.card.printing).sort(), [
+    "Holofoil",
+    "Reverse Holofoil",
+  ]);
+});
+
+test("closing while the camera is starting stops the late stream", async () => {
+  let resolveStart;
+  const events = [];
+  const session = createScanSession({
+    camera: {
+      start: () =>
+        new Promise((resolve) => {
+          resolveStart = resolve;
+        }),
+      capture: () => ({}),
+      stop: () => events.push("stop"),
+    },
+    preprocess: () => [],
+    ocr: { recognize: async () => ({ text: "", confidence: 0 }) },
+    search: fixtureSearch,
+    selectedGame: () => "pokemon",
+    onState: (s) => events.push(s.status),
+  });
+  const opening = session.open();
+  session.close();
+  resolveStart();
+  await opening;
+  assert.deepEqual(events, ["starting", "stop", "idle", "stop"]);
+  assert.equal(session.state.status, SCAN_STATE.IDLE);
+});
+
+test("a retry while the camera is starting keeps the shared stream running", async () => {
+  let resolveStart;
+  let stops = 0;
+  const session = createScanSession({
+    camera: {
+      start: () =>
+        new Promise((resolve) => {
+          resolveStart ??= resolve;
+          setTimeout(resolve, 0);
+        }),
+      capture: () => ({}),
+      stop: () => {
+        stops += 1;
+      },
+    },
+    preprocess: () => [],
+    ocr: { recognize: async () => ({ text: "", confidence: 0 }) },
+    search: fixtureSearch,
+    selectedGame: () => "pokemon",
+    onState: () => {},
+  });
+  const first = session.open();
+  const second = session.retry();
+  resolveStart();
+  await Promise.all([first, second]);
+  assert.equal(stops, 0);
+  assert.equal(session.state.status, SCAN_STATE.LIVE);
+});
+
+function mediaEnv() {
+  const tracks = [];
+  let resolve;
+  let calls = 0;
+  const env = {
+    isSecureContext: true,
+    navigator: {
+      mediaDevices: {
+        getUserMedia: () => {
+          calls += 1;
+          return new Promise((r) => {
+            resolve = r;
+          });
+        },
+      },
+    },
+  };
+  const grant = () => {
+    const track = {
+      stopped: false,
+      stop() {
+        this.stopped = true;
+      },
+    };
+    tracks.push(track);
+    resolve({ getTracks: () => [track], getVideoTracks: () => [track] });
+  };
+  return { env, tracks, grant, calls: () => calls };
+}
+const fakeVideo = () => ({
+  setAttribute() {},
+  play: async () => {},
+  srcObject: null,
+});
+
+test("CameraCapture shares one permission request between concurrent starts", async () => {
+  const media = mediaEnv();
+  const camera = new CameraCapture(media.env);
+  const video = fakeVideo();
+  const a = camera.start(video);
+  const b = camera.start(video);
+  media.grant();
+  await Promise.all([a, b]);
+  assert.equal(media.calls(), 1);
+  assert.equal(media.tracks.length, 1);
+  camera.stop(video);
+  assert.equal(media.tracks[0].stopped, true);
+  assert.equal(video.srcObject, null);
+});
+
+test("CameraCapture stops a stream granted after the scanner closed", async () => {
+  const media = mediaEnv();
+  const camera = new CameraCapture(media.env);
+  const video = fakeVideo();
+  const starting = camera.start(video);
+  camera.stop(video);
+  media.grant();
+  await assert.rejects(starting, (error) => error instanceof CameraError);
+  assert.equal(media.tracks[0].stopped, true);
+  assert.equal(camera.stream, null);
+  assert.equal(video.srcObject, null);
+});

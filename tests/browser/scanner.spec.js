@@ -1,19 +1,21 @@
 import { test, expect } from "@playwright/test";
 
+const fresh = () => new Date().toISOString();
+
 const cards = {
   "OP05-060": {
     id: "luffy",
     name: "Monkey.D.Luffy",
     card_number: "OP05-060",
     set_name: "Awakening of the New Era",
-    pricing: { NM: { reference_cents: 1499 } },
+    pricing: { NM: { reference_cents: 1499, source_updated_at: fresh() } },
   },
   "199/165": {
     id: "charizard",
     name: "Charizard ex",
     card_number: "199/165",
     set_name: "Scarlet & Violet—151",
-    pricing: { NM: { reference_cents: 20000 } },
+    pricing: { NM: { reference_cents: 20000, source_updated_at: fresh() } },
   },
 };
 
@@ -113,7 +115,7 @@ test.describe("Dragon's Lair scanner integration", () => {
               name: "Charizard ex",
               card_number: "199/165",
               set_name: "Scarlet & Violet—151",
-              pricing: { NM: { reference_cents: 20000 } },
+              pricing: { NM: { reference_cents: 20000, source_updated_at: new Date().toISOString() } },
             });
             returnFocus?.focus();
           }

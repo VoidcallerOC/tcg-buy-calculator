@@ -2,7 +2,7 @@
 
 ## Current status
 
-**YELLOW — SOFTWARE COMPLETE / PROVIDER ACTIVATION REQUIRED**
+**LIVE PRICING AUTHORIZED (paid Starter plan) — see open items below**
 
 JustTCG is implemented as the intended production provider through the existing server-side provider architecture. The customer browser does not call JustTCG directly, and production does not silently fall back to TCGCSV or sample data.
 
@@ -17,17 +17,20 @@ References:
 - [JustTCG API quickstart](https://justtcg.com/docs/quickstart)
 - [JustTCG cards API](https://justtcg.com/docs/api/cards)
 
-## Current authorization state
+## Current authorization state (checked 2026-10-10)
 
 - Provider: **JustTCG**
-- Credential on Vercel `tcg-buy-calculator`: **UNVERIFIED / not configured** (env list empty as of 2026-10-07)
-- Commercial use: **UNCLEAR** until an active paid plan is configured and recorded
-- Derived pricing: **UNCLEAR** until the paid-plan evidence is recorded
-- Attribution: **UNCLEAR**
-- Overall provider authorization: **PENDING**
-- Production: **BLOCKED**
+- Plan: **Starter Plan** (paid, $19/mo). Verified from the production key's own API response (`_metadata.apiPlan = "Starter Plan"`), not from the key's existence.
+- Published terms checked 2026-10-10 ([pricing](https://justtcg.com/pricing), [commercial use](https://justtcg.com/docs/commercial-use)): paid tiers carry a commercial license; end-user display and derived calculations are permitted; attribution is not required on paid tiers.
+- Commercial use: **AUTHORIZED** (paid plan per published terms)
+- Derived pricing: **AUTHORIZED** (derived metrics permitted)
+- Attribution: **NOT_REQUIRED**
+- Credential: `JUSTTCG_API_KEY` set as a **sensitive** env var on Vercel project `tcg-buy-calculator` (Production + Preview) on 2026-10-10.
+- Server-side gate: `lib/pricing-authorization.js`; `/api/cards` serves no pricing unless it evaluates as authorized. `data/config.json` mirrors it (enforced by tests).
 
-An API key alone is not treated as commercial authorization. Configure `JUSTTCG_API_KEY` on Vercel project `tcg-buy-calculator` only. Do not assume the key exists elsewhere.
+Restrictions that still apply: do not proxy or re-expose JustTCG endpoints for third-party querying, do not redistribute or export raw data, and present JustTCG prices as market observations, not quotes. `/api/cards` returns only normalized fields, refuses cross-site browser requests, caps provider calls per search, and is CDN-cached for five minutes to protect the 1,000-requests/day Starter quota.
+
+This is a reading of published terms, not legal advice. Have an attorney confirm before relying on it for a commercial launch if the business needs certainty.
 
 ## Implemented
 
@@ -42,13 +45,8 @@ An API key alone is not treated as commercial authorization. Configure `JUSTTCG_
 - Existing 60% buy-rate calculation preserved.
 - Existing authenticated, transactional Supabase publication path preserved.
 
-## Remaining activation requirements
+## Open items
 
-1. Obtain an active paid JustTCG plan for the production application.
-2. Store `JUSTTCG_API_KEY` as a server-side secret on Vercel project `tcg-buy-calculator` (Production + Preview).
-3. Record the provider plan, terms URL, checked date, scope, restrictions, and evidence in the compliance record.
-4. Run a controlled server-side sync preview for the intended games.
-5. Validate identifiers, prices, timestamps, freshness, and catalog boundaries.
-6. Publish transactionally and verify the customer end-to-end flow.
-
-Until those steps pass, the system must remain **YELLOW / BLOCKED**.
+1. Rotate the JustTCG key (it was shared in a chat log) and update the Vercel env var.
+2. Watch daily quota (1,000/day on Starter); upgrade to Professional (5,000/day) if customers hit the limit.
+3. The indexed Supabase catalog holds only part of the catalog and is not enabled on Vercel; customer search uses the live provider.
