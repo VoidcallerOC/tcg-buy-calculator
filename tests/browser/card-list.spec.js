@@ -51,7 +51,7 @@ async function stubScanner(page) {
 }
 
 async function priceAndAdd(page, expectedOffer) {
-  await page.getByRole("button", { name: "Near Mint", exact: true }).click();
+  await page.locator('.condition-option[data-code="NM"]').click();
   await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
   if (expectedOffer)
     await expect(page.locator("#offer-value")).toHaveText(expectedOffer);
@@ -98,7 +98,7 @@ for (const viewport of [
 
     // A stale price is listed for in-store pricing, never totalled.
     await page.getByRole("button", { name: "Scan next card" }).click();
-    await page.getByRole("button", { name: "Near Mint", exact: true }).click();
+    await page.locator('.condition-option[data-code="NM"]').click();
     await page
       .getByRole("button", { name: /Calculate estimated offer/ })
       .click();
@@ -156,11 +156,9 @@ test("changing condition after pricing withdraws the stale Add button", async ({
   await stubScanner(page);
   await page.goto("/");
   await page.getByRole("button", { name: /Scan a card/ }).click();
-  await page.getByRole("button", { name: "Near Mint", exact: true }).click();
+  await page.locator('.condition-option[data-code="NM"]').click();
   await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
   await expect(page.locator("#add-to-list")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Lightly Played", exact: true })
-    .click();
+  await page.locator('.condition-option[data-code="LP"]').click();
   await expect(page.locator("#add-to-list")).toBeHidden();
 });

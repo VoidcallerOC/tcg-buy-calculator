@@ -262,7 +262,7 @@ test("misread card → correct the number → catalog match → list → scan ne
   await expect(page.locator("#scanner")).toBeHidden();
   expect(await page.evaluate(() => window.__liveTracks())).toBe(0);
 
-  await page.getByRole("button", { name: "Near Mint", exact: true }).click();
+  await page.locator('.condition-option[data-code="NM"]').click();
   await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
   await expect(page.locator("#offer-value")).toHaveText("$120.00");
   await page.locator("#add-to-list").click();

@@ -3,127 +3,145 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Pricing Import Preview | TCG Buy Calculator</title>
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="admin.css" />
     <script type="module" src="admin.js"></script>
   </head>
   <body>
-    <main class="shell">
+    <div class="shell">
       <header class="topbar">
-        <a class="brand" href="/"
-          >TCG Buy Calculator <span>/</span> Pricing admin</a
-        >
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <strong>TCG Buy Calculator</strong> <span>/ Pricing admin</span>
+        </a>
         <span class="status-pill">Authenticated publishing</span>
       </header>
-      <section class="admin-hero">
-        <p class="eyebrow">Maintained pricing dataset</p>
-        <h1>Review and publish a pricing update.</h1>
-        <p class="lede">
-          Preview runs in the browser. Publishing requires a
-          Supabase-authenticated admin account and is performed transactionally
-          on the server.
-        </p>
-      </section>
-      <section id="login-panel" class="calculator-card">
-        <div class="step-heading">
-          <span>01</span>
-          <div>
-            <p class="eyebrow">Admin sign-in</p>
-            <h2>Authenticate before publishing</h2>
+      <main class="admin-main">
+        <section class="admin-hero">
+          <p class="eyebrow">Maintained pricing dataset</p>
+          <h1>Review and publish a pricing update.</h1>
+          <p class="lede">
+            Preview runs in the browser. Publishing requires a
+            Supabase-authenticated admin account and is performed
+            transactionally on the server.
+          </p>
+        </section>
+        <section id="login-panel" class="calculator-card">
+          <div class="step-heading">
+            <span aria-hidden="true">1</span>
+            <div>
+              <p class="eyebrow">Admin sign-in</p>
+              <h2>Authenticate before publishing</h2>
+            </div>
           </div>
-        </div>
-        <label class="field-label" for="admin-email">Email</label>
-        <input id="admin-email" type="email" autocomplete="username" />
-        <label class="field-label" for="admin-password">Password</label>
-        <input
-          id="admin-password"
-          type="password"
-          autocomplete="current-password"
-        />
-        <button id="login-button" class="button" type="button">
-          Sign in <span aria-hidden="true">→</span>
-        </button>
-        <p id="login-message" class="field-help">
-          Your account must be assigned to the client in the production
-          database.
-        </p>
-      </section>
-      <section id="import-panel" class="calculator-card" hidden>
-        <div class="step-heading">
-          <span>02</span>
-          <div>
-            <p class="eyebrow">Upload CSV</p>
-            <h2>Preview a pricing update</h2>
+          <label class="field-label" for="admin-email">Email</label>
+          <input
+            id="admin-email"
+            type="email"
+            autocomplete="username"
+            inputmode="email"
+          />
+          <label class="field-label" for="admin-password">Password</label>
+          <input
+            id="admin-password"
+            type="password"
+            autocomplete="current-password"
+          />
+          <button id="login-button" class="button" type="button">
+            Sign in <span aria-hidden="true">→</span>
+          </button>
+          <p id="login-message" class="field-help">
+            Your account must be assigned to the client in the production
+            database.
+          </p>
+        </section>
+        <section id="import-panel" class="calculator-card" hidden>
+          <div class="step-heading">
+            <span aria-hidden="true">2</span>
+            <div>
+              <p class="eyebrow">Upload CSV</p>
+              <h2>Preview a pricing update</h2>
+            </div>
           </div>
-        </div>
-        <p id="session-message" class="field-help"></p>
-        <div id="provider-status" class="import-summary" aria-live="polite">
-          Provider status is loading…
-        </div>
-        <input id="csv-file" type="file" accept=".csv,text/csv" />
-        <p id="import-message" class="field-help">
-          Required columns are checked before any update is considered.
-        </p>
-        <div id="import-summary" class="import-summary" hidden></div>
-        <div id="import-errors" class="import-errors" hidden></div>
-        <button id="publish-button" class="button" type="button" disabled>
-          Publish validated import <span aria-hidden="true">→</span>
-        </button>
-      </section>
-      <section id="policy-panel" class="calculator-card" hidden>
-        <div class="step-heading">
-          <span>03</span>
-          <div>
-            <p class="eyebrow">Production readiness</p>
-            <h2>Condition pricing policy</h2>
+          <p id="session-message" class="field-help"></p>
+          <div id="provider-status" class="import-summary" aria-live="polite">
+            Provider status is loading…
           </div>
-        </div>
-        <p id="readiness-status" class="field-help"></p>
-        <div id="condition-policy-status" class="import-summary"></div>
-        <p class="field-help">
-          Provider market reference is not condition-specific. The approved
-          online policy uses the same market reference across conditions;
-          physical inspection determines the final offer.
-        </p>
-        <div class="import-summary">
-          <strong>Software readiness:</strong>
-          <span id="software-readiness">Loading…</span><br />
-          <strong>Business policy:</strong>
-          <span id="business-policy-readiness">Loading…</span><br />
-          <strong>External data authorization:</strong>
-          <span id="external-authorization-readiness">Loading…</span><br />
-          <strong>Production activation:</strong>
-          <span id="production-activation-readiness">Loading…</span>
-        </div>
-        <p id="authorization-evidence" class="field-help"></p>
-        <p class="field-help">
-          The calculator is technically ready. Production pricing cannot be
-          activated until the external provider’s commercial-use and
-          derived-pricing permissions are confirmed.
-        </p>
-        <p class="field-help">
-          JustTCG commercial use requires an active paid plan. Review the
-          <a
-            href="https://justtcg.com/docs/commercial-use"
-            target="_blank"
-            rel="noreferrer"
-            >official commercial-use guidance</a
-          >
-          and
-          <a href="https://justtcg.com/terms" target="_blank" rel="noreferrer"
-            >binding terms</a
-          >, then record the plan and evidence before activation. The legacy
-          TCGCSV request remains documented in
-          <a href="../docs/TCGCSV_AUTHORIZATION_REQUEST.md"
-            >the authorization workflow</a
-          >.
-        </p>
-      </section>
+          <input id="csv-file" type="file" accept=".csv,text/csv" />
+          <p id="import-message" class="field-help">
+            Required columns are checked before any update is considered.
+          </p>
+          <div id="import-summary" class="import-summary" hidden></div>
+          <div id="import-errors" class="import-errors" hidden></div>
+          <button id="publish-button" class="button" type="button" disabled>
+            Publish validated import <span aria-hidden="true">→</span>
+          </button>
+        </section>
+        <section id="policy-panel" class="calculator-card" hidden>
+          <div class="step-heading">
+            <span aria-hidden="true">3</span>
+            <div>
+              <p class="eyebrow">Production readiness</p>
+              <h2>Condition pricing policy</h2>
+            </div>
+          </div>
+          <p id="readiness-status" class="field-help"></p>
+          <div id="condition-policy-status" class="import-summary"></div>
+          <p class="field-help">
+            Provider market reference is not condition-specific. The approved
+            online policy uses the same market reference across conditions;
+            physical inspection determines the final offer.
+          </p>
+          <dl class="readiness-list">
+            <div>
+              <dt>Software readiness</dt>
+              <dd id="software-readiness">Loading…</dd>
+            </div>
+            <div>
+              <dt>Business policy</dt>
+              <dd id="business-policy-readiness">Loading…</dd>
+            </div>
+            <div>
+              <dt>External data authorization</dt>
+              <dd id="external-authorization-readiness">Loading…</dd>
+            </div>
+            <div>
+              <dt>Production activation</dt>
+              <dd id="production-activation-readiness">Loading…</dd>
+            </div>
+          </dl>
+          <p id="authorization-evidence" class="field-help"></p>
+          <p class="field-help">
+            The calculator is technically ready. Production pricing cannot be
+            activated until the external provider’s commercial-use and
+            derived-pricing permissions are confirmed.
+          </p>
+          <p class="field-help">
+            JustTCG commercial use requires an active paid plan. Review the
+            <a
+              href="https://justtcg.com/docs/commercial-use"
+              target="_blank"
+              rel="noreferrer"
+              >official commercial-use guidance</a
+            >
+            and
+            <a href="https://justtcg.com/terms" target="_blank" rel="noreferrer"
+              >binding terms</a
+            >, then record the plan and evidence before activation. The legacy
+            TCGCSV request remains documented in
+            <a href="../docs/TCGCSV_AUTHORIZATION_REQUEST.md"
+              >the authorization workflow</a
+            >.
+          </p>
+        </section>
+      </main>
       <footer class="footer-row">
         <a href="/">← Back to calculator</a
         ><span>Publishing is server-side and transactional.</span>
       </footer>
-    </main>
+    </div>
   </body>
 </html>

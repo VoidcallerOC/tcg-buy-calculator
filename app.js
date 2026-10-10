@@ -41,6 +41,8 @@ const resultReady = document.querySelector("#result-ready");
 const resultUnavailable = document.querySelector("#result-unavailable");
 const resultPanel = document.querySelector("#result-panel");
 const scanButton = document.querySelector("#scan-button");
+const calculateHint = document.querySelector("#calculate-hint");
+const resultsToggle = document.querySelector("#results-toggle");
 const addButton = document.querySelector("#add-to-list");
 const listSection = document.querySelector("#card-list");
 const listItems = document.querySelector("#card-list-items");
@@ -59,7 +61,7 @@ if (gamesResponse?.ok) {
     // the default selection; other provider games follow alphabetically.
     const featured = [...gameSelect.options].map((option) => ({
       value: option.value,
-      label: option.textContent,
+      label: option.textContent.trim(),
     }));
     const selected = gameSelect.value;
     const rank = (id) => {
@@ -124,8 +126,70 @@ document.querySelector("[data-data-status]").textContent =
 document.querySelector("[data-pricing-status]").textContent =
   "Market references are JustTCG market observations, not a quote. Prices older than " +
   `${Number(config.stale_threshold_days ?? 7)} days are never used for an estimate.`;
-document.documentElement.style.setProperty("--brick", config.primary_color);
-document.documentElement.style.setProperty("--yellow", config.secondary_color);
+// Client theme: primary drives buttons and fills, secondary the accent text.
+if (config.primary_color)
+  document.documentElement.style.setProperty("--accent", config.primary_color);
+if (config.secondary_color)
+  document.documentElement.style.setProperty(
+    "--accent-text",
+    config.secondary_color,
+  );
+
+const reducedMotion = window.matchMedia?.(
+  "(prefers-reduced-motion: reduce)",
+).matches;
+const scrollBehavior = reducedMotion ? "auto" : "smooth";
+
+// Explains why Calculate is disabled, or what it will do.
+function updateCalculateState() {
+  calculateButton.disabled = !state.card || !state.condition || state.loading;
+  calculateHint.textContent = !state.card
+    ? state.condition
+      ? "Select a card to calculate."
+      : "Select a card and a condition to calculate."
+    : !state.condition
+      ? "Choose a condition to calculate."
+      : "";
+}
+
+// Marks conditions with no usable online price for the selected card, so the
+// customer sees it before calculating. Does not change what Calculate shows.
+const CONDITION_NOTES = {
+  missing: "No online price",
+  undated: "Price undated",
+  stale: "Price out of date",
+};
+function updateConditionNotes() {
+  for (const option of conditionList.querySelectorAll(".condition-option")) {
+    const note = option.querySelector(".condition-note");
+    const usability = state.card
+      ? pricingState(state.card.pricing?.[option.dataset.code])
+      : "usable";
+    note.textContent = CONDITION_NOTES[usability] ?? "";
+  }
+}
+
+function clearCondition() {
+  state.condition = null;
+  document.querySelectorAll(".condition-option").forEach((option) => {
+    option.classList.remove("is-selected");
+    option.setAttribute("aria-pressed", "false");
+  });
+}
+
+// After a pick, show only the chosen card; the full list is one tap away.
+function setResultsCollapsed(collapsed) {
+  const total = searchResults.querySelectorAll(".search-result").length;
+  const canCollapse =
+    total > 1 && Boolean(searchResults.querySelector(".is-selected"));
+  searchResults.dataset.collapsed = String(collapsed && canCollapse);
+  resultsToggle.hidden = !canCollapse;
+  resultsToggle.textContent =
+    collapsed && canCollapse
+      ? `Show all ${total} matches`
+      : "Hide other matches";
+  resultsToggle.setAttribute("aria-expanded", String(!collapsed));
+}
 
 function resetResult() {
   resultEmpty.hidden = false;
@@ -209,16 +273,14 @@ function clearSelection(message) {
   window.clearTimeout(searchTimer);
   state.request += 1;
   state.card = null;
-  state.condition = null;
-  document.querySelectorAll(".condition-option").forEach((option) => {
-    option.classList.remove("is-selected");
-    option.setAttribute("aria-pressed", "false");
-  });
+  clearCondition();
   setSearchLoading(false);
   searchInput.value = "";
   searchResults.replaceChildren();
+  setResultsCollapsed(false);
   searchMessage.textContent = message;
-  calculateButton.disabled = true;
+  updateConditionNotes();
+  updateCalculateState();
   resetResult();
 }
 
@@ -226,6 +288,7 @@ function setSearchLoading(loading) {
   state.loading = loading;
   searchInput.setAttribute("aria-busy", String(loading));
   if (loading) searchMessage.textContent = "Searching live card data…";
+  updateCalculateState();
 }
 
 function renderConditions() {
@@ -233,17 +296,24 @@ function renderConditions() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "condition-option";
-    button.textContent = condition.name;
+    button.dataset.code = condition.code;
+    const name = document.createElement("span");
+    const code = document.createElement("span");
+    const note = document.createElement("span");
+    name.className = "condition-name";
+    code.className = "condition-code";
+    note.className = "condition-note";
+    name.textContent = condition.name;
+    code.textContent = condition.code;
+    code.setAttribute("aria-hidden", "true");
+    button.append(name, code, note);
     button.setAttribute("aria-pressed", "false");
     button.addEventListener("click", () => {
+      clearCondition();
       state.condition = condition;
-      document.querySelectorAll(".condition-option").forEach((option) => {
-        option.classList.remove("is-selected");
-        option.setAttribute("aria-pressed", "false");
-      });
       button.classList.add("is-selected");
       button.setAttribute("aria-pressed", "true");
-      calculateButton.disabled = !state.card || state.loading;
+      updateCalculateState();
       resetResult();
     });
     conditionList.append(button);
@@ -264,13 +334,16 @@ function selectCard(
   button?.setAttribute("aria-pressed", "true");
   searchInput.value = cardLabel(card);
   searchMessage.textContent = message;
-  calculateButton.disabled = !state.condition;
+  setResultsCollapsed(true);
+  updateConditionNotes();
+  updateCalculateState();
   resetResult();
 }
 
 const MAX_SHOWN = 12;
 function renderSearchResults(cards) {
   searchResults.replaceChildren();
+  setResultsCollapsed(false);
   if (!cards.length) {
     searchMessage.textContent =
       "No matching cards found. Try a card number or set code.";
@@ -290,6 +363,8 @@ function renderSearchResults(cards) {
     const name = document.createElement("strong");
     const set = document.createElement("small");
     const number = document.createElement("span");
+    details.className = "result-details";
+    number.className = "result-number-chip";
     name.textContent = card.name;
     set.textContent =
       [card.set_name, variantLabel(card), card.rarity]
@@ -340,20 +415,18 @@ function confirmScannedCard(card) {
     gameSelect.value !== card.game
   ) {
     gameSelect.value = card.game;
-    state.condition = null;
-    document.querySelectorAll(".condition-option").forEach((option) => {
-      option.classList.remove("is-selected");
-      option.setAttribute("aria-pressed", "false");
-    });
+    clearCondition();
   }
   state.request += 1;
+  // A search still in flight is now superseded; don't leave it marked busy.
+  setSearchLoading(false);
   renderSearchResults([card]);
   selectCard(
     card,
     searchResults.querySelector(".search-result"),
     "Card confirmed from your scan. Choose a condition below.",
   );
-  conditionList.scrollIntoView({ behavior: "smooth", block: "center" });
+  conditionList.scrollIntoView({ behavior: scrollBehavior, block: "center" });
 }
 
 async function openScan(trigger) {
@@ -395,7 +468,7 @@ addButton.addEventListener("click", () => {
   const label = state.pending.label;
   renderList();
   clearSelection(`Added ${label}. Scan or search the next card.`);
-  listSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  listSection.scrollIntoView({ behavior: scrollBehavior, block: "nearest" });
   scanNextButton.focus({ preventScroll: true });
 });
 
@@ -410,12 +483,21 @@ let searchTimer;
 searchInput.addEventListener("input", () => {
   window.clearTimeout(searchTimer);
   state.card = null;
-  calculateButton.disabled = true;
+  // Editing the query drops the previous pick; the old list stays visible
+  // until the new results arrive.
+  searchResults.querySelectorAll(".search-result").forEach((option) => {
+    option.classList.remove("is-selected");
+    option.setAttribute("aria-pressed", "false");
+  });
+  setResultsCollapsed(false);
+  updateConditionNotes();
+  updateCalculateState();
   resetResult();
   const query = searchInput.value.trim();
   if (query.length < 2) {
     state.request += 1;
     searchResults.replaceChildren();
+    setResultsCollapsed(false);
     searchMessage.textContent = "Start typing to see matching cards.";
     return;
   }
@@ -426,14 +508,12 @@ gameSelect.addEventListener("change", () => {
   window.clearTimeout(searchTimer);
   state.request += 1;
   state.card = null;
-  state.condition = null;
-  document.querySelectorAll(".condition-option").forEach((option) => {
-    option.classList.remove("is-selected");
-    option.setAttribute("aria-pressed", "false");
-  });
+  clearCondition();
   setSearchLoading(false);
   searchResults.replaceChildren();
-  calculateButton.disabled = true;
+  setResultsCollapsed(false);
+  updateConditionNotes();
+  updateCalculateState();
   resetResult();
   const query = searchInput.value.trim();
   if (query.length < 2) {
@@ -506,8 +586,12 @@ function renderResult() {
     referenceCents: result.referenceCents,
     sourceUpdatedAt: pricing.source_updated_at,
   });
-  resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  resultPanel.scrollIntoView({ behavior: scrollBehavior, block: "start" });
 }
 
 calculateButton.addEventListener("click", renderResult);
+resultsToggle.addEventListener("click", () =>
+  setResultsCollapsed(searchResults.dataset.collapsed !== "true"),
+);
 renderConditions();
+updateCalculateState();
