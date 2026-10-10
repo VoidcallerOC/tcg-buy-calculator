@@ -405,6 +405,7 @@ function harness({
   ocrText = ["Charizard ex", "199/165"],
   ocrError,
   search = fixtureSearch,
+  identify,
 } = {}) {
   const states = [];
   let stopped = 0;
@@ -439,6 +440,7 @@ function harness({
     search,
     selectedGame: () => "pokemon",
     onState: (s) => states.push(s),
+    identify,
   });
   return { session, states, stopped: () => stopped };
 }
@@ -836,4 +838,101 @@ test("search failure keeps what was read so it can be corrected and retried", as
   fail = false;
   await session.rematch(session.state.clues);
   assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+});
+
+// ---------- AI fallback (identify) ----------
+
+test("AI identification runs only on request and its reading goes through the catalog", async () => {
+  const sent = [];
+  const searches = [];
+  const { session } = harness({
+    ocrText: ["", ""],
+    search: async (query, game) => {
+      searches.push(`${game}:${query}`);
+      return fixtureSearch(query, game);
+    },
+    identify: async (frame, game) => {
+      sent.push({ frame, game });
+      return { name: "Charizard ex", number: "199/165", game: "pokemon" };
+    },
+  });
+  await session.open();
+  await session.capture();
+  assert.equal(session.state.match.reason, "no_text");
+  assert.equal(sent.length, 0, "the photo is not sent without a request");
+  assert.equal(session.canIdentifyWithAi, true);
+  await session.identifyWithAi();
+  assert.deepEqual(sent, [{ frame: { frame: true }, game: "pokemon" }]);
+  assert.equal(session.state.status, SCAN_STATE.RESULT);
+  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(session.state.clues.source, "ai");
+  assert.equal(session.state.clues.corrected, false);
+  assert.ok(searches.includes("pokemon:199/165"));
+  // One AI attempt per photo.
+  assert.equal(session.canIdentifyWithAi, false);
+});
+
+test("AI failure keeps the OCR result and says why; an unreadable AI result is not a guess", async () => {
+  let fail = true;
+  const { session } = harness({
+    ocrText: ["Charizrd", ""],
+    identify: async () => {
+      if (fail) throw new Error("AI identification is busy.");
+      return { name: "", number: "", game: null };
+    },
+  });
+  await session.open();
+  await session.capture();
+  const before = session.state.match.status;
+  await session.identifyWithAi();
+  assert.equal(session.state.status, SCAN_STATE.RESULT);
+  assert.equal(session.state.match.status, before);
+  assert.equal(session.state.aiError, "AI identification is busy.");
+  fail = false;
+  await session.identifyWithAi();
+  assert.equal(session.state.match.status, MATCH_STATUS.NOT_IDENTIFIED);
+  assert.equal(session.state.match.reason, "ai_unread");
+  assert.deepEqual(session.state.match.candidates, []);
+});
+
+test("AI is unavailable without an identify dependency, while live, and after close", async () => {
+  const plain = harness({ ocrText: ["", ""] });
+  await plain.session.open();
+  await plain.session.capture();
+  assert.equal(plain.session.canIdentifyWithAi, false);
+  let calls = 0;
+  const { session } = harness({
+    ocrText: ["", ""],
+    identify: async () => {
+      calls += 1;
+      return null;
+    },
+  });
+  await session.open();
+  assert.equal(session.canIdentifyWithAi, false);
+  await session.identifyWithAi();
+  await session.capture();
+  session.close();
+  await session.identifyWithAi();
+  assert.equal(calls, 0);
+});
+
+test("closing during an AI request discards its answer", async () => {
+  let release;
+  const { session } = harness({
+    ocrText: ["", ""],
+    identify: () =>
+      new Promise((resolve) => {
+        release = () =>
+          resolve({ name: "Charizard ex", number: "199/165", game: "pokemon" });
+      }),
+  });
+  await session.open();
+  await session.capture();
+  const pending = session.identifyWithAi();
+  assert.equal(session.state.step, "ai");
+  session.close();
+  release();
+  await pending;
+  assert.equal(session.state.status, SCAN_STATE.IDLE);
 });

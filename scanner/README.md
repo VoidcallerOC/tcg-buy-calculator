@@ -42,7 +42,8 @@ After an estimate, **Add to my list** copies the card, condition, market referen
 ## Privacy and security
 
 - Camera access is browser-controlled and requested only after **Scan a card**. `vercel.json` sets `Permissions-Policy: camera=(self)` and CSP `wasm-unsafe-eval` / `worker-src 'self'`.
-- **No image leaves the browser.** OCR runs locally; only the extracted text is sent, as an ordinary search query, to the site's own `/api/cards`.
+- **OCR keeps the image in the browser.** OCR runs locally; only the extracted text is sent, as an ordinary search query, to the site's own `/api/cards`.
+- **AI identification sends one photo, only when the customer taps Identify with AI.** See below.
 - No third-party CDN: the engine and English language data are served from this site. The CSP adds only `'wasm-unsafe-eval'` (to compile the engine) and `worker-src 'self'`.
 - No credentials are involved.
 
@@ -50,7 +51,17 @@ After an estimate, **Add to my list** copies the card, condition, market referen
 
 - OCR quality on real phones with foil, glare, small type and angled cards is **not yet verified**; only synthetic card images through a real camera stream have been tested.
 - Live JustTCG lookups by collector number alone (e.g. `199/165`) are unverified; the matcher also searches by the name read from the card.
-- Visual (artwork) recognition would need an external service. The boundary is `ocr-engine.js`'s `recognize()` / a server-side `/api/identify`; none is configured, and adding one means documenting exactly what image data leaves the browser and keeping its key server-side.
+- AI identification reads printed text and art from the photo, so it handles foil, glare and small type better than OCR, but it can still misread; its reading is only a search and the customer confirms the card.
+
+## AI identification (fallback)
+
+When OCR can't identify a card (or isn't sure), and the server has `ANTHROPIC_API_KEY` set, the result panel offers **Identify with AI**. Nothing is sent until the customer taps it.
+
+- **What leaves the browser:** one JPEG of the cropped card (longest side 1024 px, typically 100–300 KB) and the selected game, posted to this site's `/api/identify`. The server forwards it to Anthropic's Messages API for that single request. This site does not store the photo; Anthropic's own API data-retention terms apply.
+- **What comes back:** the printed name, collector number, set and game as structured JSON (`api/identify.js`, strict JSON schema). No prices. The scanner runs that reading through the same catalog search as OCR (`session.identifyWithAi`), labels it **Read by AI (not verified)**, and the customer still taps **Use this card**. One AI attempt per photo.
+- **Model and cost:** `claude-opus-5-5` by default (override with `ANTHROPIC_IDENTIFY_MODEL`, e.g. `claude-haiku-5-5` for lower cost), effort `low`, server-side refusal fallback on. Each tap is one paid model call.
+- **Abuse limits:** POST only, cross-site browser requests refused, image size capped, 25 s model timeout, 30 s function limit. The endpoint can still be called directly by a script; add a Vercel Firewall rate limit on `/api/identify` before heavy traffic.
+- **Key:** `ANTHROPIC_API_KEY` is read only on the server (Vercel project env, Production + Preview). `GET /api/identify` returns only `{ enabled }`.
 
 ## Tests
 
