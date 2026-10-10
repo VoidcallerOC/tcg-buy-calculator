@@ -5,6 +5,9 @@ const config = await fetch("../data/config.json").then((response) =>
 );
 const base = config.pricing_backend_url;
 const publishableKey = config.pricing_backend_publishable_key;
+if (!base || !publishableKey)
+  document.querySelector("#login-message").textContent =
+    "Admin sign-in is not configured for this deployment.";
 const fileInput = document.querySelector("#csv-file");
 const loginPanel = document.querySelector("#login-panel");
 const importPanel = document.querySelector("#import-panel");
@@ -145,16 +148,26 @@ async function signIn() {
       throw new Error("Production readiness configuration is incomplete.");
     conditions = conditionRows;
     renderReadiness({ client, policies: policyRows, compliance });
-    const statusResponse = await fetch(`${base}/functions/v1/justtcg-sync`, {
-      headers: {
-        ...publicHeaders,
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-    const status = await statusResponse.json();
-    providerStatus.textContent = status.configured
-      ? `JustTCG provider: ${status.status}. Paid-plan authorization remains ${status.authorization_status || "pending"}.`
-      : "JustTCG provider is not configured. Production synchronization is disabled until the server-side key and paid plan are verified.";
+    // Provider status is informational; its absence must not block sign-in.
+    try {
+      const statusResponse = await fetch(`${base}/functions/v1/justtcg-sync`, {
+        headers: {
+          ...publicHeaders,
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      if (!statusResponse.ok) throw new Error(String(statusResponse.status));
+      const status = await statusResponse.json();
+      providerStatus.textContent = status.configured
+        ? `JustTCG sync function: ${status.status}.`
+        : "JustTCG sync function has no server-side key configured.";
+    } catch {
+      providerStatus.textContent =
+        "JustTCG sync function status is unavailable.";
+    }
+    providerStatus.append(
+      " The customer calculator uses live JustTCG pricing through this site’s server; CSV imports here publish only to the separate maintained pricing table.",
+    );
     policyPanel.hidden = false;
     loginPanel.hidden = true;
     importPanel.hidden = false;

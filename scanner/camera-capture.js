@@ -111,24 +111,41 @@ export class CameraCapture {
   constructor(env = globalThis) {
     this.env = env;
     this.stream = null;
+    this.pending = null;
+    this.generation = 0;
   }
 
   async start(video) {
     const unsupported = cameraSupport(this.env);
     if (unsupported) throw new CameraError(unsupported);
     if (!this.stream) {
-      try {
-        this.stream = await this.env.navigator.mediaDevices.getUserMedia({
+      // One permission request at a time: a retry while the prompt is open
+      // shares it instead of opening a second, orphaned stream.
+      const generation = this.generation;
+      this.pending ??= this.env.navigator.mediaDevices
+        .getUserMedia({
           audio: false,
           video: {
             facingMode: { ideal: "environment" },
             width: { ideal: 1920 },
             height: { ideal: 1080 },
           },
+        })
+        .finally(() => {
+          this.pending = null;
         });
+      let stream;
+      try {
+        stream = await this.pending;
       } catch (error) {
         throw new CameraError(classifyCameraError(error), error);
       }
+      // stop() ran while the browser was still granting access.
+      if (generation !== this.generation) {
+        for (const track of stream.getTracks?.() ?? []) track.stop();
+        throw new CameraError(CAMERA_ERROR.FAILED);
+      }
+      this.stream = stream;
     }
     this.requestContinuousFocus();
     video.srcObject = this.stream;
@@ -230,6 +247,7 @@ export class CameraCapture {
   }
 
   stop(video) {
+    this.generation += 1;
     for (const track of this.stream?.getTracks() ?? []) track.stop();
     this.stream = null;
     if (video) video.srcObject = null;

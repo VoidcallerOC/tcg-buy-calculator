@@ -1,19 +1,21 @@
 import { test, expect } from "@playwright/test";
 
+const fresh = () => new Date().toISOString();
+
 const cards = {
   "OP05-060": {
     id: "luffy",
     name: "Monkey.D.Luffy",
     card_number: "OP05-060",
     set_name: "Awakening of the New Era",
-    pricing: { NM: { reference_cents: 1499 } },
+    pricing: { NM: { reference_cents: 1499, source_updated_at: fresh() } },
   },
   "199/165": {
     id: "charizard",
     name: "Charizard ex",
     card_number: "199/165",
     set_name: "Scarlet & Violet—151",
-    pricing: { NM: { reference_cents: 20000 } },
+    pricing: { NM: { reference_cents: 20000, source_updated_at: fresh() } },
   },
 };
 
@@ -113,7 +115,7 @@ test.describe("Dragon's Lair scanner integration", () => {
               name: "Charizard ex",
               card_number: "199/165",
               set_name: "Scarlet & Violet—151",
-              pricing: { NM: { reference_cents: 20000 } },
+              pricing: { NM: { reference_cents: 20000, source_updated_at: new Date().toISOString() } },
             });
             returnFocus?.focus();
           }
@@ -137,4 +139,39 @@ test.describe("Dragon's Lair scanner integration", () => {
     await expect(page.locator("#reference-value")).toHaveText("$200.00");
     await expect(page.locator("#rate-value")).toHaveText("60%");
   });
+});
+
+test("a scanned card from another game switches the game selector", async ({
+  page,
+}) => {
+  await page.route("**/scanner/scanner-ui.js", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: `
+        export function openScanner({ onConfirm }) {
+          onConfirm({
+            id: "mihawk::foil::english",
+            game: "one-piece-card-game",
+            name: "Dracule Mihawk",
+            card_number: "OP14-119",
+            set_name: "The Azure Sea's Seven",
+            printing: "Foil",
+            language: "English",
+            pricing: { NM: { reference_cents: 1000, source_updated_at: new Date().toISOString() } },
+          });
+        }
+      `,
+    });
+  });
+  await page.goto("/");
+  await expect(page.getByLabel("Game")).toHaveValue("pokemon");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await expect(page.getByLabel("Game")).toHaveValue("one-piece-card-game");
+  await expect(page.getByLabel("Card search")).toHaveValue(
+    "Dracule Mihawk · OP14-119 · Foil",
+  );
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText("$6.00");
 });

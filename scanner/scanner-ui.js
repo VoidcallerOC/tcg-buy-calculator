@@ -143,7 +143,26 @@ function createUi() {
   };
   closeButton.addEventListener("click", close);
   root.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") close();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    // Modal dialog: keep Tab focus inside the scanner.
+    if (event.key !== "Tab") return;
+    const focusable = [
+      ...root.querySelectorAll("button:not([disabled]), [href], input"),
+    ].filter((node) => node.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   function actions(...nodes) {
@@ -189,8 +208,14 @@ function createUi() {
       el(
         "span",
         "",
-        [card.set_name, card.card_number].filter(Boolean).join(" · ") ||
-          "Set not listed",
+        [
+          card.set_name,
+          card.card_number,
+          card.printing,
+          card.language && card.language !== "English" ? card.language : null,
+        ]
+          .filter(Boolean)
+          .join(" · ") || "Set not listed",
       ),
     );
     const meta = [gameLabel(item.game), card.rarity]

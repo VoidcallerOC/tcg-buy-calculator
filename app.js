@@ -46,23 +46,38 @@ if (gamesResponse?.ok) {
   }
 }
 
-function isPricingUsable(pricing) {
-  if (!pricing || !Number.isSafeInteger(pricing.reference_cents)) return false;
-  if (config.allow_stale_pricing) return true;
-  if (!pricing.source_updated_at) return true;
-  const updatedAt = new Date(pricing.source_updated_at).getTime();
-  if (!Number.isFinite(updatedAt)) return false;
+// "usable" | "missing" | "undated" | "stale". A price without a source date
+// cannot be shown as current, so it is never usable.
+function pricingState(pricing) {
+  if (!pricing || !Number.isSafeInteger(pricing.reference_cents))
+    return "missing";
+  const updatedAt = new Date(pricing.source_updated_at ?? NaN).getTime();
+  if (!Number.isFinite(updatedAt)) return "undated";
+  if (config.allow_stale_pricing) return "usable";
   const thresholdMs = Number(config.stale_threshold_days ?? 7) * 86400000;
-  return Date.now() - updatedAt <= thresholdMs;
+  return Date.now() - updatedAt <= thresholdMs ? "usable" : "stale";
+}
+
+// Printing/language distinguish copies that share a name and number.
+function variantLabel(card) {
+  return [card.printing, card.language === "English" ? null : card.language]
+    .filter(Boolean)
+    .join(" · ");
+}
+function cardLabel(card) {
+  return [card.name, card.card_number, variantLabel(card)]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 for (const element of document.querySelectorAll("[data-client-name]"))
   element.textContent = config.business_name;
 document.querySelector("[data-disclaimer]").textContent = config.disclaimer;
 document.querySelector("[data-data-status]").textContent =
-  "Live provider pricing — final offer subject to in-store verification.";
+  "Market reference pricing from JustTCG — final offer subject to in-store verification.";
 document.querySelector("[data-pricing-status]").textContent =
-  "Search results and reference pricing are retrieved live from JustTCG.";
+  "Market references are JustTCG market observations, not a quote. Prices older than " +
+  `${Number(config.stale_threshold_days ?? 7)} days are never used for an estimate.`;
 document.documentElement.style.setProperty("--brick", config.primary_color);
 document.documentElement.style.setProperty("--yellow", config.secondary_color);
 
@@ -120,12 +135,13 @@ function selectCard(
   });
   button?.classList.add("is-selected");
   button?.setAttribute("aria-pressed", "true");
-  searchInput.value = `${card.name} · ${card.card_number}`;
+  searchInput.value = cardLabel(card);
   searchMessage.textContent = message;
   calculateButton.disabled = !state.condition;
   resetResult();
 }
 
+const MAX_SHOWN = 12;
 function renderSearchResults(cards) {
   searchResults.replaceChildren();
   if (!cards.length) {
@@ -133,8 +149,12 @@ function renderSearchResults(cards) {
       "No matching cards found. Try a card number or set code.";
     return;
   }
-  searchMessage.textContent = `${cards.length} matching card${cards.length === 1 ? "" : "s"}. Select one to continue.`;
-  cards.slice(0, 8).forEach((card) => {
+  const shown = cards.slice(0, MAX_SHOWN);
+  searchMessage.textContent =
+    cards.length > shown.length
+      ? `Showing ${shown.length} of ${cards.length} matches. Add a set or card number to narrow it down.`
+      : `${cards.length} matching card${cards.length === 1 ? "" : "s"}. Select one to continue.`;
+  shown.forEach((card) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "search-result";
@@ -144,8 +164,11 @@ function renderSearchResults(cards) {
     const set = document.createElement("small");
     const number = document.createElement("span");
     name.textContent = card.name;
-    set.textContent = card.set_name;
-    number.textContent = card.card_number;
+    set.textContent =
+      [card.set_name, variantLabel(card), card.rarity]
+        .filter(Boolean)
+        .join(" · ") || "Set not listed";
+    number.textContent = card.card_number || "No number";
     details.append(name, set);
     button.append(details, number);
     button.addEventListener("click", () => selectCard(card, button));
@@ -183,6 +206,7 @@ async function searchCards(query) {
 // Scanner is an input method only. A confirmed card enters the same selection
 // path as a manual search result; calculateOffer / buy rate are unchanged.
 function confirmScannedCard(card) {
+  window.clearTimeout(searchTimer);
   if (
     card.game &&
     [...gameSelect.options].some((option) => option.value === card.game) &&
@@ -273,16 +297,23 @@ gameSelect.addEventListener("change", () => {
 function renderResult() {
   if (!state.card || !state.condition || state.loading) return;
   const pricing = state.card.pricing?.[state.condition.code];
-  if (!pricing || !isPricingUsable(pricing)) {
-    const stale = pricing?.source_updated_at && !config.allow_stale_pricing;
-    setUnavailable(
-      stale
-        ? "Online estimate unavailable: reference pricing is stale."
-        : "Online estimate unavailable: pricing unavailable for this condition.",
-      stale
-        ? "Please verify the card in store. We never present stale pricing as current."
-        : "We never invent a price or substitute another condition.",
-    );
+  const usability = pricingState(pricing);
+  if (usability !== "usable") {
+    const [title, message] = {
+      stale: [
+        "Online estimate unavailable: reference pricing is stale.",
+        "Please verify the card in store. We never present stale pricing as current.",
+      ],
+      undated: [
+        "Online estimate unavailable: the reference price has no date.",
+        "Please verify the card in store. We never present undated pricing as current.",
+      ],
+      missing: [
+        "Online estimate unavailable: pricing unavailable for this condition.",
+        "We never invent a price or substitute another condition or printing.",
+      ],
+    }[usability];
+    setUnavailable(title, message);
     return;
   }
   const result = calculateOffer(
@@ -301,7 +332,11 @@ function renderResult() {
     result.rateBasisPoints,
   );
   document.querySelector("#result-card-label").textContent =
-    `${state.card.name} · ${state.card.card_number} · ${state.condition.name}`;
+    `${cardLabel(state.card)} · ${state.condition.name}`;
+  document.querySelector("#result-source").textContent =
+    `Market reference: JustTCG, updated ${new Date(
+      pricing.source_updated_at,
+    ).toLocaleDateString("en-US", { dateStyle: "medium" })}.`;
   resultEmpty.hidden = true;
   resultReady.hidden = false;
   resultUnavailable.hidden = true;
