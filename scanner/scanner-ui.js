@@ -489,7 +489,9 @@ function createUi() {
           // reprints…) print the same name and number, so the text read
           // cannot choose between them, yet their values can differ several
           // hundredfold. Say so, with the range, instead of implying a pick.
-          const numbered = match.candidates.filter((item) => item.numberMatch);
+          const numbered = match.candidates.filter(
+            (item) => item.numberMatch && !item.nameConflict,
+          );
           const printingChoice =
             !match.leader && new Set(numbered.map(cardOf)).size > 1;
           const nm = numbered
@@ -505,10 +507,10 @@ function createUi() {
             el(
               "p",
               "scanner-title",
-              match.needsNumber
-                ? "Several cards match the name. Which one is yours?"
-                : match.checkNumber
-                  ? "This number belongs to a card with a different name."
+              match.checkNumber
+                ? "The name and number we read point to different cards."
+                : match.needsNumber
+                  ? "Several cards match the name. Which one is yours?"
                   : printingChoice
                     ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
                     : match.candidates.length > 1
@@ -522,21 +524,21 @@ function createUi() {
                   `They print the same name and number but differ in artwork, and ${valueRange}${unpriced ? ` (${unpriced} with no online price)` : ""}. Compare the artwork, set and label (e.g. Alternate Art, Manga, SP) with your card. The shop checks the printing in person.`,
                 )
               : null,
-            match.needsNumber
+            match.checkNumber
               ? el(
                   "p",
                   "scanner-note scanner-needs-number",
-                  readNumbers.length
-                    ? `The number we read (${readNumbers.join(", ")}) doesn't match any of these cards. Check the number printed at the bottom of your card and type it below, or compare the set and number of each match.`
-                    : "We read the name but not the card number, so we can't tell which set your card is from. Type the number printed at the bottom of your card (e.g. 43/64) below, or compare the set and number of each match.",
+                  clues?.corrected
+                    ? `Check the name and number (${readNumbers.join(", ")}) printed on your card and correct them below.`
+                    : `We may have misread the number (${readNumbers.join(", ")}). Check the name and number printed on your card and correct them below if they differ.`,
                 )
-              : match.checkNumber
+              : match.needsNumber
                 ? el(
                     "p",
                     "scanner-note scanner-needs-number",
-                    clues?.corrected
-                      ? `Check the name and number (${readNumbers.join(", ")}) printed on your card and correct them below.`
-                      : `We may have misread the number (${readNumbers.join(", ")}). Check the name and number printed on your card and correct them below if they differ.`,
+                    readNumbers.length
+                      ? `The number we read (${readNumbers.join(", ")}) doesn't match any of these cards. Check the number printed at the bottom of your card and type it below, or compare the set and number of each match.`
+                      : "We read the name but not the card number, so we can't tell which set your card is from. Type the number printed at the bottom of your card (e.g. 43/64) below, or compare the set and number of each match.",
                   )
                 : match.numberOnly && !clues?.corrected
                   ? el(

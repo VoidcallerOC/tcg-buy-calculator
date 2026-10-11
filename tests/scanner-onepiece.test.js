@@ -192,7 +192,7 @@ test("mocked: text that is not a One Piece code is not read as one", () => {
 test("mocked: a number misread as another card's code is not accepted on its own", async () => {
   // "OPOS-110" for OP05-119: OP05-110 is a real card (Holly). The name read
   // fits it not at all, so it is not highlighted and the number is queried;
-  // the card the name fits stays listed with its own number shown.
+  // the cards the name fits are listed first, with their own numbers shown.
   const clues = extractClues([
     {
       region: "full",
@@ -208,13 +208,23 @@ test("mocked: a number misread as another card's code is not accepted on its own
   const match = await matchCatalog(clues, { selectedGame: OP, search: replay });
   assert.equal(match.leader, false);
   assert.equal(match.checkNumber, true);
-  const holly = match.candidates.find((c) => c.numberMatch);
-  assert.equal(holly.nameConflict, true);
-  assert.ok(
-    match.candidates.some(
-      (c) => printedName(c.card.name) === "Monkey.D.Luffy" && c.numberConflict,
-    ),
-  );
+  // Several cards carry the name and none the (misread) number: ask for it.
+  assert.equal(match.needsNumber, true);
+  // The cards the name fits come first, each with its own number shown
+  // against the one read; the other card's number match earns no place
+  // ahead of them (it is listed after them, or counted as not shown).
+  const first = match.candidates[0];
+  assert.equal(printedName(first.card.name), "Monkey.D.Luffy");
+  assert.equal(first.numberConflict, true);
+  const holly = match.candidates.findIndex((c) => c.numberMatch);
+  if (holly >= 0) {
+    assert.equal(match.candidates[holly].nameConflict, true);
+    assert.ok(
+      match.candidates
+        .slice(0, holly)
+        .every((c) => printedName(c.card.name) === "Monkey.D.Luffy"),
+    );
+  } else assert.ok(match.moreCards > 0);
 });
 
 test("mocked: unreadable and unmatched scans say so instead of offering a card", async () => {
@@ -244,6 +254,13 @@ test("mocked: the type-line rule only applies at the bottom of the card", () => 
   assert.deepEqual(top.names, ["Goblin Army"]);
   const bottom = extractClues(scan([{ text: "Goblin Army", top: 0.9 }]));
   assert.deepEqual(bottom.names, []);
+});
+
+test("mocked: One Piece's shared middle initial is not a name match", async () => {
+  const { nameSimilarity } = await import("../scanner/catalog-matcher.js");
+  assert.equal(nameSimilarity("Rocks.D.Xebec", "Monkey.D.Luffy"), 0);
+  assert.equal(nameSimilarity("Rocks.D.Xebec", "Rocks.D.Xebec"), 1);
+  assert.equal(nameSimilarity("Xebec", "Rocks.D.Xebec") > 0, true);
 });
 
 test("mocked: names at the top edge still lead on other games", () => {
@@ -285,13 +302,15 @@ for (const item of opCorpus) {
 }
 const count = (fn) => runs.filter(fn).length;
 
-// Measured when this fix landed (2026-10-11) on 141 images: 47 official
-// images (base, alternate art, manga, SP and parallel printings of ten
-// codes) × clean / phone / low light. Before the fix: number read on 15, the
-// character's name read first on 49, right card listed on 46, and two
-// images offered only other crews ("Kid Pirates" → Rocks Pirates, Whitebeard
-// Pirates). A change that worsens these is a regression to investigate.
-const MEASURED = { numberRead: 52, nameFirst: 79, rightCardListed: 72 };
+// Measured when this fix landed (2026-10-11) on 147 images: 49 official
+// images (base, alternate art, manga, SP and parallel printings of eleven
+// codes, including the reported OP17-039) × clean / phone / low light.
+// Before the fix: number read on 16, the character's name read first on 51,
+// right card listed on 51, and three images offered only other crews ("Kid
+// Pirates" → Rocks Pirates, Whitebeard Pirates; "Rocks Pirates" → Rocks
+// Pirates, Rock, Rockstar). A change that worsens these is a regression to
+// investigate.
+const MEASURED = { numberRead: 53, nameFirst: 84, rightCardListed: 77 };
 
 test("real OCR: summary (measured, reported for the record)", (t) => {
   const summary = {
@@ -360,6 +379,34 @@ test("real OCR: a shortlist of only other characters always carries a warning", 
     silent.map((r) => `${r.item.image}/${r.item.condition}`),
     [],
   );
+});
+
+test("real OCR: the reported card (OP17-039 Rocks.D.Xebec) is never replaced by its type line or another card", () => {
+  // The production failure: this card's type line "Rocks Pirates" (also the
+  // name of another card, OP17-056) was searched as its name, and Rocks
+  // Pirates and other "Pirate" cards were offered. Real OCR of both
+  // printings, clean / phone / low light, replayed against recorded searches.
+  const reported = runs.filter((r) => r.item.reported);
+  assert.equal(reported.length, 6);
+  for (const { item, clues, match } of reported) {
+    const label = `${item.image}/${item.condition}`;
+    for (const step of planQueries(clues, OP))
+      assert.doesNotMatch(step.query, /rocks\s+pir/i, label);
+    assert.notEqual(match.leader, true, label);
+    if (!match.candidates.length) continue; // admits it cannot identify
+    // Whatever is offered first is this character, never another card.
+    assert.equal(
+      printedName(match.candidates[0].card.name),
+      "Rocks.D.Xebec",
+      label,
+    );
+    // When the number is read, both printings of it are offered, equally.
+    if (clues.identifiers.some((i) => i.query === "OP17-039")) {
+      const numbered = match.candidates.filter((c) => c.numberMatch);
+      assert.equal(numbered.length, 2, label);
+      assert.equal(numbered[0].score, numbered[1].score, label);
+    }
+  }
 });
 
 test("real OCR: Pokémon card text never yields a One Piece code", () => {

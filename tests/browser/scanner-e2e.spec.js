@@ -782,7 +782,7 @@ test("a number that belongs to a differently named card is questioned, not highl
   await page.getByRole("button", { name: "Search again" }).click();
   const panel = page.locator("#scanner-panel");
   await expect(panel.locator(".scanner-title")).toHaveText(
-    "This number belongs to a card with a different name.",
+    "The name and number we read point to different cards.",
   );
   await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
   await expect(

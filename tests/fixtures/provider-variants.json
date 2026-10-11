@@ -1722,6 +1722,33 @@
           "language": "English"
         }
       ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP17-039",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-the-world-s-strongest-warriors-rocks-d-xebec-039-alternate-art-leader::foil::english",
+          "provider_card_id": "one-piece-card-game-the-world-s-strongest-warriors-rocks-d-xebec-039-alternate-art-leader",
+          "game": "one-piece-card-game",
+          "name": "Rocks.D.Xebec (039) (Alternate Art)",
+          "card_number": "OP17-039",
+          "set_name": "The World's Strongest Warriors",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-the-world-s-strongest-warriors-rocks-d-xebec-039-leader::normal::english",
+          "provider_card_id": "one-piece-card-game-the-world-s-strongest-warriors-rocks-d-xebec-039-leader",
+          "game": "one-piece-card-game",
+          "name": "Rocks.D.Xebec (039)",
+          "card_number": "OP17-039",
+          "set_name": "The World's Strongest Warriors",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
     }
   ]
 }

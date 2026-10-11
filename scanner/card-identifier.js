@@ -4,7 +4,7 @@ import { GAME_PATTERNS, normalizeOcrText } from "./game-patterns.js";
 
 // Rules text, card-type words and legal lines that look like names but are not.
 const NOT_A_NAME =
-  /\b(hp|basic|stage|trainer|item|supporter|stadium|energy|pok[eé]mon|illus|weakness|resistance|retreat|ability|creature|instant|sorcery|enchantment|artifact|planeswalker|legendary|land|character|leader|event|counter|don|effect|trigger|atk|def|level|spell|trap|monster|nintendo|creatures|game ?freak|konami|wizards|coast|bandai|eiichiro|oda|shueisha|toei|disney|copyright|rights|reserved|damage|attack|turn|your|opponent|card|cards|deck|hand|discard|flip|coin|heads|tails|attached|defending|asleep|confused|paralyzed|poisoned|burned|knocked|evolves|rule|when|main|activate|played|blocker|banish|this|also)\b/i;
+  /\b(hp|basic|stage|trainer|item|supporter|stadium|energy|pok[eé]mon|illus|weakness|resistance|retreat|ability|creature|instant|sorcery|enchantment|artifact|planeswalker|legendary|land|character|leader|event|counter|don|effect|trigger|atk|def|level|spell|trap|monster|nintendo|creatures|game ?freak|konami|wizards|coast|bandai|eiichiro|oda|shueisha|toei|disney|copyright|rights|reserved|damage|attack|turn|your|opponent|card|cards|deck|hand|discard|flip|coin|heads|tails|attached|defending|asleep|confused|paralyzed|poisoned|burned|knocked|evolves|rule|when|main|activate|played|blocker|banish|this|also|reveal|life)\b/i;
 
 // Card furniture that is never the card's name, whatever its length: the
 // evolution line ("Evolves from Mankey"), the illustrator credit (OCR reads
@@ -22,11 +22,12 @@ const ABILITY_KEYWORD =
 // the name ("Kid Pirates", "Supernovas/Straw Hat Crew", "The Four Emperors/
 // Red-Haired Pirates"). It sits where a name sits, so it outranked the name
 // and was searched as one, returning unrelated crews. The line is recognised
-// by its opening or closing affiliation word, including OCR cut-offs, and
+// by its opening or closing affiliation word, including OCR cut-offs
+// ("Rocks Pir", "Kid Pirat"), and
 // only in the bottom quarter of the card, where One Piece prints it: a name
 // printed at the top of another game's card ("… Army") is never dropped.
 const AFFILIATION_LINE =
-  /^\W*(the\s+four\b|\w*pern\w*|\w*novas\b)|\b(\w*pira\w*|\w*rirat\w*|crew|cre|crow|navy|marines?|emperors?|emp|warlords?|kingdom|government|army)\W*$/i;
+  /^\W*(the\s+four\b|\w*pern\w*|\w*novas\b)|\b(\w*pira\w*|pir\w*|\w*rirat\w*|crew|cre|crow|navy|marines?|emperors?|emp|warlords?|kingdom|government|army)\W*$/i;
 // Longer lines are flavor or rules text: printed names run to five words.
 const MAX_NAME_WORDS = 5;
 
