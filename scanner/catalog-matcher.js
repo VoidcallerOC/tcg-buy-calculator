@@ -70,13 +70,28 @@ export function scoreCandidate(card, clues) {
   );
   let score = (numberMatch ? 0.6 : 0) + nameScore * 0.4 + (setMatch ? 0.1 : 0);
   if (!clues.identifiers.length) score = nameScore * 0.8; // name-only reads cap below IDENTIFIED
+  // A number was read and this card's number differs: show the conflict
+  // instead of letting a name match quietly stand in for the card.
+  const readNumbers = clues.identifiers
+    .filter((item) => item.query)
+    .map((item) => item.raw ?? item.query);
+  const numberConflict =
+    !numberMatch && readNumbers.length > 0 && Boolean(card.card_number);
   return {
     score: Math.min(1, Number(score.toFixed(3))),
     numberMatch,
+    numberConflict,
+    readNumbers: numberConflict ? readNumbers : [],
     nameScore: Number(nameScore.toFixed(3)),
     setMatch,
   };
 }
+
+// Printings (Normal / Reverse Holofoil / 1st Edition…) of one card share its
+// identity evidence, so they share a score. The shortlist is capped by
+// distinct cards, keeping every printing of each listed card together.
+const cardKey = (item) =>
+  `${item.game}:${item.card.provider_card_id ?? item.card.id}`;
 
 // Searches to run: printed identifiers first (most specific), then names.
 // The selected game is searched first; a game whose identifier format was read
@@ -133,15 +148,35 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   const clear =
     best.score >= IDENTIFIED_SCORE &&
     (!next || best.score - next.score >= IDENTIFIED_MARGIN);
-  return clear
-    ? {
-        status: MATCH_STATUS.IDENTIFIED,
-        candidates: [best],
-        searched: byId.size,
-      }
-    : {
-        status: MATCH_STATUS.NEEDS_CONFIRMATION,
-        candidates: ranked.slice(0, MAX_CANDIDATES),
-        searched: byId.size,
-      };
+  if (clear)
+    return {
+      status: MATCH_STATUS.IDENTIFIED,
+      candidates: [best],
+      searched: byId.size,
+    };
+  const cards = [...new Set(ranked.map(cardKey))];
+  const shown = new Set(cards.slice(0, MAX_CANDIDATES));
+  const first = (key) => ranked.find((item) => cardKey(item) === key);
+  const topScore = (key) => first(key).score;
+  // A misread number can match a different real card exactly; when another
+  // card fits the name read better, number and name disagree and neither
+  // card is a lead.
+  const nameDisagrees = cards
+    .slice(1)
+    .some((key) => first(key).nameScore > first(cards[0]).nameScore);
+  return {
+    status: MATCH_STATUS.NEEDS_CONFIRMATION,
+    candidates: ranked.filter((item) => shown.has(cardKey(item))),
+    searched: byId.size,
+    // Matching cards left off the shortlist.
+    moreCards: cards.length - shown.size,
+    // The first card is only a lead when its evidence beats the next card's;
+    // a tie (e.g. a name read with no number) has no lead to suggest.
+    leader:
+      cards.length === 1 ||
+      (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees),
+    // No candidate matched a printed number, so the name alone cannot tell
+    // these cards apart: the card's number is the evidence still needed.
+    needsNumber: cards.length > 1 && !ranked.some((item) => item.numberMatch),
+  };
 }

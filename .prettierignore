@@ -5,3 +5,5 @@ scanner/vendor/
 *.wasm
 *.traineddata
 *.traineddata.gz
+tests/fixtures/scanner-ocr-corpus.json
+tests/fixtures/scanner-corpus-catalog.json

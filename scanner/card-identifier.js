@@ -4,7 +4,16 @@ import { GAME_PATTERNS, normalizeOcrText } from "./game-patterns.js";
 
 // Rules text, card-type words and legal lines that look like names but are not.
 const NOT_A_NAME =
-  /\b(hp|basic|stage|trainer|item|supporter|stadium|energy|pok[eé]mon|illus|weakness|resistance|retreat|ability|creature|instant|sorcery|enchantment|artifact|planeswalker|legendary|land|character|leader|event|counter|don|effect|trigger|atk|def|level|spell|trap|monster|nintendo|creatures|game ?freak|konami|wizards|coast|bandai|eiichiro|oda|shueisha|toei|disney|copyright|rights|reserved|damage|attack|turn|your|opponent|card|cards|deck|hand|discard)\b/i;
+  /\b(hp|basic|stage|trainer|item|supporter|stadium|energy|pok[eé]mon|illus|weakness|resistance|retreat|ability|creature|instant|sorcery|enchantment|artifact|planeswalker|legendary|land|character|leader|event|counter|don|effect|trigger|atk|def|level|spell|trap|monster|nintendo|creatures|game ?freak|konami|wizards|coast|bandai|eiichiro|oda|shueisha|toei|disney|copyright|rights|reserved|damage|attack|turn|your|opponent|card|cards|deck|hand|discard|flip|coin|heads|tails|attached|defending|asleep|confused|paralyzed|poisoned|burned|knocked|evolves|rule)\b/i;
+
+// Card furniture that is never the card's name, whatever its length: the
+// evolution line ("Evolves from Mankey"), the illustrator credit (OCR reads
+// "Illus." as "lus." or "Hllus."), the weakness/resistance/retreat row, rule
+// boxes ("Pokémon-EX rule") and the card-type line ("Basic Pokémon").
+const CARD_FURNITURE =
+  /evolves?\s*from|^\W*put\s|^\W*\w{0,2}l+us\b|^\W*hus\b|\b(weakness|resistance|retreat)\b|\brule$|pok[eé]mon$/i;
+// Longer lines are flavor or rules text: printed names run to five words.
+const MAX_NAME_WORDS = 5;
 
 /**
  * @param {{ text: string, confidence?: number, region?: string }[]} passes OCR passes
@@ -57,11 +66,21 @@ export function extractClues(passes) {
 export const MIN_NAME_LINE_CONFIDENCE = 60;
 
 // A pass's lines: the engine's per-line results when present, else its text.
+// Full-card lines are read top to bottom when the engine reports positions:
+// the name is printed above the attacks and rules text on every supported game
+// except One Piece, whose name sits in the bottom strip (read separately).
 function passLines(pass) {
-  if (Array.isArray(pass.lines))
-    return pass.lines
-      .filter((line) => line.confidence >= MIN_NAME_LINE_CONFIDENCE)
-      .map((line) => line.text);
+  if (Array.isArray(pass.lines)) {
+    const lines = pass.lines.filter(
+      (line) => line.confidence >= MIN_NAME_LINE_CONFIDENCE,
+    );
+    if (
+      pass.region !== "bottom" &&
+      lines.every((line) => Number.isFinite(line.top))
+    )
+      lines.sort((a, b) => a.top - b.top);
+    return lines.map((line) => line.text);
+  }
   return normalizeOcrText(pass.text).split("\n");
 }
 
@@ -89,6 +108,13 @@ export function nameCandidates(passes) {
       )
         continue;
       if (!/[A-Za-zÀ-ÿ]{3,}/.test(line)) continue; // needs a real word, not "op TH"
+      if (CARD_FURNITURE.test(line)) continue;
+      // Rules sentences end in punctuation ("…Defending Pokémon."); names don't.
+      if (/[.,;:]$/.test(line)) continue;
+      // Printed names start with a capital or digit; a lowercase start is a
+      // fragment of a longer line ("resistan", "to become so angry…").
+      if (/^[a-zß-ÿ]/.test(line)) continue;
+      if (line.split(" ").length > MAX_NAME_WORDS) continue;
       if (NOT_A_NAME.test(line) && line.split(" ").length > 2) continue;
       const cleaned = line
         .replace(/\s+\d+$/, "")

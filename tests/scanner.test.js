@@ -277,6 +277,184 @@ test("matching helpers", () => {
   assert.ok(plan.length <= 4);
 });
 
+// ---------- Identification evidence (lines from real-card OCR runs) ----------
+
+test("card furniture and rules sentences are never names (real OCR lines)", () => {
+  // Lines Tesseract produced on real card scans (Aquapolis Primeape, Base Set
+  // Charmeleon, 151 Mankey, Vivid Voltage Pikachu VMAX, XY Venusaur-EX…).
+  const lines = [
+    "Evolves from Mankey Put bs",
+    "Primeape",
+    "Stage Pokémon",
+    "Evolves fromPikachuV",
+    "lus. Mina Nakai",
+    "Hllus. aky,CG Works",
+    "retreat cost",
+    "weakness x2",
+    "Pokémon-EX rule",
+    "Basic Pokémon",
+    "unbearably high levels.",
+    "Mankey is Asleep, Confused, or Paralyzed",
+  ];
+  const names = extractClues([
+    {
+      region: "full",
+      text: lines.join("\n"),
+      confidence: 80,
+      lines: lines.map((text) => ({ text, confidence: 90 })),
+    },
+  ]).names;
+  assert.deepEqual(names, ["Primeape"]);
+});
+
+test("full-card lines are read top to bottom when the engine reports positions", () => {
+  const line = (text, top) => ({ text, confidence: 90, top });
+  const passes = [
+    {
+      region: "full",
+      text: "",
+      confidence: 80,
+      lines: [
+        line("Fury Swipes", 0.62),
+        line("Tantrum", 0.74),
+        line("Primeape", 0.05),
+      ],
+    },
+  ];
+  assert.equal(extractClues(passes).names[0], "Primeape");
+  // Without positions the engine's own order is kept.
+  const unpositioned = passes.map((pass) => ({
+    ...pass,
+    lines: pass.lines.map(({ text, confidence }) => ({ text, confidence })),
+  }));
+  assert.equal(extractClues(unpositioned).names[0], "Fury Swipes");
+});
+
+const printings = (card, ...names) =>
+  names.map((printing) => ({
+    ...card,
+    id: `${card.provider_card_id}::${printing}`,
+    printing,
+  }));
+const PRIMEAPES = [
+  ...printings(
+    {
+      provider_card_id: "aquapolis-primeape",
+      name: "Primeape",
+      set_name: "Aquapolis",
+      card_number: "029/147",
+    },
+    "Normal",
+    "Reverse Holofoil",
+  ),
+  ...printings(
+    {
+      provider_card_id: "firered-primeape",
+      name: "Primeape",
+      set_name: "EX FireRed & LeafGreen",
+      card_number: "28/112",
+    },
+    "Reverse Holofoil",
+    "Normal",
+  ),
+  ...printings(
+    {
+      provider_card_id: "great-encounters-primeape",
+      name: "Primeape",
+      set_name: "Great Encounters",
+      card_number: "27/106",
+    },
+    "Reverse Holofoil",
+    "Normal",
+  ),
+  ...printings(
+    {
+      provider_card_id: "jungle-primeape",
+      name: "Primeape",
+      set_name: "Jungle",
+      card_number: "43/64",
+    },
+    "1st Edition",
+    "Unlimited",
+  ),
+  ...printings(
+    {
+      provider_card_id: "legendary-primeape",
+      name: "Primeape",
+      set_name: "Legendary Collection",
+      card_number: "059/110",
+    },
+    "Reverse Holofoil",
+    "Normal",
+  ),
+  ...printings(
+    {
+      provider_card_id: "sv151-primeape",
+      name: "Primeape",
+      set_name: "SV: Scarlet & Violet 151",
+      card_number: "057/165",
+    },
+    "Reverse Holofoil",
+    "Normal",
+  ),
+];
+
+test("a name with no number: no lead candidate, distinct cards shortlisted, number requested", async () => {
+  // The provider lists sets alphabetically, so Aquapolis comes first; with
+  // only the name read, that order is not evidence.
+  const match = await matchCatalog(extractClues(ocrPasses("Primeape")), {
+    selectedGame: "pokemon",
+    search: async () => PRIMEAPES,
+  });
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(match.leader, false);
+  assert.equal(match.needsNumber, true);
+  const shown = [
+    ...new Set(match.candidates.map((item) => item.card.provider_card_id)),
+  ];
+  assert.equal(shown.length, 5); // five distinct cards, not five printings
+  assert.equal(match.moreCards, 1);
+  // Every printing of a shortlisted card stays listed (Normal ≠ Reverse Holofoil).
+  for (const id of shown)
+    assert.equal(
+      match.candidates.filter((item) => item.card.provider_card_id === id)
+        .length,
+      2,
+    );
+});
+
+test("the printed number decides between same-name cards and flags conflicts", async () => {
+  // OCR read the number but a wrong "name" (an attack): the number still leads.
+  const match = await matchCatalog(
+    extractClues(ocrPasses("Fury Swipes", "43/64")),
+    {
+      selectedGame: "pokemon",
+      search: async () => PRIMEAPES,
+    },
+  );
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION); // two printings to choose from
+  assert.equal(match.leader, true);
+  assert.equal(match.needsNumber, false);
+  assert.equal(match.candidates[0].card.provider_card_id, "jungle-primeape");
+  assert.equal(match.candidates[1].card.provider_card_id, "jungle-primeape");
+
+  const named = await matchCatalog(
+    extractClues(ocrPasses("Primeape", "43/64")),
+    {
+      selectedGame: "pokemon",
+      search: async () => PRIMEAPES,
+    },
+  );
+  const aquapolis = named.candidates.find(
+    (item) => item.card.provider_card_id === "aquapolis-primeape",
+  );
+  assert.ok(aquapolis, "a same-name card with another number is still listed");
+  assert.equal(aquapolis.numberConflict, true);
+  assert.deepEqual(aquapolis.readNumbers, ["43/64"]);
+  assert.ok(aquapolis.score < named.candidates[0].score);
+  assert.equal(named.candidates[0].numberConflict, false);
+});
+
 // ---------- CameraCapture ----------
 
 test("camera support: unsupported browser and insecure context", () => {

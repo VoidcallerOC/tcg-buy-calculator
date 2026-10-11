@@ -353,6 +353,14 @@ function createUi() {
       .filter(Boolean)
       .join(" · ");
     if (meta) info.append(el("small", "", meta));
+    if (item.numberConflict)
+      info.append(
+        el(
+          "small",
+          "scan-candidate-conflict",
+          `Number on this card: ${card.card_number}. Read from your card: ${item.readNumbers.join(", ")}.`,
+        ),
+      );
     row.append(
       info,
       button(
@@ -449,23 +457,51 @@ function createUi() {
         } else if (match.status === MATCH_STATUS.NEEDS_CONFIRMATION) {
           hint.textContent = "Confirm your card";
           const list = el("div", "scan-candidates");
+          // Only a candidate whose evidence beats the rest is highlighted;
+          // tied candidates are listed as equals.
           match.candidates.forEach((item, index) =>
-            list.append(candidate(item, index === 0)),
+            list.append(candidate(item, index === 0 && match.leader === true)),
           );
+          const readNumbers = (clues?.identifiers ?? [])
+            .filter((item) => item.query)
+            .map((item) => item.raw ?? item.query);
+          const cardCount = new Set(
+            match.candidates.map(
+              (item) => item.card.provider_card_id ?? item.card.id,
+            ),
+          ).size;
           fill(
             el("span", "eyebrow", "Needs confirmation"),
             el(
               "p",
               "scanner-title",
-              match.candidates.length > 1
-                ? "Which card is in your hand?"
-                : "Is this your card?",
+              match.needsNumber
+                ? "Several cards match the name. Which one is yours?"
+                : match.candidates.length > 1
+                  ? "Which card is in your hand?"
+                  : "Is this your card?",
             ),
+            match.needsNumber
+              ? el(
+                  "p",
+                  "scanner-note scanner-needs-number",
+                  readNumbers.length
+                    ? `The number we read (${readNumbers.join(", ")}) doesn't match any of these cards. Check the number printed at the bottom of your card and type it below, or compare the set and number of each match.`
+                    : "We read the name but not the card number, so we can't tell which set your card is from. Type the number printed at the bottom of your card (e.g. 43/64) below, or compare the set and number of each match.",
+                )
+              : null,
             list,
+            match.moreCards > 0
+              ? el(
+                  "p",
+                  "scanner-note",
+                  `Showing ${cardCount} matching cards; ${match.moreCards} more match. Add the card number to narrow it down.`,
+                )
+              : null,
             matchNote,
             cluesLine(clues),
             aiBlock(next, false),
-            correctionForm(clues, false),
+            correctionForm(clues, match.needsNumber === true),
             actions(againButton(), manualButton()),
           );
         } else {

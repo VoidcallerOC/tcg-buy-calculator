@@ -1187,6 +1187,9 @@ body.scanner-open {
   color: var(--text-subtle);
   font-size: 0.8rem;
 }
+.scan-candidate-info .scan-candidate-conflict {
+  color: var(--warning);
+}
 .scan-candidate .button {
   flex: 0 0 auto;
   width: auto;
