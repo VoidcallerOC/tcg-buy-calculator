@@ -102,10 +102,23 @@ export function scoreCandidate(card, clues) {
     .map((item) => item.raw ?? item.query);
   const numberConflict =
     !numberMatch && readNumbers.length > 0 && Boolean(card.card_number);
+  // The reverse: the number matches but a name read, which looks like a
+  // printed name, fits this card not at all. A misread number ("OPOS-110"
+  // for OP05-119) is a real code of another card, so a number match alone
+  // must not stand in for the card either. Art and OCR fragments ("CHARALI",
+  // "Pla") are not name evidence and raise no conflict.
+  const readNames = clues.names.filter((name) => /[A-Z][a-z]{3,}/.test(name));
+  const nameConflict =
+    numberMatch &&
+    readNames.length > 0 &&
+    readNames.every(
+      (name) => nameSimilarity(name, printedName(card.name)) === 0,
+    );
   return {
     score: Math.min(1, Number(score.toFixed(3))),
     numberMatch,
     numberConflict,
+    nameConflict,
     readNumbers: numberConflict ? readNumbers : [],
     nameScore: Number(nameScore.toFixed(3)),
     setMatch,
@@ -216,6 +229,13 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   const nameDisagrees = cards
     .slice(1)
     .some((key) => first(key).nameScore > first(cards[0]).nameScore);
+  // Cards match the number read, but no name read supports any of them: the
+  // number is the only evidence, and a misread one names another card. The
+  // screen says so; the lead is kept (removing it cost correct Pokémon leads
+  // in the corpus and prevented no wrong one).
+  const numberOnly =
+    numbered.length > 0 &&
+    ranked.every((item) => !item.numberMatch || item.nameScore === 0);
   return {
     status: MATCH_STATUS.NEEDS_CONFIRMATION,
     candidates: ranked.filter((item) => shown.has(cardKey(item))),
@@ -225,10 +245,17 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     // The first card is only a lead when its evidence beats the next card's;
     // a tie (e.g. a name read with no number) has no lead to suggest.
     leader:
-      cards.length === 1 ||
-      (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees),
+      !first(cards[0]).nameConflict &&
+      (cards.length === 1 ||
+        (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees)),
     // No candidate matched a printed number, so the name alone cannot tell
     // these cards apart: the card's number is the evidence still needed.
     needsNumber: cards.length > 1 && !ranked.some((item) => item.numberMatch),
+    // Every card matching the number read disagrees with the name read: the
+    // number may be misread, so the customer is asked to check it.
+    checkNumber:
+      numbered.length > 0 &&
+      ranked.every((item) => !item.numberMatch || item.nameConflict),
+    numberOnly,
   };
 }

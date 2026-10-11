@@ -362,6 +362,14 @@ function createUi() {
           `Number on this card: ${card.card_number}. Read from your card: ${item.readNumbers.join(", ")}.`,
         ),
       );
+    if (item.nameConflict)
+      info.append(
+        el(
+          "small",
+          "scan-candidate-conflict",
+          "Only the number matches: the name read from your card is not this card's name.",
+        ),
+      );
     row.append(
       info,
       button(
@@ -499,11 +507,13 @@ function createUi() {
               "scanner-title",
               match.needsNumber
                 ? "Several cards match the name. Which one is yours?"
-                : printingChoice
-                  ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
-                  : match.candidates.length > 1
-                    ? "Which card is in your hand?"
-                    : "Is this your card?",
+                : match.checkNumber
+                  ? "This number belongs to a card with a different name."
+                  : printingChoice
+                    ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
+                    : match.candidates.length > 1
+                      ? "Which card is in your hand?"
+                      : "Is this your card?",
             ),
             printingChoice
               ? el(
@@ -520,7 +530,21 @@ function createUi() {
                     ? `The number we read (${readNumbers.join(", ")}) doesn't match any of these cards. Check the number printed at the bottom of your card and type it below, or compare the set and number of each match.`
                     : "We read the name but not the card number, so we can't tell which set your card is from. Type the number printed at the bottom of your card (e.g. 43/64) below, or compare the set and number of each match.",
                 )
-              : null,
+              : match.checkNumber
+                ? el(
+                    "p",
+                    "scanner-note scanner-needs-number",
+                    clues?.corrected
+                      ? `Check the name and number (${readNumbers.join(", ")}) printed on your card and correct them below.`
+                      : `We may have misread the number (${readNumbers.join(", ")}). Check the name and number printed on your card and correct them below if they differ.`,
+                  )
+                : match.numberOnly && !clues?.corrected
+                  ? el(
+                      "p",
+                      "scanner-note scanner-number-only",
+                      `Matched only by the number we read (${readNumbers.join(", ")}); we could not read the name. Check that the name and number match your card.`,
+                    )
+                  : null,
             list,
             match.moreCards > 0
               ? el(
@@ -534,7 +558,10 @@ function createUi() {
             matchNote,
             cluesLine(clues),
             aiBlock(next, false),
-            correctionForm(clues, match.needsNumber === true),
+            correctionForm(
+              clues,
+              match.needsNumber === true || match.checkNumber === true,
+            ),
             actions(againButton(), manualButton()),
           );
         } else {

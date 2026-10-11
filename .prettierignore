@@ -8,3 +8,4 @@ scanner/vendor/
 tests/fixtures/scanner-ocr-corpus.json
 tests/fixtures/scanner-corpus-catalog.json
 tests/fixtures/scanner-op-corpus.json
+tests/fixtures/scanner-op-catalog.json

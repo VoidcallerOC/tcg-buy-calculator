@@ -424,7 +424,9 @@ test("a name with no number: no lead candidate, distinct cards shortlisted, numb
 });
 
 test("the printed number decides between same-name cards and flags conflicts", async () => {
-  // OCR read the number but a wrong "name" (an attack): the number still leads.
+  // OCR read the number and a wrong "name" (an attack). The numbered card is
+  // listed first, but a name that fits it not at all is also what a misread
+  // number looks like, so nothing is highlighted and the number is queried.
   const match = await matchCatalog(
     extractClues(ocrPasses("Fury Swipes", "43/64")),
     {
@@ -433,10 +435,12 @@ test("the printed number decides between same-name cards and flags conflicts", a
     },
   );
   assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION); // two printings to choose from
-  assert.equal(match.leader, true);
+  assert.equal(match.leader, false);
+  assert.equal(match.checkNumber, true);
   assert.equal(match.needsNumber, false);
   assert.equal(match.candidates[0].card.provider_card_id, "jungle-primeape");
   assert.equal(match.candidates[1].card.provider_card_id, "jungle-primeape");
+  assert.equal(match.candidates[0].nameConflict, true);
 
   const named = await matchCatalog(
     extractClues(ocrPasses("Primeape", "43/64")),
@@ -453,6 +457,10 @@ test("the printed number decides between same-name cards and flags conflicts", a
   assert.deepEqual(aquapolis.readNumbers, ["43/64"]);
   assert.ok(aquapolis.score < named.candidates[0].score);
   assert.equal(named.candidates[0].numberConflict, false);
+  // Name and number agree: that card leads.
+  assert.equal(named.leader, true);
+  assert.equal(named.checkNumber, false);
+  assert.equal(named.candidates[0].nameConflict, false);
 });
 
 // ---------- CameraCapture ----------
