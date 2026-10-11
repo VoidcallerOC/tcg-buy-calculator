@@ -3,6 +3,8 @@
 // produced, scores what comes back, and decides how sure we are. It never
 // auto-selects: even IDENTIFIED is shown to the customer for confirmation.
 
+import { GAME_PATTERNS } from "./game-patterns.js";
+
 export const MATCH_STATUS = {
   IDENTIFIED: "IDENTIFIED",
   NEEDS_CONFIRMATION: "NEEDS_CONFIRMATION",
@@ -20,6 +22,29 @@ export function normalizeNumber(value) {
     .toUpperCase()
     .replace(/\s+/g, "")
     .replace(/\b0+(\d)/g, "$1");
+}
+
+// The printed collector number of a catalog entry. Some providers append the
+// rarity after a space ("BT16-082 R"); the card itself prints only the code.
+const printedNumber = (value) =>
+  normalizeNumber(
+    String(value ?? "")
+      .trim()
+      .split(/\s+/)[0],
+  );
+
+// The name as printed on the card. Catalogs tell printings apart with labels
+// the card does not print: "Monkey.D.Luffy (119) (SP) (Gold)",
+// "Nami - OP01-016 (Alternate Art)", "Charizard ex - 199/165". Comparing the
+// read name with those labels attached made the plain printing (fewest extra
+// words) look like the better match, though the text read says nothing about
+// which printing is in hand.
+export function printedName(name) {
+  return String(name ?? "")
+    .replace(/\s*[([][^)\]]*[)\]]/g, " ")
+    .replace(/\s+-\s+\S*\d\S*.*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function tokens(value) {
@@ -57,13 +82,13 @@ export function nameSimilarity(a, b) {
 }
 
 export function scoreCandidate(card, clues) {
-  const number = normalizeNumber(card.card_number);
+  const number = printedNumber(card.card_number);
   const numberMatch = clues.identifiers.some(
     (item) => normalizeNumber(item.query) === number,
   );
   const nameScore = Math.max(
     0,
-    ...clues.names.map((name) => nameSimilarity(name, card.name)),
+    ...clues.names.map((name) => nameSimilarity(name, printedName(card.name))),
   );
   const setMatch = clues.setCodes.some(
     (code) => code.toUpperCase() === String(card.set_code ?? "").toUpperCase(),
@@ -96,24 +121,39 @@ const cardKey = (item) =>
 // Searches to run: printed identifiers first (most specific), then names.
 // The selected game is searched first; a game whose identifier format was read
 // on the card is also searched, so a One Piece code is not forced into Pokémon.
+const PATTERNED_GAMES = new Set(GAME_PATTERNS.map((entry) => entry.game));
+
 export function planQueries(clues, selectedGame) {
   const games = [selectedGame, ...clues.identifiers.map((item) => item.game)]
     .filter((game, index, all) => game && all.indexOf(game) === index)
     .slice(0, 2);
   const plan = [];
+  // A number format tags a game by shape only: "69/204" reads as Pokémon but is
+  // also how Lorcana, Universus and others print numbers. When the customer's
+  // selected game has no format of its own, everything read is searched in
+  // that game, and other games are not searched (or charged against quota).
+  if (selectedGame && !PATTERNED_GAMES.has(selectedGame)) {
+    for (const item of clues.identifiers)
+      plan.push({ game: selectedGame, query: item.query });
+    for (const name of clues.names.slice(0, 2))
+      plan.push({ game: selectedGame, query: name });
+    return dedupe(plan).slice(0, MAX_QUERIES);
+  }
   for (const item of clues.identifiers)
     if (games.includes(item.game))
       plan.push({ game: item.game, query: item.query });
   for (const name of clues.names.slice(0, 2))
     for (const game of games) plan.push({ game, query: name });
-  return plan
-    .filter(
-      (step, index, all) =>
-        all.findIndex(
-          (other) => other.game === step.game && other.query === step.query,
-        ) === index,
-    )
-    .slice(0, MAX_QUERIES);
+  return dedupe(plan).slice(0, MAX_QUERIES);
+}
+
+function dedupe(plan) {
+  return plan.filter(
+    (step, index, all) =>
+      all.findIndex(
+        (other) => other.game === step.game && other.query === step.query,
+      ) === index,
+  );
 }
 
 /**
@@ -155,7 +195,19 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       searched: byId.size,
     };
   const cards = [...new Set(ranked.map(cardKey))];
-  const shown = new Set(cards.slice(0, MAX_CANDIDATES));
+  // Every card that matches the printed number stays listed, however many:
+  // printings sharing a number can differ several hundredfold in value, and
+  // the customer can only pick the one in hand if it is shown. Other cards
+  // fill the remaining places.
+  const numbered = cards.filter((key) =>
+    ranked.some((item) => cardKey(item) === key && item.numberMatch),
+  );
+  const shown = new Set([
+    ...numbered,
+    ...cards
+      .filter((key) => !numbered.includes(key))
+      .slice(0, Math.max(0, MAX_CANDIDATES - numbered.length)),
+  ]);
   const first = (key) => ranked.find((item) => cardKey(item) === key);
   const topScore = (key) => first(key).score;
   // A misread number can match a different real card exactly; when another
