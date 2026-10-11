@@ -457,10 +457,16 @@ function createUi() {
         } else if (match.status === MATCH_STATUS.NEEDS_CONFIRMATION) {
           hint.textContent = "Confirm your card";
           const list = el("div", "scan-candidates");
-          // Only a candidate whose evidence beats the rest is highlighted;
-          // tied candidates are listed as equals.
-          match.candidates.forEach((item, index) =>
-            list.append(candidate(item, index === 0 && match.leader === true)),
+          // Only a card whose evidence beats the rest is highlighted, and all
+          // of its printings equally: the scan says which card, never which
+          // printing (1st Edition and Unlimited can differ several-fold).
+          const cardOf = (item) => item.card.provider_card_id ?? item.card.id;
+          const lead =
+            match.leader === true ? cardOf(match.candidates[0]) : null;
+          match.candidates.forEach((item) =>
+            list.append(
+              candidate(item, lead !== null && cardOf(item) === lead),
+            ),
           );
           const readNumbers = (clues?.identifiers ?? [])
             .filter((item) => item.query)

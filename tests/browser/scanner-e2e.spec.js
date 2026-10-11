@@ -340,7 +340,9 @@ test("unreadable card → Identify with AI → catalog match → confirmed offer
   expect(posts[0].image).toMatch(/^[A-Za-z0-9+/]+=*$/);
   // A JPEG starts with FF D8 (base64 "/9j/").
   expect(posts[0].image.startsWith("/9j/")).toBe(true);
-  expect(searches).toContain("pokemon:199/165");
+  // "Read by AI" renders as matching starts, before the catalog request is
+  // routed, so wait for the search instead of reading it once.
+  await expect.poll(() => searches).toContain("pokemon:199/165");
   await expect(
     page.getByRole("button", { name: "Identify with AI" }),
   ).toHaveCount(0);
@@ -479,9 +481,12 @@ test("name read without a number: no set is implied, the number is asked for, th
   await form.locator('input[name="number"]').fill("43/64");
   await form.getByRole("button", { name: "Search again" }).click();
   // The number now decides: Jungle leads and is highlighted, others are flagged.
+  // Both Jungle printings are highlighted: the number identifies the card,
+  // not whether it is 1st Edition or Unlimited.
   const lead = panel.locator(".scan-candidate.is-primary");
-  await expect(lead).toHaveCount(1);
-  await expect(lead).toContainText("Jungle");
+  await expect(lead).toHaveCount(2);
+  await expect(lead.nth(0)).toContainText("Jungle");
+  await expect(lead.nth(1)).toContainText("Jungle");
   await expect(panel.locator(".scanner-needs-number")).toHaveCount(0);
   await expect(
     panel.locator(".scan-candidate", { hasText: "Aquapolis" }).first(),
