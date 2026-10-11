@@ -98,12 +98,32 @@ function passLines(pass) {
       lines.every((line) => Number.isFinite(line.top))
     )
       lines.sort((a, b) => edgeDistance(a) - edgeDistance(b));
-    return lines.map((line) => ({ text: line.text, low: isLow(pass, line) }));
+    return lines
+      .filter((line) => !isAttackRow(pass, line))
+      .map((line) => ({ text: line.text, low: isLow(pass, line) }));
   }
   return normalizeOcrText(pass.text)
     .split("\n")
     .map((text) => ({ text, low: true }));
 }
+// An attack ("Corkscrew Punch … 50"): a line in the middle of the card that
+// shares its row with a damage number. Attack names are printed in plain bold
+// type, so OCR often reads them better than the stylised card name and they
+// were searched as the name.
+const DAMAGE = /^\d{2,3}\s*[+×x]?$/;
+const isAttackRow = (pass, line) =>
+  pass.region !== "bottom" &&
+  Number.isFinite(line.top) &&
+  line.top > 0.3 &&
+  line.top < 0.8 &&
+  !DAMAGE.test(line.text.trim()) &&
+  pass.lines.some(
+    (other) =>
+      other !== line &&
+      Number.isFinite(other.top) &&
+      Math.abs(other.top - line.top) < 0.04 &&
+      DAMAGE.test(String(other.text).trim()),
+  );
 // In the bottom quarter of the card, or position unknown.
 const isLow = (pass, line) =>
   pass.region === "bottom" || !Number.isFinite(line.top) || line.top > 0.75;

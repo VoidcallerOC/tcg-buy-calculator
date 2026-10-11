@@ -244,9 +244,9 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     .slice(1)
     .some((key) => first(key).nameScore > first(cards[0]).nameScore);
   // Cards match the number read, but no name read supports any of them: the
-  // number is the only evidence, and a misread one names another card. The
-  // screen says so; the lead is kept (removing it cost correct Pokémon leads
-  // in the corpus and prevented no wrong one).
+  // number is the only evidence, and a misread one names another card
+  // (Primeape 043/084 read as 043/082 is Dark Primeape). The screen says so
+  // and highlights nothing; a number the customer typed is their own evidence.
   const numberOnly =
     ranked.some((item) => item.numberMatch) &&
     ranked.every((item) => !item.numberMatch || item.nameScore === 0);
@@ -260,6 +260,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     // a tie (e.g. a name read with no number) has no lead to suggest.
     leader:
       !first(cards[0]).nameConflict &&
+      !(numberOnly && !clues.corrected) &&
       (cards.length === 1 ||
         (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees)),
     // No candidate matched a printed number, so the name alone cannot tell

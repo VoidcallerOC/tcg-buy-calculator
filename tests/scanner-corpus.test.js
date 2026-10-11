@@ -124,6 +124,29 @@ const highlighted = (r) =>
 // still list the right card; neither highlights anything.)
 const MEASURED = { first: 21, listed: 56, highlightedWrong: 2 };
 
+test("the reported Primeape (Pitch Black 043/084): no attack searched, no other card highlighted", async () => {
+  // Production offered an unrelated card for this Primeape. Real OCR of the
+  // official image: the name is often unread, the attack "Corkscrew Punch"
+  // is read cleanly, and the number is misread as 043/082 — a real card,
+  // Dark Primeape (Team Rocket), which the old code highlighted.
+  const { planQueries } = await import("../scanner/catalog-matcher.js");
+  const reported = results.filter((r) => r.item.reported);
+  assert.equal(reported.length, 5);
+  for (const r of reported) {
+    const label = r.item.condition;
+    const clues = extractClues(r.item.passes);
+    if (hasUsableClues(clues))
+      for (const step of planQueries(clues, "pokemon"))
+        assert.doesNotMatch(step.query, /corkscrew/i, label);
+    // Nothing but this card may be highlighted.
+    if (highlighted(r)) assert.equal(r.rank, 1, label);
+    // A shortlist is this card's name only, or says the number is all it has.
+    const names = new Set(r.match.candidates.map((c) => c.card.name));
+    if (names.size && ![...names].every((n) => n === "Primeape"))
+      assert.equal(r.match.numberOnly, true, label);
+  }
+});
+
 test("identification does not regress below what was measured", () => {
   assert.ok(
     count(cards, (r) => r.rank === 1) >= MEASURED.first,

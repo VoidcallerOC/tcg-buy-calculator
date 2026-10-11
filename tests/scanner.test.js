@@ -72,6 +72,39 @@ const ocrPasses = (full, bottom = "") => [
 
 // ---------- CardIdentifier ----------
 
+test("an attack row is not a name: a mid-card line beside a damage number", () => {
+  // Real OCR of Primeape (Pitch Black 043/084): the stylised name was not
+  // read, the attack "Corkscrew Punch … 50" was, and it was searched as the
+  // name. Positions as scanner/ocr-engine.js reports them (0 = top edge).
+  const line = (text, top) => ({ text, confidence: 95, top });
+  const clues = extractClues([
+    {
+      region: "full",
+      text: "",
+      confidence: 80,
+      lines: [
+        line("Primeape", 0.05),
+        line("x x", 0.62),
+        line("Corkscrew Punch", 0.62),
+        line("50", 0.65), // a 4° tilt puts the damage slightly off the row
+        line("Some researchers theorize that Primeape", 0.9),
+      ],
+    },
+  ]);
+  assert.equal(clues.names[0], "Primeape");
+  assert.ok(!clues.names.includes("Corkscrew Punch"));
+  // The same words without a damage number beside them are kept.
+  const plain = extractClues([
+    {
+      region: "full",
+      text: "",
+      confidence: 80,
+      lines: [line("Corkscrew Punch", 0.62)],
+    },
+  ]);
+  assert.deepEqual(plain.names, ["Corkscrew Punch"]);
+});
+
 test("reads identifiers for each supported game", () => {
   const cases = [
     ["Charizard ex\nHP 330\n199/165 SIR", "pokemon", "199/165"],
