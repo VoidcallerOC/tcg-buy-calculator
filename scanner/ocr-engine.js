@@ -82,12 +82,19 @@ export function createTesseractEngine({ base = VENDOR, onProgress } = {}) {
         RECOGNIZE_TIMEOUT_MS,
         "OCR",
       );
+      const height = Number(image?.height) || 0;
       const lines = (data.blocks ?? [])
         .flatMap((block) => block.paragraphs ?? [])
         .flatMap((paragraph) => paragraph.lines ?? [])
         .map((line) => ({
           text: String(line.text ?? "").trim(),
           confidence: Number(line.confidence) || 0,
+          // Vertical position (0 = top of the image): card names are printed
+          // near the top, attack names and rules text further down.
+          top:
+            height && Number.isFinite(line.bbox?.y0)
+              ? line.bbox.y0 / height
+              : null,
         }))
         .filter((line) => line.text);
       return {
