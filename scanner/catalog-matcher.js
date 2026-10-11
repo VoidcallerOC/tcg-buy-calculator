@@ -59,12 +59,16 @@ function tokens(value) {
 }
 
 // Dice coefficient over word tokens: 1 for identical names, 0 for disjoint.
+// A shared single letter counts only alongside a shared word: One Piece's
+// "D." is in both Monkey.D.Luffy and Rocks.D.Xebec, and a misread number for
+// one must not borrow a name match from the other.
 export function nameSimilarity(a, b) {
   const left = tokens(a),
     right = tokens(b);
   if (!left.length || !right.length) return 0;
   const pool = [...right];
-  let shared = 0;
+  let words = 0,
+    letters = 0;
   for (const token of left) {
     const index = pool.findIndex(
       (other) =>
@@ -74,10 +78,12 @@ export function nameSimilarity(a, b) {
           (other.startsWith(token) || token.startsWith(other))),
     );
     if (index >= 0) {
-      shared += 1;
+      if (token.length > 1) words += 1;
+      else letters += 1;
       pool.splice(index, 1);
     }
   }
+  const shared = words ? words + letters : 0;
   return (2 * shared) / (left.length + right.length);
 }
 
@@ -102,10 +108,22 @@ export function scoreCandidate(card, clues) {
     .map((item) => item.raw ?? item.query);
   const numberConflict =
     !numberMatch && readNumbers.length > 0 && Boolean(card.card_number);
+  // The reverse: the number matches but a name read, which looks like a
+  // printed name, fits this card not at all. A misread number ("OPOS-110"
+  // for OP05-119) is a real code of another card, so a number match alone
+  // must not stand in for the card either. Art and OCR fragments ("CHARALI",
+  // "Pla") are not name evidence and raise no conflict.
+  // Needs at least one name-like read, and no text read may fit the card
+  // ("Mew" fits Mew ex even though only "Abilit" looks like a printed name).
+  const nameConflict =
+    numberMatch &&
+    nameScore === 0 &&
+    clues.names.some((name) => /[A-Z][a-z]{3,}/.test(name));
   return {
     score: Math.min(1, Number(score.toFixed(3))),
     numberMatch,
     numberConflict,
+    nameConflict,
     readNumbers: numberConflict ? readNumbers : [],
     nameScore: Number(nameScore.toFixed(3)),
     setMatch,
@@ -175,9 +193,15 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       });
     }
   }
+  // A card whose number matches but whose name contradicts the name read is
+  // listed after the cards the name fits: a misread number is a real code of
+  // another card, and must not push the card in hand down the list.
   const ranked = [...byId.values()]
     .filter((item) => item.score >= CANDIDATE_SCORE)
-    .sort((a, b) => b.score - a.score);
+    .sort(
+      (a, b) =>
+        Number(a.nameConflict) - Number(b.nameConflict) || b.score - a.score,
+    );
   if (!ranked.length)
     return {
       status: MATCH_STATUS.NOT_IDENTIFIED,
@@ -199,8 +223,11 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   // printings sharing a number can differ several hundredfold in value, and
   // the customer can only pick the one in hand if it is shown. Other cards
   // fill the remaining places.
+  // A number match the name read contradicts earns no reserved place.
   const numbered = cards.filter((key) =>
-    ranked.some((item) => cardKey(item) === key && item.numberMatch),
+    ranked.some(
+      (item) => cardKey(item) === key && item.numberMatch && !item.nameConflict,
+    ),
   );
   const shown = new Set([
     ...numbered,
@@ -216,6 +243,13 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   const nameDisagrees = cards
     .slice(1)
     .some((key) => first(key).nameScore > first(cards[0]).nameScore);
+  // Cards match the number read, but no name read supports any of them: the
+  // number is the only evidence, and a misread one names another card
+  // (Primeape 043/084 read as 043/082 is Dark Primeape). The screen says so
+  // and highlights nothing; a number the customer typed is their own evidence.
+  const numberOnly =
+    ranked.some((item) => item.numberMatch) &&
+    ranked.every((item) => !item.numberMatch || item.nameScore === 0);
   return {
     status: MATCH_STATUS.NEEDS_CONFIRMATION,
     candidates: ranked.filter((item) => shown.has(cardKey(item))),
@@ -225,10 +259,21 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     // The first card is only a lead when its evidence beats the next card's;
     // a tie (e.g. a name read with no number) has no lead to suggest.
     leader:
-      cards.length === 1 ||
-      (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees),
+      !first(cards[0]).nameConflict &&
+      !(numberOnly && !clues.corrected) &&
+      (cards.length === 1 ||
+        (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees)),
     // No candidate matched a printed number, so the name alone cannot tell
     // these cards apart: the card's number is the evidence still needed.
-    needsNumber: cards.length > 1 && !ranked.some((item) => item.numberMatch),
+    // A number match the name contradicts does not count as the number.
+    needsNumber:
+      cards.length > 1 &&
+      !ranked.some((item) => item.numberMatch && !item.nameConflict),
+    // Every card matching the number read disagrees with the name read: the
+    // number may be misread, so the customer is asked to check it.
+    checkNumber:
+      ranked.some((item) => item.numberMatch) &&
+      ranked.every((item) => !item.numberMatch || item.nameConflict),
+    numberOnly,
   };
 }

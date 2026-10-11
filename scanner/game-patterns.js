@@ -26,10 +26,25 @@ export const GAME_PATTERNS = [
     game: "one-piece-card-game",
     label: "One Piece",
     patterns: [
-      // OCR often doubles the O of OP ("OPO05-119"): accept 2-3 digit-like chars, keep the last two.
+      // Real camera OCR rarely reads the code cleanly: "0P01-001", "oPo1-0160m",
+      // "OPO1- 12168", "OR05-074", "P0O1-001", "sT01-01263". The prefix's
+      // letters and digits are confusable, the rarity glyph after the number
+      // is read as letters or digits glued to it, and a space can follow the
+      // dash. The set's last two characters must read as digits; the number is
+      // the first three digit-like characters after the dash.
       {
-        regex: /\b(OP|ST|EB|PRB)\s?([0-9OIlSB]{2,3})\s?-\s?([0-9OIlSB]{3})\b/g,
-        toQuery: (m) => `${m[1]}${digits(m[2]).slice(-2)}-${digits(m[3])}`,
+        regex:
+          /(?<![A-Za-z0-9])[O0o©Q]?[PpRr]([A-Za-z0-9]{2,3})\s?-\s?([0-9OoIil]{3})/g,
+        toQuery: (m) => setCode("OP", m[1], m[2]),
+      },
+      {
+        regex: /(?<![0-9])[Ss5$][Tt7]([A-Za-z0-9]{2,3})\s?-\s?([0-9OoIil]{3})/g,
+        toQuery: (m) => setCode("ST", m[1], m[2]),
+      },
+      {
+        regex:
+          /(?<![A-Za-z0-9])(EB|PRB)([A-Za-z0-9]{2,3})\s?-\s?([0-9OoIil]{3})/gi,
+        toQuery: (m) => setCode(m[1].toUpperCase(), m[2], m[3]),
       },
       {
         regex: /\bP\s?-\s?([0-9OIlSB]{3})\b/g,
@@ -94,6 +109,22 @@ export function digits(value) {
     .replace(/[Il]/g, "1")
     .replace(/S/g, "5")
     .replace(/B/g, "8");
+}
+
+// A One Piece code from OCR'd parts, or null when the set does not read as
+// two digits ("OPp1-016" is not evidence of any set).
+function setCode(prefix, set, number) {
+  const look = (value) =>
+    String(value)
+      .replace(/[OoQD]/g, "0")
+      .replace(/[IiltT]/g, "1")
+      .replace(/[Ss]/g, "5")
+      .replace(/B/g, "8")
+      .replace(/G/g, "6")
+      .replace(/[Zz]/g, "2");
+  const digitsOfSet = look(set).slice(-2);
+  if (!/^\d{2}$/.test(digitsOfSet)) return null;
+  return `${prefix}${digitsOfSet}-${look(number)}`;
 }
 
 export function normalizeOcrText(text) {

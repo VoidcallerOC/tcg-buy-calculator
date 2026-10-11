@@ -649,3 +649,151 @@ test("One Piece printings sharing a number: none implied, value range shown, the
   await expect(page.locator("#result-unavailable")).toBeVisible();
   await expect(page.locator("#result-ready")).toBeHidden();
 });
+
+test("One Piece layout, number unreadable: the type line and ability text are not searched as the name", async ({
+  page,
+}) => {
+  // The reported failure: the affiliation printed under a One Piece name
+  // ("… Pirates", "… Crew") was read and searched as the name, and the
+  // provider's fuzzy matches (other crews, other sets) were offered.
+  const zoro = (number, set_name, label, cents) => ({
+    id: `zoro-${number}-${label}::normal`,
+    provider_card_id: `zoro-${number}-${label}`,
+    game: "one-piece-card-game",
+    name: label ? `Roronoa Zoro (${label})` : "Roronoa Zoro",
+    card_number: number,
+    set_name,
+    printing: "Normal",
+    language: "English",
+    pricing: { NM: { reference_cents: cents, source_updated_at: fresh() } },
+  });
+  const zoros = [
+    zoro("OP01-001", "Romance Dawn", "", 300),
+    zoro("OP01-001", "Romance Dawn", "Alternate Art", 4000),
+    zoro("OP06-118", "Wings of the Captain", "", 2500),
+    zoro("OP06-118", "Wings of the Captain", "Alternate Art", 30000),
+  ];
+  const decoy = {
+    ...zoro("ST99-999", "Decoy Deck", "", 100),
+    id: "decoy::normal",
+    provider_card_id: "decoy",
+    name: "Fake Straw Hat Crew",
+  };
+  const searches = [];
+  await page.route("**/api/cards?**", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q");
+    searches.push(q);
+    const cards = /crew|pirates/i.test(q)
+      ? [decoy]
+      : /zoro/i.test(q)
+        ? zoros
+        : zoros.filter((card) => card.card_number === q);
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cards }),
+    });
+  });
+  await fakeCamera(page, {
+    lines: [
+      { text: "When Attacking", size: 30, x: 0.08, y: 0.55 },
+      { text: "Roronoa Zoro", size: 40, x: 0.2, y: 0.86 },
+      { text: "Straw Hat Crew", size: 26, x: 0.28, y: 0.93 },
+    ],
+  });
+  await page.goto("/");
+  await page.getByLabel("Game").selectOption("one-piece-card-game");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  const panel = page.locator("#scanner-panel");
+  await expect(page.getByText("Needs confirmation")).toBeVisible({
+    timeout: 150_000,
+  });
+  expect(searches.some((q) => /zoro/i.test(q))).toBe(true);
+  expect(searches.filter((q) => /crew|attack/i.test(q))).toEqual([]);
+  await expect(panel).not.toContainText("Fake Straw Hat Crew");
+  // Same name, two sets, two arts each: no set or art is implied.
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    "Several cards match the name. Which one is yours?",
+  );
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  await expect(panel.locator(".scan-candidate")).toHaveCount(4);
+  const form = panel.locator("details.scanner-correct");
+  await expect(form).toHaveAttribute("open", "");
+
+  // The customer types the printed number: both printings of that number are
+  // offered, neither favoured, and the chosen alternate art is priced as such.
+  await form.locator('input[name="number"]').fill("OP06-118");
+  await form.getByRole("button", { name: "Search again" }).click();
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    "2 printings share this number. Which one is yours?",
+  );
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  await panel
+    .locator(".scan-candidate", { hasText: "Roronoa Zoro (Alternate Art)" })
+    .filter({ hasText: "Wings of the Captain" })
+    .getByRole("button", { name: "Use this card" })
+    .click();
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText("$180.00");
+});
+
+test("a number that belongs to a differently named card is questioned, not highlighted", async ({
+  page,
+}) => {
+  const card = (id, name, card_number) => ({
+    id: `${id}::normal`,
+    provider_card_id: id,
+    game: "one-piece-card-game",
+    name,
+    card_number,
+    set_name: "Test Set",
+    printing: "Normal",
+    language: "English",
+    pricing: { NM: { reference_cents: 500, source_updated_at: fresh() } },
+  });
+  await page.route("**/api/cards?**", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q");
+    const cards = /roronoa|zoro/i.test(q)
+      ? [card("zoro", "Roronoa Zoro", "OP06-118")]
+      : q === "OP05-110"
+        ? [card("holly", "Holly", "OP05-110")]
+        : [];
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cards }),
+    });
+  });
+  // The same evidence as a scan that reads the name and misreads the number
+  // as another real card's code, entered through the correction form (the
+  // real-OCR cases are measured in tests/scanner-onepiece.test.js).
+  await fakeCamera(page, { lines: [] });
+  await page.goto("/");
+  await page.getByLabel("Game").selectOption("one-piece-card-game");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  await page.getByLabel("Card name").fill("Roronoa Zoro");
+  await page.getByLabel("Card number").fill("OP05-110");
+  await page.getByRole("button", { name: "Search again" }).click();
+  const panel = page.locator("#scanner-panel");
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    "The name and number we read point to different cards.",
+  );
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  await expect(
+    panel.locator(".scan-candidate", { hasText: "Holly" }),
+  ).toContainText("Only the number matches");
+  // The card the name fits is listed, its own number shown against the read.
+  await expect(
+    panel.locator(".scan-candidate", { hasText: "Roronoa Zoro" }),
+  ).toContainText("Read from your card: OP05-110");
+  await expect(panel.locator("details.scanner-correct")).toHaveAttribute(
+    "open",
+    "",
+  );
+});

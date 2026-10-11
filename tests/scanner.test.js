@@ -72,6 +72,39 @@ const ocrPasses = (full, bottom = "") => [
 
 // ---------- CardIdentifier ----------
 
+test("an attack row is not a name: a mid-card line beside a damage number", () => {
+  // Real OCR of Primeape (Pitch Black 043/084): the stylised name was not
+  // read, the attack "Corkscrew Punch … 50" was, and it was searched as the
+  // name. Positions as scanner/ocr-engine.js reports them (0 = top edge).
+  const line = (text, top) => ({ text, confidence: 95, top });
+  const clues = extractClues([
+    {
+      region: "full",
+      text: "",
+      confidence: 80,
+      lines: [
+        line("Primeape", 0.05),
+        line("x x", 0.62),
+        line("Corkscrew Punch", 0.62),
+        line("50", 0.65), // a 4° tilt puts the damage slightly off the row
+        line("Some researchers theorize that Primeape", 0.9),
+      ],
+    },
+  ]);
+  assert.equal(clues.names[0], "Primeape");
+  assert.ok(!clues.names.includes("Corkscrew Punch"));
+  // The same words without a damage number beside them are kept.
+  const plain = extractClues([
+    {
+      region: "full",
+      text: "",
+      confidence: 80,
+      lines: [line("Corkscrew Punch", 0.62)],
+    },
+  ]);
+  assert.deepEqual(plain.names, ["Corkscrew Punch"]);
+});
+
 test("reads identifiers for each supported game", () => {
   const cases = [
     ["Charizard ex\nHP 330\n199/165 SIR", "pokemon", "199/165"],
@@ -424,7 +457,9 @@ test("a name with no number: no lead candidate, distinct cards shortlisted, numb
 });
 
 test("the printed number decides between same-name cards and flags conflicts", async () => {
-  // OCR read the number but a wrong "name" (an attack): the number still leads.
+  // OCR read the number and a wrong "name" (an attack). The numbered card is
+  // listed first, but a name that fits it not at all is also what a misread
+  // number looks like, so nothing is highlighted and the number is queried.
   const match = await matchCatalog(
     extractClues(ocrPasses("Fury Swipes", "43/64")),
     {
@@ -433,10 +468,12 @@ test("the printed number decides between same-name cards and flags conflicts", a
     },
   );
   assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION); // two printings to choose from
-  assert.equal(match.leader, true);
+  assert.equal(match.leader, false);
+  assert.equal(match.checkNumber, true);
   assert.equal(match.needsNumber, false);
   assert.equal(match.candidates[0].card.provider_card_id, "jungle-primeape");
   assert.equal(match.candidates[1].card.provider_card_id, "jungle-primeape");
+  assert.equal(match.candidates[0].nameConflict, true);
 
   const named = await matchCatalog(
     extractClues(ocrPasses("Primeape", "43/64")),
@@ -453,6 +490,10 @@ test("the printed number decides between same-name cards and flags conflicts", a
   assert.deepEqual(aquapolis.readNumbers, ["43/64"]);
   assert.ok(aquapolis.score < named.candidates[0].score);
   assert.equal(named.candidates[0].numberConflict, false);
+  // Name and number agree: that card leads.
+  assert.equal(named.leader, true);
+  assert.equal(named.checkNumber, false);
+  assert.equal(named.candidates[0].nameConflict, false);
 });
 
 // ---------- CameraCapture ----------

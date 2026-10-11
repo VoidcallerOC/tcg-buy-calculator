@@ -152,6 +152,7 @@ test("One Piece images: a read number lists every printing and highlights none",
     for (const entry of opGroups.get(item.number))
       assert.ok(listed.has(entry.id), `${label}: missing ${entry.name}`);
   }
-  // Measured 2026-10-11: the number was read on 15 of 141 images (OCR limit).
-  assert.ok(read >= 15, `number read on ${read} images`);
+  // Measured 2026-10-11: the number was read on 15 of 141 images, and on 52
+  // once OCR confusions in the code were accepted (scanner-onepiece.test.js).
+  assert.ok(read >= 52, `number read on ${read} images`);
 });
