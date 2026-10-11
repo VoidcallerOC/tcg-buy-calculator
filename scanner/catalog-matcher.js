@@ -156,7 +156,14 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     };
   const cards = [...new Set(ranked.map(cardKey))];
   const shown = new Set(cards.slice(0, MAX_CANDIDATES));
-  const topScore = (key) => ranked.find((item) => cardKey(item) === key).score;
+  const first = (key) => ranked.find((item) => cardKey(item) === key);
+  const topScore = (key) => first(key).score;
+  // A misread number can match a different real card exactly; when another
+  // card fits the name read better, number and name disagree and neither
+  // card is a lead.
+  const nameDisagrees = cards
+    .slice(1)
+    .some((key) => first(key).nameScore > first(cards[0]).nameScore);
   return {
     status: MATCH_STATUS.NEEDS_CONFIRMATION,
     candidates: ranked.filter((item) => shown.has(cardKey(item))),
@@ -165,7 +172,9 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     moreCards: cards.length - shown.size,
     // The first card is only a lead when its evidence beats the next card's;
     // a tie (e.g. a name read with no number) has no lead to suggest.
-    leader: cards.length === 1 || topScore(cards[0]) > topScore(cards[1]),
+    leader:
+      cards.length === 1 ||
+      (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees),
     // No candidate matched a printed number, so the name alone cannot tell
     // these cards apart: the card's number is the evidence still needed.
     needsNumber: cards.length > 1 && !ranked.some((item) => item.numberMatch),

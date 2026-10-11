@@ -397,3 +397,111 @@ test("no AI button when the server has no model key; AI errors keep manual paths
     page.getByRole("button", { name: "Search again" }),
   ).toBeAttached();
 });
+
+test("name read without a number: no set is implied, the number is asked for, then decides", async ({
+  page,
+}) => {
+  // Six Primeape cards with two printings each, listed as the provider lists
+  // sets (alphabetically, so Aquapolis comes first).
+  const sets = [
+    ["aquapolis", "Aquapolis", "029/147", ["Normal", "Reverse Holofoil"]],
+    [
+      "frlg",
+      "EX FireRed & LeafGreen",
+      "28/112",
+      ["Normal", "Reverse Holofoil"],
+    ],
+    ["ge", "Great Encounters", "27/106", ["Normal", "Reverse Holofoil"]],
+    ["jungle", "Jungle", "43/64", ["1st Edition", "Unlimited"]],
+    [
+      "legendary",
+      "Legendary Collection",
+      "059/110",
+      ["Normal", "Reverse Holofoil"],
+    ],
+    [
+      "sv151",
+      "SV: Scarlet & Violet 151",
+      "057/165",
+      ["Normal", "Reverse Holofoil"],
+    ],
+  ];
+  const cards = sets.flatMap(([key, set_name, card_number, printings], s) =>
+    printings.map((printing, p) => ({
+      id: `${key}::${printing}`,
+      provider_card_id: key,
+      name: "Primeape",
+      set_name,
+      card_number,
+      printing,
+      language: "English",
+      game: "pokemon",
+      pricing: {
+        NM: {
+          reference_cents: 1000 + s * 100 + p * 10,
+          source_updated_at: fresh(),
+        },
+      },
+    })),
+  );
+  await page.route("**/api/cards?**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cards }),
+    }),
+  );
+  // No readable text, then the customer types only the name: the same
+  // evidence as a scan that reads the name but not the number.
+  await fakeCamera(page, { lines: [] });
+  await page.goto("/");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  await page.getByLabel("Card name").fill("Primeape");
+  await page.getByRole("button", { name: "Search again" }).click();
+  const panel = page.locator("#scanner-panel");
+  await expect(panel.locator(".scanner-needs-number")).toBeVisible();
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    "Several cards match the name. Which one is yours?",
+  );
+  // Tied candidates: nothing is highlighted as the likely card.
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  // Five distinct cards with both printings each; the sixth is counted.
+  await expect(panel.locator(".scan-candidate")).toHaveCount(10);
+  await expect(panel).toContainText("1 more match");
+  // The correction form is open, ready for the printed number.
+  const form = panel.locator("details.scanner-correct");
+  await expect(form).toHaveAttribute("open", "");
+
+  await form.locator('input[name="number"]').fill("43/64");
+  await form.getByRole("button", { name: "Search again" }).click();
+  // The number now decides: Jungle leads and is highlighted, others are flagged.
+  const lead = panel.locator(".scan-candidate.is-primary");
+  await expect(lead).toHaveCount(1);
+  await expect(lead).toContainText("Jungle");
+  await expect(panel.locator(".scanner-needs-number")).toHaveCount(0);
+  await expect(
+    panel.locator(".scan-candidate", { hasText: "Aquapolis" }).first(),
+  ).toContainText("Read from your card: 43/64");
+
+  // Confirm the Unlimited printing and price exactly that printing.
+  await panel
+    .locator(".scan-candidate", { hasText: "Unlimited" })
+    .getByRole("button", { name: "Use this card" })
+    .click();
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  const unlimited = cards.find((card) => card.id === "jungle::Unlimited");
+  const expected = Number(
+    (BigInt(unlimited.pricing.NM.reference_cents) * 6000n + 5000n) / 10000n,
+  );
+  await expect(page.locator("#offer-value")).toHaveText(
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(expected / 100),
+  );
+});

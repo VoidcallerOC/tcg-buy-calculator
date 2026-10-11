@@ -11,7 +11,9 @@ const NOT_A_NAME =
 // "Illus." as "lus." or "Hllus."), the weakness/resistance/retreat row, rule
 // boxes ("Pokémon-EX rule") and the card-type line ("Basic Pokémon").
 const CARD_FURNITURE =
-  /evolves?\s*from|^\W*\w{0,2}l+us\b|^\W*hus\b|\b(weakness|resistance|retreat)\b|\brule$|pok[eé]mon$/i;
+  /evolves?\s*from|^\W*put\s|^\W*\w{0,2}l+us\b|^\W*hus\b|\b(weakness|resistance|retreat)\b|\brule$|pok[eé]mon$/i;
+// Longer lines are flavor or rules text: printed names run to five words.
+const MAX_NAME_WORDS = 5;
 
 /**
  * @param {{ text: string, confidence?: number, region?: string }[]} passes OCR passes
@@ -109,6 +111,10 @@ export function nameCandidates(passes) {
       if (CARD_FURNITURE.test(line)) continue;
       // Rules sentences end in punctuation ("…Defending Pokémon."); names don't.
       if (/[.,;:]$/.test(line)) continue;
+      // Printed names start with a capital or digit; a lowercase start is a
+      // fragment of a longer line ("resistan", "to become so angry…").
+      if (/^[a-zß-ÿ]/.test(line)) continue;
+      if (line.split(" ").length > MAX_NAME_WORDS) continue;
       if (NOT_A_NAME.test(line) && line.split(" ").length > 2) continue;
       const cleaned = line
         .replace(/\s+\d+$/, "")

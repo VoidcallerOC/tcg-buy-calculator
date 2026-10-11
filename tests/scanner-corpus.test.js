@@ -108,10 +108,33 @@ test("names read without a number ask for the number instead of guessing a set",
   }
 });
 
-// Regression floor: what this corpus measured when the fix landed. A change
-// that lowers either count is a regression to investigate, not a tuning knob.
-test("identification does not regress below the measured floor", () => {
-  assert.ok(count(cards, (r) => r.rank === 1) >= FLOOR.first, "listed first");
-  assert.ok(count(cards, (r) => r.rank >= 1) >= FLOOR.listed, "listed at all");
+// What the confirmation screen highlights as the likely card: an IDENTIFIED
+// card, or the first candidate when the matcher reports a lead.
+const highlighted = (r) =>
+  r.match.status === MATCH_STATUS.IDENTIFIED ||
+  (r.match.status === MATCH_STATUS.NEEDS_CONFIRMATION && r.match.leader);
+
+// Measured on this corpus when the fix landed (2026-10-11). Before it, the
+// first candidate was always highlighted: 58 of 163 images highlighted a card
+// that was not the one scanned. A change that worsens these counts is a
+// regression to investigate, not a number to retune.
+const MEASURED = { first: 23, listed: 56, highlightedWrong: 2 };
+
+test("identification does not regress below what was measured", () => {
+  assert.ok(
+    count(cards, (r) => r.rank === 1) >= MEASURED.first,
+    "listed first",
+  );
+  assert.ok(
+    count(cards, (r) => r.rank >= 1) >= MEASURED.listed,
+    "listed at all",
+  );
 });
-const FLOOR = { first: 0, listed: 0 };
+
+test("a highlighted card is rarely the wrong one (misread numbers only)", () => {
+  const wrong = results.filter((r) => highlighted(r) && r.rank !== 1);
+  assert.ok(
+    wrong.length <= MEASURED.highlightedWrong,
+    wrong.map((r) => `${r.item.image}/${r.item.condition}`).join(", "),
+  );
+});
