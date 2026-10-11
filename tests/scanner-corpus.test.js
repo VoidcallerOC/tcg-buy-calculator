@@ -117,8 +117,12 @@ const highlighted = (r) =>
 // Measured on this corpus when the fix landed (2026-10-11). Before it, the
 // first candidate was always highlighted: 58 of 163 images highlighted a card
 // that was not the one scanned. A change that worsens these counts is a
-// regression to investigate, not a number to retune.
-const MEASURED = { first: 23, listed: 56, highlightedWrong: 2 };
+// regression to investigate, not a number to retune. ("first" fell from 23 to
+// 21 when printing labels stopped counting as name evidence: Base Set
+// "Charizard" no longer outranks "Charizard (Black Dot Error)", nor "Pikachu
+// VMAX" its "- 044/185" listing, merely by having fewer words. Both images
+// still list the right card; neither highlights anything.)
+const MEASURED = { first: 21, listed: 56, highlightedWrong: 2 };
 
 test("identification does not regress below what was measured", () => {
   assert.ok(

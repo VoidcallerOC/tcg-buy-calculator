@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFileSync } from "node:fs";
 
 // End-to-end scan with a fake camera: a canvas stream shows a printed card,
 // and the real self-hosted Tesseract.js worker, WASM core, and language data
@@ -340,7 +341,9 @@ test("unreadable card → Identify with AI → catalog match → confirmed offer
   expect(posts[0].image).toMatch(/^[A-Za-z0-9+/]+=*$/);
   // A JPEG starts with FF D8 (base64 "/9j/").
   expect(posts[0].image.startsWith("/9j/")).toBe(true);
-  expect(searches).toContain("pokemon:199/165");
+  // "Read by AI" renders as matching starts, before the catalog request is
+  // routed, so wait for the search instead of reading it once.
+  await expect.poll(() => searches).toContain("pokemon:199/165");
   await expect(
     page.getByRole("button", { name: "Identify with AI" }),
   ).toHaveCount(0);
@@ -479,9 +482,12 @@ test("name read without a number: no set is implied, the number is asked for, th
   await form.locator('input[name="number"]').fill("43/64");
   await form.getByRole("button", { name: "Search again" }).click();
   // The number now decides: Jungle leads and is highlighted, others are flagged.
+  // Both Jungle printings are highlighted: the number identifies the card,
+  // not whether it is 1st Edition or Unlimited.
   const lead = panel.locator(".scan-candidate.is-primary");
-  await expect(lead).toHaveCount(1);
-  await expect(lead).toContainText("Jungle");
+  await expect(lead).toHaveCount(2);
+  await expect(lead.nth(0)).toContainText("Jungle");
+  await expect(lead.nth(1)).toContainText("Jungle");
   await expect(panel.locator(".scanner-needs-number")).toHaveCount(0);
   await expect(
     panel.locator(".scan-candidate", { hasText: "Aquapolis" }).first(),
@@ -504,4 +510,142 @@ test("name read without a number: no set is implied, the number is asked for, th
       currency: "USD",
     }).format(expected / 100),
   );
+});
+
+test("One Piece printings sharing a number: none implied, value range shown, the chosen printing priced", async ({
+  page,
+}) => {
+  // Real OP05-119 catalog identities (10 listings: standard, alternate art,
+  // manga, SP, gold SP, reprint, promos). Prices are illustrative only, but
+  // keep the real shape: the same printed name and number span ~1000x.
+  const { groups } = JSON.parse(
+    readFileSync(
+      new URL("../fixtures/provider-variants.json", import.meta.url),
+    ),
+  );
+  const group = groups.find(
+    (g) => g.game === "one-piece-card-game" && g.number === "OP05-119",
+  );
+  const price = (name) => {
+    if (name.includes("(Alternate Art) (Manga)")) return null; // unpriced
+    if (name.includes("(SP) (Gold)")) return 1000000;
+    if (/\((SP|Manga)\)/.test(name)) return 400000;
+    if (name.includes("Alternate Art")) return 15000;
+    return 1000;
+  };
+  const cards = group.entries.map((entry) => {
+    const cents = price(entry.name);
+    return {
+      ...entry,
+      pricing:
+        cents === null
+          ? {}
+          : { NM: { reference_cents: cents, source_updated_at: fresh() } },
+    };
+  });
+  await page.route("**/api/cards?**", (route) => {
+    const game = new URL(route.request().url()).searchParams.get("game");
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        cards: game === "one-piece-card-game" ? cards : [],
+      }),
+    });
+  });
+  await fakeCamera(page, { lines: [] });
+  await page.goto("/");
+  const scan = async () => {
+    await page
+      .getByRole("button", { name: /Scan a card|Scan next card/ })
+      .first()
+      .click();
+    await page.getByRole("button", { name: "Capture" }).click();
+    await expect(page.getByText("Could not identify")).toBeVisible({
+      timeout: 150_000,
+    });
+    await page.getByLabel("Card name").fill("Monkey.D.Luffy");
+    await page.getByLabel("Card number").fill("OP05-119");
+    await page.getByRole("button", { name: "Search again" }).click();
+  };
+  await scan();
+  const panel = page.locator("#scanner-panel");
+  const distinct = new Set(cards.map((c) => c.provider_card_id)).size;
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    `${distinct} printings share this number. Which one is yours?`,
+  );
+  const warning = panel.locator(".scanner-printing-choice");
+  await expect(warning).toContainText("$10.00 to $10,000.00");
+  await expect(warning).toContainText("with no online price");
+  // Every printing listed, none highlighted.
+  await expect(panel.locator(".scan-candidate")).toHaveCount(cards.length);
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+
+  // Picks the listing whose name is exactly `name` (names nest: "(Alternate
+  // Art)" is a prefix of "(Alternate Art) (Manga)").
+  const choose = (name, set) =>
+    panel
+      .locator(".scan-candidate")
+      .filter({
+        has: page.locator("strong", {
+          hasText: new RegExp(`^${name.replace(/[.()]/g, "\\$&")}$`),
+        }),
+      })
+      .filter({ hasText: set })
+      .getByRole("button", { name: "Use this card" })
+      .click();
+  const offerFor = (cents) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(Number((BigInt(cents) * 6000n + 5000n) / 10000n) / 100);
+
+  // The alternate art is priced as the alternate art.
+  await choose(
+    "Monkey.D.Luffy (119) (Alternate Art)",
+    "Awakening of the New Era",
+  );
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText(offerFor(15000));
+  await expect(page.locator("#result-card-label")).toContainText(
+    "Alternate Art",
+  );
+
+  // Correcting to the standard printing drops the alternate-art offer first.
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  await page.getByLabel("Card name").fill("Monkey.D.Luffy");
+  await page.getByLabel("Card number").fill("OP05-119");
+  await page.getByRole("button", { name: "Search again" }).click();
+  await choose("Monkey.D.Luffy (119)", "Awakening of the New Era");
+  await expect(page.locator("#result-ready")).toBeHidden();
+  await expect(page.locator("#add-to-list")).toBeHidden();
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText(offerFor(1000));
+
+  // A printing with no price is never priced as another printing.
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  await page.getByLabel("Card name").fill("Monkey.D.Luffy");
+  await page.getByLabel("Card number").fill("OP05-119");
+  await page.getByRole("button", { name: "Search again" }).click();
+  await choose(
+    "Monkey.D.Luffy (119) (Alternate Art) (Manga)",
+    "Awakening of the New Era",
+  );
+  await expect(
+    page.locator('.condition-option[data-code="NM"] .condition-note'),
+  ).toHaveText("No online price");
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#result-unavailable")).toBeVisible();
+  await expect(page.locator("#result-ready")).toBeHidden();
 });

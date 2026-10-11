@@ -1,0 +1,1727 @@
+{
+  "notice": "Catalog entries recorded from this site's /api/cards on 2026-10-11 (JustTCG), reduced to printed identity fields: no prices, dates or provider variant ids. Each group is the set of listings that share one printed collector number in one game.",
+  "groups": [
+    {
+      "game": "digimon-card-game",
+      "number": "BT16-082",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "digimon-card-game-beginning-observer-pre-release-cards-ukkomon-rare::foil::english",
+          "provider_card_id": "digimon-card-game-beginning-observer-pre-release-cards-ukkomon-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon",
+          "card_number": "BT16-082 R",
+          "set_name": "Beginning Observer Pre-Release Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-beginning-observer-ukkomon-rare::foil::english",
+          "provider_card_id": "digimon-card-game-beginning-observer-ukkomon-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon",
+          "card_number": "BT16-082 R",
+          "set_name": "Beginning Observer",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-limited-card-pack-billion-bullet-ukkomon-rare::foil::english",
+          "provider_card_id": "digimon-card-game-limited-card-pack-billion-bullet-ukkomon-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon",
+          "card_number": "BT16-082 R",
+          "set_name": "Limited Card Pack -Billion Bullet-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-advanced-booster-digimon-generation-ukkomon-reprint-rare::foil::english",
+          "provider_card_id": "digimon-card-game-advanced-booster-digimon-generation-ukkomon-reprint-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon (Reprint)",
+          "card_number": "BT16-082 R",
+          "set_name": "Advanced Booster Digimon Generation",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-advanced-booster-digimon-generation-ukkomon-gold-border-rare::foil::english",
+          "provider_card_id": "digimon-card-game-advanced-booster-digimon-generation-ukkomon-gold-border-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon (Gold Border)",
+          "card_number": "BT16-082 R",
+          "set_name": "Advanced Booster Digimon Generation",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-beginning-observer-ukkomon-alternate-art-rare::foil::english",
+          "provider_card_id": "digimon-card-game-beginning-observer-ukkomon-alternate-art-rare",
+          "game": "digimon-card-game",
+          "name": "Ukkomon (Alternate Art)",
+          "card_number": "BT16-082 R",
+          "set_name": "Beginning Observer",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-beginning-observer-ukkomon-2024-regionals-champion-promo::foil::english",
+          "provider_card_id": "digimon-card-game-beginning-observer-ukkomon-2024-regionals-champion-promo",
+          "game": "digimon-card-game",
+          "name": "Ukkomon (2024 Regionals Champion)",
+          "card_number": "BT16-082 R",
+          "set_name": "Beginning Observer",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "digimon-card-game-beginning-observer-ukkomon-2024-regionals-finalist-promo::foil::english",
+          "provider_card_id": "digimon-card-game-beginning-observer-ukkomon-2024-regionals-finalist-promo",
+          "game": "digimon-card-game",
+          "name": "Ukkomon (2024 Regionals Finalist)",
+          "card_number": "BT16-082 R",
+          "set_name": "Beginning Observer",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "disney-lorcana",
+      "number": "2",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "disney-lorcana-disney-lorcana-promo-cards-elsa-trusted-sister-promo::holofoil::english",
+          "provider_card_id": "disney-lorcana-disney-lorcana-promo-cards-elsa-trusted-sister-promo",
+          "game": "disney-lorcana",
+          "name": "Elsa - Trusted Sister",
+          "card_number": "2",
+          "set_name": "Disney Lorcana Promo Cards",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "disney-lorcana-disney-lorcana-promo-cards-elsa-ice-maker-foil-promo::holofoil::english",
+          "provider_card_id": "disney-lorcana-disney-lorcana-promo-cards-elsa-ice-maker-foil-promo",
+          "game": "disney-lorcana",
+          "name": "Elsa - Ice Maker (Foil)",
+          "card_number": "2",
+          "set_name": "Disney Lorcana Promo Cards",
+          "printing": "Holofoil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "dragon-ball-super-masters",
+      "number": "BT10-037",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "dragon-ball-super-masters-rise-of-the-unison-warrior-2nd-edition-son-goku-common::foil::english",
+          "provider_card_id": "dragon-ball-super-masters-rise-of-the-unison-warrior-2nd-edition-son-goku-common",
+          "game": "dragon-ball-super-masters",
+          "name": "Son Goku",
+          "card_number": "BT10-037",
+          "set_name": "Rise of the Unison Warrior (2nd Edition)",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "dragon-ball-super-masters-rise-of-the-unison-warrior-2nd-edition-son-goku-common::normal::english",
+          "provider_card_id": "dragon-ball-super-masters-rise-of-the-unison-warrior-2nd-edition-son-goku-common",
+          "game": "dragon-ball-super-masters",
+          "name": "Son Goku",
+          "card_number": "BT10-037",
+          "set_name": "Rise of the Unison Warrior (2nd Edition)",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "dragon-ball-super-masters-rise-of-the-unison-warrior-son-goku-common::foil::english",
+          "provider_card_id": "dragon-ball-super-masters-rise-of-the-unison-warrior-son-goku-common",
+          "game": "dragon-ball-super-masters",
+          "name": "Son Goku",
+          "card_number": "BT10-037",
+          "set_name": "Rise of the Unison Warrior",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "dragon-ball-super-masters-rise-of-the-unison-warrior-son-goku-common::normal::english",
+          "provider_card_id": "dragon-ball-super-masters-rise-of-the-unison-warrior-son-goku-common",
+          "game": "dragon-ball-super-masters",
+          "name": "Son Goku",
+          "card_number": "BT10-037",
+          "set_name": "Rise of the Unison Warrior",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "flesh-and-blood-tcg",
+      "number": "HNT260",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "flesh-and-blood-tcg-the-hunted-command-and-conquer-legendary::normal::english",
+          "provider_card_id": "flesh-and-blood-tcg-the-hunted-command-and-conquer-legendary",
+          "game": "flesh-and-blood-tcg",
+          "name": "Command and Conquer",
+          "card_number": "HNT260",
+          "set_name": "The Hunted",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "flesh-and-blood-tcg-the-hunted-command-and-conquer-extended-art-legendary::rainbow-foil::english",
+          "provider_card_id": "flesh-and-blood-tcg-the-hunted-command-and-conquer-extended-art-legendary",
+          "game": "flesh-and-blood-tcg",
+          "name": "Command and Conquer (Extended Art)",
+          "card_number": "HNT260",
+          "set_name": "The Hunted",
+          "printing": "Rainbow Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "grand-archive-tcg",
+      "number": "005",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-1st-edition-lorraine-blademaster-common::normal::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-1st-edition-lorraine-blademaster-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Blademaster",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes 1st Edition",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-1st-edition-lorraine-blademaster-common::foil::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-1st-edition-lorraine-blademaster-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Blademaster",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes 1st Edition",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-alter-edition-lorraine-blademaster-common::normal::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-alter-edition-lorraine-blademaster-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Blademaster",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes Alter Edition",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-alter-edition-lorraine-blademaster-common::foil::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-alter-edition-lorraine-blademaster-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Blademaster",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes Alter Edition",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-prelude-lorraine-crux-knight-common::normal::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-prelude-lorraine-crux-knight-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Crux Knight",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes Prelude",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "grand-archive-tcg-dawn-of-ashes-starter-decks-lorraine-blademaster-common::normal::english",
+          "provider_card_id": "grand-archive-tcg-dawn-of-ashes-starter-decks-lorraine-blademaster-common",
+          "game": "grand-archive-tcg",
+          "name": "Lorraine, Blademaster",
+          "card_number": "005",
+          "set_name": "Dawn of Ashes Starter Decks",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "gundam-card-game",
+      "number": "ST01-001",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "gundam-card-game-deck-build-box-freedom-ascension-gundam-lr::normal::english",
+          "provider_card_id": "gundam-card-game-deck-build-box-freedom-ascension-gundam-lr",
+          "game": "gundam-card-game",
+          "name": "Gundam",
+          "card_number": "ST01-001",
+          "set_name": "Deck Build Box Freedom Ascension",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "gundam-card-game-edition-beta-gundam-lr::holofoil::english",
+          "provider_card_id": "gundam-card-game-edition-beta-gundam-lr",
+          "game": "gundam-card-game",
+          "name": "Gundam",
+          "card_number": "ST01-001",
+          "set_name": "Edition Beta",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "gundam-card-game-starter-deck-01-heroic-beginnings-gundam-lr::holofoil::english",
+          "provider_card_id": "gundam-card-game-starter-deck-01-heroic-beginnings-gundam-lr",
+          "game": "gundam-card-game",
+          "name": "Gundam",
+          "card_number": "ST01-001",
+          "set_name": "Starter Deck 01: Heroic Beginnings",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "gundam-card-game-edition-beta-gundam-lr-plus-lr-plus::holofoil::english",
+          "provider_card_id": "gundam-card-game-edition-beta-gundam-lr-plus-lr-plus",
+          "game": "gundam-card-game",
+          "name": "Gundam (LR+)",
+          "card_number": "ST01-001",
+          "set_name": "Edition Beta",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "gundam-card-game-starter-deck-01-heroic-beginnings-gundam-lr-plus-lr-plus::holofoil::english",
+          "provider_card_id": "gundam-card-game-starter-deck-01-heroic-beginnings-gundam-lr-plus-lr-plus",
+          "game": "gundam-card-game",
+          "name": "Gundam (LR+)",
+          "card_number": "ST01-001",
+          "set_name": "Starter Deck 01: Heroic Beginnings",
+          "printing": "Holofoil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "hololive-official-card-game",
+      "number": "hBP01-021",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "hololive-official-card-game-blooming-radiance-tokino-sora-c-c::normal::english",
+          "provider_card_id": "hololive-official-card-game-blooming-radiance-tokino-sora-c-c",
+          "game": "hololive-official-card-game",
+          "name": "Tokino Sora (C)",
+          "card_number": "hBP01-021",
+          "set_name": "Blooming Radiance",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "hololive-official-card-game-extra-booster-summer-hologram-tokino-sora-hr-hr::foil::english",
+          "provider_card_id": "hololive-official-card-game-extra-booster-summer-hologram-tokino-sora-hr-hr",
+          "game": "hololive-official-card-game",
+          "name": "Tokino Sora (HR)",
+          "card_number": "hBP01-021",
+          "set_name": "Extra Booster: Summer hologram",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "hololive-official-card-game-extra-booster-summer-hologram-tokino-sora-c-hbp01-021-c::normal::english",
+          "provider_card_id": "hololive-official-card-game-extra-booster-summer-hologram-tokino-sora-c-hbp01-021-c",
+          "game": "hololive-official-card-game",
+          "name": "Tokino Sora (C) (hBP01-021)",
+          "card_number": "hBP01-021",
+          "set_name": "Extra Booster: Summer hologram",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "magic-the-gathering",
+      "number": "226",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common::normal-korean::korean",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign Black Border)",
+          "printing": "Normal - Korean",
+          "language": "Korean"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common::normal-chinese-t::chinese-t",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign Black Border)",
+          "printing": "Normal - Chinese (T)",
+          "language": "Chinese (T)"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common::normal-spanish::spanish",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign Black Border)",
+          "printing": "Normal - Spanish",
+          "language": "Spanish"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common::normal-japanese::japanese",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign Black Border)",
+          "printing": "Normal - Japanese",
+          "language": "Japanese"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common::normal-portuguese::portuguese",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-black-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign Black Border)",
+          "printing": "Normal - Portuguese",
+          "language": "Portuguese"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-spanish::spanish",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - Spanish",
+          "language": "Spanish"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-japanese::japanese",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - Japanese",
+          "language": "Japanese"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-italian::italian",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - Italian",
+          "language": "Italian"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-german::german",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - German",
+          "language": "German"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-french::french",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - French",
+          "language": "French"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common::normal-portuguese::portuguese",
+          "provider_card_id": "magic-the-gathering-fourth-edition-foreign-white-border-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition (Foreign White Border)",
+          "printing": "Normal - Portuguese",
+          "language": "Portuguese"
+        },
+        {
+          "id": "magic-the-gathering-fourth-edition-lightning-bolt-common::normal::english",
+          "provider_card_id": "magic-the-gathering-fourth-edition-lightning-bolt-common",
+          "game": "magic-the-gathering",
+          "name": "Lightning Bolt",
+          "card_number": "226",
+          "set_name": "Fourth Edition",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP01-016",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-nami-sp-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-nami-sp-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (SP)",
+          "card_number": "OP01-016",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-extra-booster-one-piece-heroine-s-edition-vol-2-nami-op01-016-sp-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-extra-booster-one-piece-heroine-s-edition-vol-2-nami-op01-016-sp-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (OP01-016) (SP)",
+          "card_number": "OP01-016",
+          "set_name": "Extra Booster: One Piece Heroine's Edition Vol. 2",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-learn-together-deck-set-nami-op01-016-luffy-deck-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-learn-together-deck-set-nami-op01-016-luffy-deck-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami - OP01-016 (Luffy Deck)",
+          "card_number": "OP01-016",
+          "set_name": "Learn Together Deck Set",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-demo-deck-cards-nami-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-one-piece-demo-deck-cards-nami-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami",
+          "card_number": "OP01-016",
+          "set_name": "One Piece Demo Deck Cards",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-nami-english-version-1st-anniversary-set-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-nami-english-version-1st-anniversary-set-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (English Version 1st Anniversary Set)",
+          "card_number": "OP01-016",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-nami-gift-collection-2023-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-nami-gift-collection-2023-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (Gift Collection 2023)",
+          "card_number": "OP01-016",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-nami-op01-016-alternate-art-promo::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-nami-op01-016-alternate-art-promo",
+          "game": "one-piece-card-game",
+          "name": "Nami - OP01-016 (Alternate Art)",
+          "card_number": "OP01-016",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-nami-op01-016-ultra-deck-the-three-captains-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-nami-op01-016-ultra-deck-the-three-captains-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami - OP01-016 (Ultra Deck: The Three Captains)",
+          "card_number": "OP01-016",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-nami-op01-016-manga-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-nami-op01-016-manga-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (OP01-016) (Manga)",
+          "card_number": "OP01-016",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-nami-parallel-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-nami-parallel-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami (Parallel)",
+          "card_number": "OP01-016",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-nami-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-nami-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami",
+          "card_number": "OP01-016",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-starter-deck-31-red-monkeydluffy-nami-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-starter-deck-31-red-monkeydluffy-nami-rare",
+          "game": "one-piece-card-game",
+          "name": "Nami",
+          "card_number": "OP01-016",
+          "set_name": "ST-31: Starter Deck 31 RED Monkey.D.Luffy",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "ST01-012",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-012-alternate-art-gold-stamped-signature-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-012-alternate-art-gold-stamped-signature-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (012) (Alternate Art) (Gold-Stamped Signature)",
+          "card_number": "ST01-012",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-012-alternate-art-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-012-alternate-art-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (012) (Alternate Art)",
+          "card_number": "ST01-012",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-carrying-on-his-will-3rd-anniversary-tournament-cards-monkey-d-luffy-st01-012-3rd-anniversary-tournament-3-brothers-pack-super-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-carrying-on-his-will-3rd-anniversary-tournament-cards-monkey-d-luffy-st01-012-3rd-anniversary-tournament-3-brothers-pack-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy - ST01-012 (3rd Anniversary Tournament 3 Brothers Pack)",
+          "card_number": "ST01-012",
+          "set_name": "Carrying On His Will: 3rd Anniversary Tournament Cards",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-cs-2024-celebration-pack-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-cs-2024-celebration-pack-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (CS 2024 Celebration Pack)",
+          "card_number": "ST01-012",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-st01-012-3rd-anniversary-winner-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-st01-012-3rd-anniversary-winner-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy - ST01-012 (3rd Anniversary Winner)",
+          "card_number": "ST01-012",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-tournament-pack-vol-5-super-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-tournament-pack-vol-5-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (Tournament Pack Vol. 5)",
+          "card_number": "ST01-012",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-winner-pack-vol-5-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-winner-pack-vol-5-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (Winner Pack Vol. 5)",
+          "card_number": "ST01-012",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-pillars-of-strength-monkey-d-luffy-wanted-poster-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-pillars-of-strength-monkey-d-luffy-wanted-poster-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (Wanted Poster)",
+          "card_number": "ST01-012",
+          "set_name": "Pillars of Strength",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-starter-deck-1-straw-hat-crew-monkey-d-luffy-012-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-starter-deck-1-straw-hat-crew-monkey-d-luffy-012-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (012)",
+          "card_number": "ST01-012",
+          "set_name": "ST-01: Starter Deck 1 Straw Hat Crew",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-super-pre-release-starter-deck-1-straw-hat-crew-monkey-d-luffy-012-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-super-pre-release-starter-deck-1-straw-hat-crew-monkey-d-luffy-012-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (012)",
+          "card_number": "ST01-012",
+          "set_name": "ST-01: Starter Deck 1 Straw Hat Crew (Super Pre-Release Edition)",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP05-119",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-a-fist-of-divine-speed-monkey-d-luffy-119-sp-gold-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-a-fist-of-divine-speed-monkey-d-luffy-119-sp-gold-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119) (SP) (Gold)",
+          "card_number": "OP05-119",
+          "set_name": "A Fist of Divine Speed",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-a-fist-of-divine-speed-monkey-d-luffy-119-sp-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-a-fist-of-divine-speed-monkey-d-luffy-119-sp-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119) (SP)",
+          "card_number": "OP05-119",
+          "set_name": "A Fist of Divine Speed",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-alternate-art-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-alternate-art-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119) (Alternate Art) (Manga)",
+          "card_number": "OP05-119",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119) (Alternate Art)",
+          "card_number": "OP05-119",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119)",
+          "card_number": "OP05-119",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-emperors-in-the-new-world-monkey-d-luffy-wanted-poster-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-emperors-in-the-new-world-monkey-d-luffy-wanted-poster-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (Wanted Poster)",
+          "card_number": "OP05-119",
+          "set_name": "Emperors in the New World",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-119-english-version-2nd-anniversary-set-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-monkey-d-luffy-119-english-version-2nd-anniversary-set-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (119) (English Version 2nd Anniversary Set)",
+          "card_number": "OP05-119",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (OP05-119) (Alternate Art)",
+          "card_number": "OP05-119",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (OP05-119) (Manga)",
+          "card_number": "OP05-119",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-reprint-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-monkey-d-luffy-op05-119-reprint-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Monkey.D.Luffy (OP05-119) (Reprint)",
+          "card_number": "OP05-119",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP01-120",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-shanks-championship-2023-serial-number-promo::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-shanks-championship-2023-serial-number-promo",
+          "game": "one-piece-card-game",
+          "name": "Shanks (Championship 2023) [Serial Number]",
+          "card_number": "OP01-120",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-shanks-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-shanks-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks (Manga)",
+          "card_number": "OP01-120",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-shanks-op01-120-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-shanks-op01-120-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks (OP01-120) (Alternate Art)",
+          "card_number": "OP01-120",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-shanks-op01-120-reprint-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-shanks-op01-120-reprint-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks (OP01-120) (Reprint)",
+          "card_number": "OP01-120",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-shanks-parallel-manga-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-shanks-parallel-manga-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks (Parallel) (Manga) (Alternate Art)",
+          "card_number": "OP01-120",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-shanks-parallel-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-shanks-parallel-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks (Parallel)",
+          "card_number": "OP01-120",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-shanks-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-shanks-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Shanks",
+          "card_number": "OP01-120",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP05-074",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-500-years-in-the-future-eustass-captain-kid-sp-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-500-years-in-the-future-eustass-captain-kid-sp-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (SP)",
+          "card_number": "OP05-074",
+          "set_name": "500 Years in the Future",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-alternate-art-manga-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-alternate-art-manga-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (Alternate Art) (Manga)",
+          "card_number": "OP05-074",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-alternate-art-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-alternate-art-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (Alternate Art)",
+          "card_number": "OP05-074",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-eustass-captain-kid-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid",
+          "card_number": "OP05-074",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-op05-074-alternate-art-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-op05-074-alternate-art-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (OP05-074) (Alternate Art)",
+          "card_number": "OP05-074",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-op05-074-manga-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-op05-074-manga-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (OP05-074) (Manga)",
+          "card_number": "OP05-074",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-reprint-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-eustass-captain-kid-reprint-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Eustass\"Captain\"Kid (Reprint)",
+          "card_number": "OP05-074",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP01-121",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-awakening-of-the-new-era-yamato-sp-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-awakening-of-the-new-era-yamato-sp-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato (SP)",
+          "card_number": "OP01-121",
+          "set_name": "Awakening of the New Era",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-yamato-treasure-cup-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-yamato-treasure-cup-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato (Treasure Cup)",
+          "card_number": "OP01-121",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-yamato-op01-121-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-yamato-op01-121-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato (OP01-121) (Alternate Art)",
+          "card_number": "OP01-121",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-yamato-op01-121-reprint-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-yamato-op01-121-reprint-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato (OP01-121) (Reprint)",
+          "card_number": "OP01-121",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-yamato-parallel-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-yamato-parallel-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato (Parallel)",
+          "card_number": "OP01-121",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-yamato-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-yamato-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Yamato",
+          "card_number": "OP01-121",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP02-013",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-portgas-d-ace-one-piece-japanese-version-2nd-anniversary-set-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-portgas-d-ace-one-piece-japanese-version-2nd-anniversary-set-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace (One Piece Japanese Version 2nd Anniversary Set)",
+          "card_number": "OP02-013",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-paramount-war-portgas-d-ace-parallel-manga-alternate-art-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-paramount-war-portgas-d-ace-parallel-manga-alternate-art-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace (Parallel) (Manga) (Alternate Art)",
+          "card_number": "OP02-013",
+          "set_name": "Paramount War",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-paramount-war-portgas-d-ace-parallel-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-paramount-war-portgas-d-ace-parallel-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace (Parallel)",
+          "card_number": "OP02-013",
+          "set_name": "Paramount War",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-paramount-war-portgas-d-ace-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-paramount-war-portgas-d-ace-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace",
+          "card_number": "OP02-013",
+          "set_name": "Paramount War",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-portgas-d-ace-manga-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-portgas-d-ace-manga-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace (Manga)",
+          "card_number": "OP02-013",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-two-legends-portgas-d-ace-sp-super-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-two-legends-portgas-d-ace-sp-super-rare",
+          "game": "one-piece-card-game",
+          "name": "Portgas.D.Ace (SP)",
+          "card_number": "OP02-013",
+          "set_name": "Two Legends",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP06-118",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-roronoa-zoro-one-piece-japanese-version-2nd-anniversary-set-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-roronoa-zoro-one-piece-japanese-version-2nd-anniversary-set-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (One Piece Japanese Version 2nd Anniversary Set)",
+          "card_number": "OP06-118",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-roronoa-zoro-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-roronoa-zoro-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (Manga)",
+          "card_number": "OP06-118",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-vol-2-roronoa-zoro-op06-118-reprint-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-vol-2-roronoa-zoro-op06-118-reprint-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro - OP06-118 (Reprint)",
+          "card_number": "OP06-118",
+          "set_name": "Premium Booster -The Best- Vol. 2",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-vol-2-roronoa-zoro-op06-118-reprint-secret-rare::normal::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-vol-2-roronoa-zoro-op06-118-reprint-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro - OP06-118 (Reprint)",
+          "card_number": "OP06-118",
+          "set_name": "Premium Booster -The Best- Vol. 2",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-alternate-art-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-alternate-art-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (Alternate Art) (Manga)",
+          "card_number": "OP06-118",
+          "set_name": "Wings of the Captain",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (Alternate Art)",
+          "card_number": "OP06-118",
+          "set_name": "Wings of the Captain",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-wings-of-the-captain-roronoa-zoro-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro",
+          "card_number": "OP06-118",
+          "set_name": "Wings of the Captain",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP01-001",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-one-piece-demo-deck-cards-roronoa-zoro-leader::normal::english",
+          "provider_card_id": "one-piece-card-game-one-piece-demo-deck-cards-roronoa-zoro-leader",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro",
+          "card_number": "OP01-001",
+          "set_name": "One Piece Demo Deck Cards",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-one-piece-promotion-cards-roronoa-zoro-op01-001-alternate-art-promo::foil::english",
+          "provider_card_id": "one-piece-card-game-one-piece-promotion-cards-roronoa-zoro-op01-001-alternate-art-promo",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro - OP01-001 (Alternate Art)",
+          "card_number": "OP01-001",
+          "set_name": "One Piece Promotion Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-roronoa-zoro-001-leader::normal::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-roronoa-zoro-001-leader",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (001)",
+          "card_number": "OP01-001",
+          "set_name": "Romance Dawn",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-romance-dawn-roronoa-zoro-001-parallel-leader::foil::english",
+          "provider_card_id": "one-piece-card-game-romance-dawn-roronoa-zoro-001-parallel-leader",
+          "game": "one-piece-card-game",
+          "name": "Roronoa Zoro (001) (Parallel)",
+          "card_number": "OP01-001",
+          "set_name": "Romance Dawn",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "one-piece-card-game",
+      "number": "OP03-122",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "one-piece-card-game-pillars-of-strength-sogeking-alternate-art-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-pillars-of-strength-sogeking-alternate-art-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Sogeking (Alternate Art) (Manga)",
+          "card_number": "OP03-122",
+          "set_name": "Pillars of Strength",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-pillars-of-strength-sogeking-alternate-art-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-pillars-of-strength-sogeking-alternate-art-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Sogeking (Alternate Art)",
+          "card_number": "OP03-122",
+          "set_name": "Pillars of Strength",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-pillars-of-strength-sogeking-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-pillars-of-strength-sogeking-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Sogeking",
+          "card_number": "OP03-122",
+          "set_name": "Pillars of Strength",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "one-piece-card-game-premium-booster-the-best-sogeking-manga-secret-rare::foil::english",
+          "provider_card_id": "one-piece-card-game-premium-booster-the-best-sogeking-manga-secret-rare",
+          "game": "one-piece-card-game",
+          "name": "Sogeking (Manga)",
+          "card_number": "OP03-122",
+          "set_name": "Premium Booster -The Best-",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "pokemon",
+      "number": "058/102",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "pokemon-base-set-pikachu-common::normal::english",
+          "provider_card_id": "pokemon-base-set-pikachu-common",
+          "game": "pokemon",
+          "name": "Pikachu",
+          "card_number": "058/102",
+          "set_name": "Base Set",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-pikachu-common::1st-edition::english",
+          "provider_card_id": "pokemon-base-set-shadowless-pikachu-common",
+          "game": "pokemon",
+          "name": "Pikachu",
+          "card_number": "058/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "1st Edition",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-pikachu-common::unlimited::english",
+          "provider_card_id": "pokemon-base-set-shadowless-pikachu-common",
+          "game": "pokemon",
+          "name": "Pikachu",
+          "card_number": "058/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "Unlimited",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-pikachu-red-cheeks-common::1st-edition::english",
+          "provider_card_id": "pokemon-base-set-shadowless-pikachu-red-cheeks-common",
+          "game": "pokemon",
+          "name": "Pikachu (Red Cheeks)",
+          "card_number": "058/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "1st Edition",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-pikachu-red-cheeks-common::unlimited::english",
+          "provider_card_id": "pokemon-base-set-shadowless-pikachu-red-cheeks-common",
+          "game": "pokemon",
+          "name": "Pikachu (Red Cheeks)",
+          "card_number": "058/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "Unlimited",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-jumbo-cards-pikachu-58-102-promo::normal::english",
+          "provider_card_id": "pokemon-jumbo-cards-pikachu-58-102-promo",
+          "game": "pokemon",
+          "name": "Pikachu - 58/102",
+          "card_number": "058/102",
+          "set_name": "Jumbo Cards",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-miscellaneous-cards-products-pikachu-58-102-celebrations-metal-card-promo::holofoil::english",
+          "provider_card_id": "pokemon-miscellaneous-cards-products-pikachu-58-102-celebrations-metal-card-promo",
+          "game": "pokemon",
+          "name": "Pikachu - 58/102 (Celebrations Metal Card)",
+          "card_number": "058/102",
+          "set_name": "Miscellaneous Cards & Products",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-miscellaneous-cards-products-pikachu-58-102-e3-stamped-promo::normal::english",
+          "provider_card_id": "pokemon-miscellaneous-cards-products-pikachu-58-102-e3-stamped-promo",
+          "game": "pokemon",
+          "name": "Pikachu - 58/102 (E3 Stamped)",
+          "card_number": "058/102",
+          "set_name": "Miscellaneous Cards & Products",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-miscellaneous-cards-products-pikachu-58-102-e3-stamped-with-red-cheeks-promo::normal::english",
+          "provider_card_id": "pokemon-miscellaneous-cards-products-pikachu-58-102-e3-stamped-with-red-cheeks-promo",
+          "game": "pokemon",
+          "name": "Pikachu - 58/102 (E3 Stamped with Red Cheeks)",
+          "card_number": "058/102",
+          "set_name": "Miscellaneous Cards & Products",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-miscellaneous-cards-products-pikachu-58-102-poketour-1999-promo::normal::english",
+          "provider_card_id": "pokemon-miscellaneous-cards-products-pikachu-58-102-poketour-1999-promo",
+          "game": "pokemon",
+          "name": "Pikachu - 58/102 (PokeTour 1999)",
+          "card_number": "058/102",
+          "set_name": "Miscellaneous Cards & Products",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "pokemon",
+      "number": "9/111",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "pokemon-rising-rivals-luxray-gl-holo-rare::reverse-holofoil::english",
+          "provider_card_id": "pokemon-rising-rivals-luxray-gl-holo-rare",
+          "game": "pokemon",
+          "name": "Luxray GL",
+          "card_number": "9/111",
+          "set_name": "Rising Rivals",
+          "printing": "Reverse Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-rising-rivals-luxray-gl-holo-rare::holofoil::english",
+          "provider_card_id": "pokemon-rising-rivals-luxray-gl-holo-rare",
+          "game": "pokemon",
+          "name": "Luxray GL",
+          "card_number": "9/111",
+          "set_name": "Rising Rivals",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-sm-crimson-invasion-accelgor-uncommon::reverse-holofoil::english",
+          "provider_card_id": "pokemon-sm-crimson-invasion-accelgor-uncommon",
+          "game": "pokemon",
+          "name": "Accelgor",
+          "card_number": "9/111",
+          "set_name": "SM - Crimson Invasion",
+          "printing": "Reverse Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-sm-crimson-invasion-accelgor-uncommon::normal::english",
+          "provider_card_id": "pokemon-sm-crimson-invasion-accelgor-uncommon",
+          "game": "pokemon",
+          "name": "Accelgor",
+          "card_number": "9/111",
+          "set_name": "SM - Crimson Invasion",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-world-championship-decks-luxray-gl-2009-stephen-silvestro-rare::normal::english",
+          "provider_card_id": "pokemon-world-championship-decks-luxray-gl-2009-stephen-silvestro-rare",
+          "game": "pokemon",
+          "name": "Luxray GL - 2009 (Stephen Silvestro)",
+          "card_number": "9/111",
+          "set_name": "World Championship Decks",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-world-championship-decks-luxray-gl-2009-tsubasa-nakamura-rare::normal::english",
+          "provider_card_id": "pokemon-world-championship-decks-luxray-gl-2009-tsubasa-nakamura-rare",
+          "game": "pokemon",
+          "name": "Luxray GL - 2009 (Tsubasa Nakamura)",
+          "card_number": "9/111",
+          "set_name": "World Championship Decks",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-world-championship-decks-luxray-gl-2010-mychael-bryan-rare::normal::english",
+          "provider_card_id": "pokemon-world-championship-decks-luxray-gl-2010-mychael-bryan-rare",
+          "game": "pokemon",
+          "name": "Luxray GL - 2010 (Mychael Bryan)",
+          "card_number": "9/111",
+          "set_name": "World Championship Decks",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-world-championship-decks-luxray-gl-2010-yuta-komatsuda-rare::normal::english",
+          "provider_card_id": "pokemon-world-championship-decks-luxray-gl-2010-yuta-komatsuda-rare",
+          "game": "pokemon",
+          "name": "Luxray GL - 2010 (Yuta Komatsuda)",
+          "card_number": "9/111",
+          "set_name": "World Championship Decks",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-xy-furious-fists-accelgor-uncommon::reverse-holofoil::english",
+          "provider_card_id": "pokemon-xy-furious-fists-accelgor-uncommon",
+          "game": "pokemon",
+          "name": "Accelgor",
+          "card_number": "9/111",
+          "set_name": "XY - Furious Fists",
+          "printing": "Reverse Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-xy-furious-fists-accelgor-uncommon::normal::english",
+          "provider_card_id": "pokemon-xy-furious-fists-accelgor-uncommon",
+          "game": "pokemon",
+          "name": "Accelgor",
+          "card_number": "9/111",
+          "set_name": "XY - Furious Fists",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "pokemon",
+      "number": "004/102",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "pokemon-base-set-charizard-holo-rare::holofoil::english",
+          "provider_card_id": "pokemon-base-set-charizard-holo-rare",
+          "game": "pokemon",
+          "name": "Charizard",
+          "card_number": "004/102",
+          "set_name": "Base Set",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-charizard-holo-rare::unlimited-holofoil::english",
+          "provider_card_id": "pokemon-base-set-shadowless-charizard-holo-rare",
+          "game": "pokemon",
+          "name": "Charizard",
+          "card_number": "004/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "Unlimited Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-shadowless-charizard-holo-rare::1st-edition-holofoil::english",
+          "provider_card_id": "pokemon-base-set-shadowless-charizard-holo-rare",
+          "game": "pokemon",
+          "name": "Charizard",
+          "card_number": "004/102",
+          "set_name": "Base Set (Shadowless)",
+          "printing": "1st Edition Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-base-set-charizard-black-dot-error-holo-rare::holofoil::english",
+          "provider_card_id": "pokemon-base-set-charizard-black-dot-error-holo-rare",
+          "game": "pokemon",
+          "name": "Charizard (Black Dot Error)",
+          "card_number": "004/102",
+          "set_name": "Base Set",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-jumbo-cards-charizard-4-102-corocoro-promo-promo::holofoil::english",
+          "provider_card_id": "pokemon-jumbo-cards-charizard-4-102-corocoro-promo-promo",
+          "game": "pokemon",
+          "name": "Charizard - 4/102 (CoroCoro Promo)",
+          "card_number": "004/102",
+          "set_name": "Jumbo Cards",
+          "printing": "Holofoil",
+          "language": "English"
+        },
+        {
+          "id": "pokemon-miscellaneous-cards-products-charizard-celebrations-metal-card-promo::holofoil::english",
+          "provider_card_id": "pokemon-miscellaneous-cards-products-charizard-celebrations-metal-card-promo",
+          "game": "pokemon",
+          "name": "Charizard (Celebrations Metal Card)",
+          "card_number": "004/102",
+          "set_name": "Miscellaneous Cards & Products",
+          "printing": "Holofoil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "pokemon-japan",
+      "number": "056/053",
+      "kind": "one provider card, several printings",
+      "entries": [
+        {
+          "id": "pokemon-japan-bw1-black-collection-pikachu-ultra-rare::1st-edition-holofoil-japanese::japanese",
+          "provider_card_id": "pokemon-japan-bw1-black-collection-pikachu-ultra-rare",
+          "game": "pokemon-japan",
+          "name": "Pikachu",
+          "card_number": "056/053",
+          "set_name": "BW1: Black Collection",
+          "printing": "1st Edition Holofoil - Japanese",
+          "language": "Japanese"
+        },
+        {
+          "id": "pokemon-japan-bw1-black-collection-pikachu-ultra-rare::unlimited-holofoil-japanese::japanese",
+          "provider_card_id": "pokemon-japan-bw1-black-collection-pikachu-ultra-rare",
+          "game": "pokemon-japan",
+          "name": "Pikachu",
+          "card_number": "056/053",
+          "set_name": "BW1: Black Collection",
+          "printing": "Unlimited Holofoil - Japanese",
+          "language": "Japanese"
+        }
+      ]
+    },
+    {
+      "game": "riftbound-league-of-legends-trading-card-game",
+      "number": "251/298",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "riftbound-league-of-legends-trading-card-game-origins-jinx-loose-cannon-rare::foil::english",
+          "provider_card_id": "riftbound-league-of-legends-trading-card-game-origins-jinx-loose-cannon-rare",
+          "game": "riftbound-league-of-legends-trading-card-game",
+          "name": "Jinx, Loose Cannon",
+          "card_number": "251/298",
+          "set_name": "Origins",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-promo::foil::english",
+          "provider_card_id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-promo",
+          "game": "riftbound-league-of-legends-trading-card-game",
+          "name": "Jinx, Loose Cannon",
+          "card_number": "251/298",
+          "set_name": "Riftbound Organized Play Promotional Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-metal-promo::foil::english",
+          "provider_card_id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-metal-promo",
+          "game": "riftbound-league-of-legends-trading-card-game",
+          "name": "Jinx, Loose Cannon (Metal) (Best Of)",
+          "card_number": "251/298",
+          "set_name": "Riftbound Organized Play Promotional Cards",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-metal-prize-wall-promo::normal::english",
+          "provider_card_id": "riftbound-league-of-legends-trading-card-game-riftbound-organized-play-promotional-cards-jinx-loose-cannon-metal-prize-wall-promo",
+          "game": "riftbound-league-of-legends-trading-card-game",
+          "name": "Jinx, Loose Cannon (Metal) (Prize Wall)",
+          "card_number": "251/298",
+          "set_name": "Riftbound Organized Play Promotional Cards",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "star-wars-unlimited",
+      "number": "002/002",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "star-wars-unlimited-judge-promos-luke-skywalker-faithful-friend-special::foil::english",
+          "provider_card_id": "star-wars-unlimited-judge-promos-luke-skywalker-faithful-friend-special",
+          "game": "star-wars-unlimited",
+          "name": "Luke Skywalker - Faithful Friend",
+          "card_number": "002/002",
+          "set_name": "Judge Promos",
+          "printing": "Foil",
+          "language": "English"
+        },
+        {
+          "id": "star-wars-unlimited-prerelease-promos-luke-skywalker-faithful-friend-special::normal::english",
+          "provider_card_id": "star-wars-unlimited-prerelease-promos-luke-skywalker-faithful-friend-special",
+          "game": "star-wars-unlimited",
+          "name": "Luke Skywalker - Faithful Friend",
+          "card_number": "002/002",
+          "set_name": "Prerelease Promos",
+          "printing": "Normal",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "universus",
+      "number": "102/180",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "universus-universus-my-hero-academia-girl-power-ryukyu-ch-r::normal::english",
+          "provider_card_id": "universus-universus-my-hero-academia-girl-power-ryukyu-ch-r",
+          "game": "universus",
+          "name": "Ryukyu",
+          "card_number": "102/180",
+          "set_name": "UniVersus: My Hero Academia: Girl Power",
+          "printing": "Normal",
+          "language": "English"
+        },
+        {
+          "id": "universus-universus-my-hero-academia-girl-power-ryukyu-alternate-art-ch-alt::foil::english",
+          "provider_card_id": "universus-universus-my-hero-academia-girl-power-ryukyu-alternate-art-ch-alt",
+          "game": "universus",
+          "name": "Ryukyu (Alternate Art)",
+          "card_number": "102/180",
+          "set_name": "UniVersus: My Hero Academia: Girl Power",
+          "printing": "Foil",
+          "language": "English"
+        }
+      ]
+    },
+    {
+      "game": "yugioh",
+      "number": "LDK2-ENY10",
+      "kind": "same number, several provider cards",
+      "entries": [
+        {
+          "id": "yugioh-legendary-decks-ii-2020-reprint-dark-magician-common-short-print::unlimited::english",
+          "provider_card_id": "yugioh-legendary-decks-ii-2020-reprint-dark-magician-common-short-print",
+          "game": "yugioh",
+          "name": "Dark Magician",
+          "card_number": "LDK2-ENY10",
+          "set_name": "Legendary Decks II (2020 Reprint)",
+          "printing": "Unlimited",
+          "language": "English"
+        },
+        {
+          "id": "yugioh-legendary-decks-ii-dark-magician-common-short-print::unlimited::english",
+          "provider_card_id": "yugioh-legendary-decks-ii-dark-magician-common-short-print",
+          "game": "yugioh",
+          "name": "Dark Magician",
+          "card_number": "LDK2-ENY10",
+          "set_name": "Legendary Decks II",
+          "printing": "Unlimited",
+          "language": "English"
+        },
+        {
+          "id": "yugioh-legendary-decks-ii-dark-magician-common-short-print::1st-edition::english",
+          "provider_card_id": "yugioh-legendary-decks-ii-dark-magician-common-short-print",
+          "game": "yugioh",
+          "name": "Dark Magician",
+          "card_number": "LDK2-ENY10",
+          "set_name": "Legendary Decks II",
+          "printing": "1st Edition",
+          "language": "English"
+        }
+      ]
+    }
+  ]
+}

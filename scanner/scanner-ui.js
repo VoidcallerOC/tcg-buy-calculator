@@ -8,6 +8,7 @@ import { createScanSession, SCAN_STATE, SCAN_ERROR } from "./scan-session.js";
 import { MATCH_STATUS } from "./catalog-matcher.js";
 import { gameLabel } from "./game-patterns.js";
 import { bestSearchQuery, correctClues } from "./card-identifier.js";
+import { formatMoney } from "../lib/money.js";
 
 const ERRORS = {
   [SCAN_ERROR.DENIED]: [
@@ -457,10 +458,16 @@ function createUi() {
         } else if (match.status === MATCH_STATUS.NEEDS_CONFIRMATION) {
           hint.textContent = "Confirm your card";
           const list = el("div", "scan-candidates");
-          // Only a candidate whose evidence beats the rest is highlighted;
-          // tied candidates are listed as equals.
-          match.candidates.forEach((item, index) =>
-            list.append(candidate(item, index === 0 && match.leader === true)),
+          // Only a card whose evidence beats the rest is highlighted, and all
+          // of its printings equally: the scan says which card, never which
+          // printing (1st Edition and Unlimited can differ several-fold).
+          const cardOf = (item) => item.card.provider_card_id ?? item.card.id;
+          const lead =
+            match.leader === true ? cardOf(match.candidates[0]) : null;
+          match.candidates.forEach((item) =>
+            list.append(
+              candidate(item, lead !== null && cardOf(item) === lead),
+            ),
           );
           const readNumbers = (clues?.identifiers ?? [])
             .filter((item) => item.query)
@@ -470,6 +477,21 @@ function createUi() {
               (item) => item.card.provider_card_id ?? item.card.id,
             ),
           ).size;
+          // Printings that share the number read (alternate art, manga, SP,
+          // reprints…) print the same name and number, so the text read
+          // cannot choose between them, yet their values can differ several
+          // hundredfold. Say so, with the range, instead of implying a pick.
+          const numbered = match.candidates.filter((item) => item.numberMatch);
+          const printingChoice =
+            !match.leader && new Set(numbered.map(cardOf)).size > 1;
+          const nm = numbered
+            .map((item) => item.card.pricing?.NM?.reference_cents)
+            .filter(Number.isSafeInteger);
+          const unpriced = numbered.length - nm.length;
+          const valueRange =
+            nm.length > 1 && Math.max(...nm) > Math.min(...nm)
+              ? `their Near Mint market references range from ${formatMoney(Math.min(...nm))} to ${formatMoney(Math.max(...nm))}`
+              : "they can differ in value";
           fill(
             el("span", "eyebrow", "Needs confirmation"),
             el(
@@ -477,10 +499,19 @@ function createUi() {
               "scanner-title",
               match.needsNumber
                 ? "Several cards match the name. Which one is yours?"
-                : match.candidates.length > 1
-                  ? "Which card is in your hand?"
-                  : "Is this your card?",
+                : printingChoice
+                  ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
+                  : match.candidates.length > 1
+                    ? "Which card is in your hand?"
+                    : "Is this your card?",
             ),
+            printingChoice
+              ? el(
+                  "p",
+                  "scanner-note scanner-printing-choice",
+                  `They print the same name and number but differ in artwork, and ${valueRange}${unpriced ? ` (${unpriced} with no online price)` : ""}. Compare the artwork, set and label (e.g. Alternate Art, Manga, SP) with your card. The shop checks the printing in person.`,
+                )
+              : null,
             match.needsNumber
               ? el(
                   "p",
@@ -495,7 +526,9 @@ function createUi() {
               ? el(
                   "p",
                   "scanner-note",
-                  `Showing ${cardCount} matching cards; ${match.moreCards} more match. Add the card number to narrow it down.`,
+                  numbered.length
+                    ? `${match.moreCards} more cards with a different number are not shown.`
+                    : `Showing ${cardCount} matching cards; ${match.moreCards} more match. Add the card number to narrow it down.`,
                 )
               : null,
             matchNote,
