@@ -44,7 +44,42 @@ export function targetSize(width, height, targetWidth) {
   };
 }
 
-function renderRegion(source, region, targetWidth, doc) {
+function binarize(data) {
+  const histogram = new Uint32Array(256);
+  for (let i = 0; i < data.length; i += 4) histogram[data[i]] += 1;
+
+  // Otsu's threshold adapts to dark sleeves and bright foil instead of using
+  // one fixed cutoff for every phone, lighting condition, and card finish.
+  const total = data.length / 4;
+  let sum = 0;
+  for (let value = 0; value < 256; value += 1) sum += value * histogram[value];
+  let background = 0;
+  let weightBackground = 0;
+  let bestVariance = -1;
+  let threshold = 128;
+  for (let value = 0; value < 256; value += 1) {
+    weightBackground += histogram[value];
+    if (!weightBackground) continue;
+    const weightForeground = total - weightBackground;
+    if (!weightForeground) break;
+    background += value * histogram[value];
+    const meanBackground = background / weightBackground;
+    const meanForeground = (sum - background) / weightForeground;
+    const variance =
+      weightBackground * weightForeground * (meanBackground - meanForeground) ** 2;
+    if (variance > bestVariance) {
+      bestVariance = variance;
+      threshold = value;
+    }
+  }
+  for (let i = 0; i < data.length; i += 4) {
+    const value = data[i] >= threshold ? 255 : 0;
+    data[i] = data[i + 1] = data[i + 2] = value;
+  }
+  return data;
+}
+
+function renderRegion(source, region, targetWidth, doc, mode = "contrast") {
   const sx = Math.round(source.width * region.x),
     sy = Math.round(source.height * region.y);
   const sw = Math.round(source.width * region.width),
@@ -58,40 +93,31 @@ function renderRegion(source, region, targetWidth, doc) {
   context.drawImage(source, sx, sy, sw, sh, 0, 0, size.width, size.height);
   const pixels = context.getImageData(0, 0, size.width, size.height);
   enhanceContrast(pixels.data);
+  if (mode === "binary") binarize(pixels.data);
   context.putImageData(pixels, 0, 0);
   return canvas;
 }
 
 export function preprocessCard(canvas, doc = globalThis.document) {
+  const full = { x: 0, y: 0, width: 1, height: 1 };
+  const leftBottom = { x: 0, y: 0.84, width: 0.55, height: 0.16 };
+  const rightBottom = { x: 0.45, y: 0.84, width: 0.55, height: 0.16 };
   return [
-    {
-      region: "full",
-      image: renderRegion(
-        canvas,
-        { x: 0, y: 0, width: 1, height: 1 },
-        1200,
-        doc,
-      ),
-    },
+    // Keep both a natural grayscale pass and an adaptive black/white pass:
+    // foil, shadows, and textured artwork tend to win on different passes.
+    { region: "full", image: renderRegion(canvas, full, 1200, doc) },
+    { region: "full", image: renderRegion(canvas, full, 1200, doc, "binary") },
     // Collector numbers are small and sit bottom-left (Pokémon, Magic) or
     // bottom-right (One Piece): read each half of the bottom strip enlarged.
+    { region: "bottom", image: renderRegion(canvas, leftBottom, 1600, doc) },
     {
       region: "bottom",
-      image: renderRegion(
-        canvas,
-        { x: 0, y: 0.84, width: 0.55, height: 0.16 },
-        1600,
-        doc,
-      ),
+      image: renderRegion(canvas, leftBottom, 1600, doc, "binary"),
     },
+    { region: "bottom", image: renderRegion(canvas, rightBottom, 1600, doc) },
     {
       region: "bottom",
-      image: renderRegion(
-        canvas,
-        { x: 0.45, y: 0.84, width: 0.55, height: 0.16 },
-        1600,
-        doc,
-      ),
+      image: renderRegion(canvas, rightBottom, 1600, doc, "binary"),
     },
   ];
 }
