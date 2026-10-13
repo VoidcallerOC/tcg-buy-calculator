@@ -125,11 +125,12 @@ export class CameraCapture {
       this.pending ??= this.env.navigator.mediaDevices
         .getUserMedia({
           audio: false,
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
+            video: {
+              facingMode: { ideal: "environment" },
+              aspectRatio: { ideal: 63 / 88 },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
         })
         .finally(() => {
           this.pending = null;

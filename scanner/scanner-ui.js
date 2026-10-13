@@ -411,10 +411,15 @@ function createUi() {
           el(
             "p",
             "scanner-note",
-            "Fill the frame, avoid glare, and keep the card flat.",
+            "Fill the frame, avoid glare, and keep the card flat. Wait for the card text to look sharp, then capture.",
+          ),
+          el(
+            "p",
+            "scanner-tips",
+            "Best results: bright indirect light, no sleeves or top loaders, and the full card inside the corners.",
           ),
           actions(
-            button("Capture", "button scanner-capture", () =>
+            button("Capture card", "button scanner-capture", () =>
               state.session.capture(),
             ),
             manualButton(),

@@ -938,7 +938,7 @@ body.scanner-open {
 .scanner-stage {
   position: relative;
   flex: 1 1 auto;
-  min-height: 220px;
+  min-height: min(52vh, 520px);
   overflow: hidden;
   background: #050508;
   container-type: size;
@@ -1055,6 +1055,12 @@ body.scanner-open {
   margin: 0 0 0.75rem;
   color: var(--text-muted);
   font-size: 0.925rem;
+}
+.scanner-tips {
+  margin: -0.25rem 0 0.85rem;
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 .scanner-read {
   margin: 0.65rem 0;
