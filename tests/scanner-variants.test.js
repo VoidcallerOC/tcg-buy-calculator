@@ -14,6 +14,8 @@ import {
   MATCH_STATUS,
   planQueries,
   printedName,
+  scoreCandidate,
+  variantLabels,
 } from "../scanner/catalog-matcher.js";
 
 const { groups } = JSON.parse(
@@ -88,6 +90,197 @@ test("variant labels are not part of the printed name", () => {
   );
   assert.equal(printedName("Ho-Oh"), "Ho-Oh");
   assert.equal(printedName("Mr. Mime"), "Mr. Mime");
+});
+
+test("variantLabels keeps printing tags and drops collector-number tags", () => {
+  assert.deepEqual(variantLabels("Monkey.D.Luffy (119) (Alternate Art)"), [
+    "Alternate Art",
+  ]);
+  assert.deepEqual(variantLabels("Nami - OP01-016 (Alternate Art)"), [
+    "Alternate Art",
+  ]);
+  assert.deepEqual(variantLabels("Monkey.D.Luffy (Wanted Poster)"), [
+    "Wanted Poster",
+  ]);
+  assert.deepEqual(variantLabels("Pikachu (Red Cheeks)"), ["Red Cheeks"]);
+  assert.deepEqual(
+    variantLabels("Shanks (Championship 2023) [Serial Number]"),
+    ["Championship 2023", "Serial Number"],
+  );
+  assert.deepEqual(variantLabels("Nami (OP01-016) (Manga)"), ["Manga"]);
+  assert.deepEqual(variantLabels("Jace, the Mind Sculptor"), []);
+});
+
+// ---------- Alt-print disambiguation when OCR reads a catalog label ----------
+
+test("OCR of a catalog printing label ranks that alt print above the base", async () => {
+  const group = groups.find((g) => g.number === "OP05-119");
+  const wanted = group.entries.find((e) => e.name.includes("Wanted Poster"));
+  const base = group.entries.find(
+    (e) =>
+      printedName(e.name) === "Monkey.D.Luffy" && !variantLabels(e.name).length,
+  );
+  assert.ok(wanted && base);
+  // Name + number only: every printing still ties (no silent base preference).
+  const plain = correctClues(
+    null,
+    { name: "Monkey.D.Luffy", number: "OP05-119" },
+    group.game,
+  );
+  assert.equal(
+    scoreCandidate(wanted, plain).rank,
+    scoreCandidate(base, plain).rank,
+  );
+  // Distinctive subtitle read from the card (or typed): the Wanted Poster leads.
+  const labeled = {
+    ...plain,
+    names: ["Monkey.D.Luffy", "Wanted Poster"],
+    text: "Monkey.D.Luffy\nWanted Poster\nOP05-119",
+  };
+  const match = await matchCatalog(labeled, {
+    selectedGame: group.game,
+    search: async () => group.entries,
+  });
+  assert.equal(match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(match.candidates[0].card.id, wanted.id);
+  assert.ok(match.candidates[0].labelHit >= 0.8);
+});
+
+test("OCR phrase 'Alternate Art' prefers alt printings over the plain base", async () => {
+  const group = groups.find((g) => g.number === "OP01-016");
+  const clues = {
+    ...correctClues(null, { name: "Nami", number: "OP01-016" }, group.game),
+    text: "Nami\nAlternate Art\nOP01-016",
+  };
+  const match = await matchCatalog(clues, {
+    selectedGame: group.game,
+    search: async () => group.entries,
+  });
+  assert.notEqual(match.status, MATCH_STATUS.NOT_IDENTIFIED);
+  const top = match.candidates[0];
+  assert.ok(
+    variantLabels(top.card.name).some((label) => /alternate art/i.test(label)),
+    `expected an Alternate Art listing first, got ${top.card.name}`,
+  );
+  const base = match.candidates.find(
+    (item) =>
+      printedName(item.card.name) === "Nami" &&
+      variantLabels(item.card.name).length === 0,
+  );
+  if (base)
+    assert.ok(
+      (top.rank ?? top.score) > (base.rank ?? base.score),
+      "plain Nami must not outrank Alternate Art when that label was read",
+    );
+});
+
+test("Pokémon Red Cheeks alt is distinguished from base Pikachu when the label is read", async () => {
+  const group = groups.find((g) => g.number === "058/102");
+  const clues = {
+    ...correctClues(null, { name: "Pikachu", number: "58/102" }, group.game),
+    names: ["Pikachu", "Red Cheeks"],
+    text: "Pikachu\nRed Cheeks\n58/102",
+  };
+  const match = await matchCatalog(clues, {
+    selectedGame: group.game,
+    search: async () => group.entries,
+  });
+  assert.ok(match.candidates.length);
+  assert.ok(
+    /red cheeks/i.test(match.candidates[0].card.name),
+    `expected Red Cheeks lead, got ${match.candidates[0].card.name}`,
+  );
+  // Same-number finishes of Red Cheeks may still share the lead; plain Pikachu must not.
+  for (const item of match.candidates) {
+    if (
+      (item.rank ?? item.score) >=
+      (match.candidates[0].rank ?? match.candidates[0].score)
+    )
+      assert.ok(
+        /red cheeks/i.test(item.card.name),
+        `tied lead must be Red Cheeks, got ${item.card.name}`,
+      );
+  }
+});
+
+test("name-only base vs SIR with different numbers stays a confirmation choice", async () => {
+  const cards = [
+    {
+      id: "base",
+      provider_card_id: "charizard-ex-006",
+      name: "Charizard ex",
+      card_number: "006/165",
+      set_name: "SV: Scarlet & Violet 151",
+      printing: "Holofoil",
+    },
+    {
+      id: "sir",
+      provider_card_id: "charizard-ex-199",
+      name: "Charizard ex",
+      card_number: "199/165",
+      set_name: "SV: Scarlet & Violet 151",
+      printing: "Holofoil",
+      rarity: "Special Illustration Rare",
+    },
+  ];
+  const match = await matchCatalog(
+    correctClues(null, { name: "Charizard ex" }, "pokemon"),
+    { selectedGame: "pokemon", search: async () => cards },
+  );
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(match.leader, false);
+  assert.deepEqual(
+    match.candidates.map((item) => item.card.card_number).sort(),
+    ["006/165", "199/165"],
+  );
+});
+
+test("collector number for the SIR picks that printing, not the base number", async () => {
+  const cards = [
+    {
+      id: "base",
+      provider_card_id: "charizard-ex-006",
+      name: "Charizard ex",
+      card_number: "006/165",
+      set_name: "SV: Scarlet & Violet 151",
+      printing: "Holofoil",
+    },
+    {
+      id: "sir",
+      provider_card_id: "charizard-ex-199",
+      name: "Charizard ex",
+      card_number: "199/165",
+      set_name: "SV: Scarlet & Violet 151",
+      printing: "Holofoil",
+      rarity: "Special Illustration Rare",
+    },
+  ];
+  const match = await matchCatalog(
+    correctClues(null, { name: "Charizard ex", number: "199/165" }, "pokemon"),
+    { selectedGame: "pokemon", search: async () => cards },
+  );
+  assert.equal(match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(match.candidates[0].card.id, "sir");
+});
+
+test("set name from AI clues prefers the printing in that set among same-number alts", async () => {
+  const group = groups.find((g) => g.number === "OP05-119");
+  const clues = correctClues(
+    null,
+    {
+      name: "Monkey.D.Luffy",
+      number: "OP05-119",
+      setName: "Emperors in the New World",
+    },
+    group.game,
+  );
+  const match = await matchCatalog(clues, {
+    selectedGame: group.game,
+    search: async () => group.entries,
+  });
+  assert.ok(match.candidates.length);
+  assert.equal(match.candidates[0].card.set_name, "Emperors in the New World");
+  assert.ok(match.candidates[0].setNameMatch);
 });
 
 test("a number with a provider rarity suffix (Digimon 'BT16-082 R') matches the printed code", async () => {

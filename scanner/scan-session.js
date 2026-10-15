@@ -213,7 +213,11 @@ export function createScanSession({
       const clues = {
         ...correctClues(
           previous.clues,
-          { name: card?.name, number: card?.number },
+          {
+            name: card?.name,
+            number: card?.number,
+            setName: card?.set_name,
+          },
           card?.game || selectedGame(),
         ),
         corrected: false,

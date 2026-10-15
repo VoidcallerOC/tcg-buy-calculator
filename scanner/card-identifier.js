@@ -70,6 +70,7 @@ export function extractClues(passes) {
     identifiers,
     names: nameCandidates(passes),
     setCodes: [...setCodes],
+    setNames: [],
     language,
     ocrConfidence: confidences.length
       ? Math.round(confidences.reduce((a, b) => a + b, 0) / confidences.length)
@@ -199,7 +200,11 @@ export function hasUsableClues(clues) {
 // A typed number is run through the same per-game patterns (so "OP0S-1l9"
 // still becomes OP05-119 and its game is recognised); a number no pattern
 // knows is searched as typed in the selected game. Nothing else is inferred.
-export function correctClues(clues, { name, number } = {}, fallbackGame) {
+export function correctClues(
+  clues,
+  { name, number, setName } = {},
+  fallbackGame,
+) {
   const typedName = String(name ?? "")
     .replace(/\s+/g, " ")
     .trim()
@@ -208,6 +213,10 @@ export function correctClues(clues, { name, number } = {}, fallbackGame) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 40);
+  const typedSet = String(setName ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
   let identifiers = [];
   if (typedNumber) {
     identifiers = extractClues([{ text: typedNumber }]).identifiers;
@@ -227,6 +236,7 @@ export function correctClues(clues, { name, number } = {}, fallbackGame) {
     identifiers: identifiers.filter((item) => item.query),
     names: typedName ? [typedName] : [],
     setCodes: clues?.setCodes ?? [],
+    setNames: typedSet ? [typedSet] : (clues?.setNames ?? []),
     language: clues?.language ?? null,
     ocrConfidence: clues?.ocrConfidence ?? 0,
     text: clues?.text ?? "",

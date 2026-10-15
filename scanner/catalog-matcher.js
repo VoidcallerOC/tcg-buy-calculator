@@ -47,6 +47,22 @@ export function printedName(name) {
     .trim();
 }
 
+// Catalog-only printing labels: parenthetical / bracket tags that are not a
+// collector number. Used only when OCR (or a typed correction) actually read
+// matching text — never to prefer the plain printing by default.
+export function variantLabels(name) {
+  const labels = [];
+  for (const match of String(name ?? "").matchAll(/[(\[]([^)\]]+)[)\]]/g)) {
+    const label = match[1].replace(/\s+/g, " ").trim();
+    if (!label) continue;
+    // "(119)", "(012)", "(OP05-119)", "(OP01-016)" are numbers, not printings.
+    if (/^[A-Z]{0,6}\d{0,3}-?\d{1,4}[A-Z]?$/i.test(label)) continue;
+    if (/^[\d./-]+$/.test(label)) continue;
+    labels.push(label);
+  }
+  return labels;
+}
+
 function tokens(value) {
   return String(value ?? "")
     .toLowerCase()
@@ -87,23 +103,66 @@ export function nameSimilarity(a, b) {
   return (2 * shared) / (left.length + right.length);
 }
 
+// How clearly OCR / typed clues support a catalog printing label. Short labels
+// ("SP") only count as their own name line; longer phrases may appear in the
+// raw OCR text. Without a hit, every printing of the same printed name ties.
+export function labelEvidence(label, clues) {
+  const names = clues?.names ?? [];
+  const fromNames = Math.max(
+    0,
+    ...names.map((name) => nameSimilarity(name, label)),
+  );
+  if (fromNames >= 0.8) return fromNames;
+  const needle = tokens(label).join(" ");
+  if (needle.length < 5) return 0;
+  const haystack = tokens(clues?.text).join(" ");
+  if (haystack && haystack.includes(needle)) return 1;
+  return 0;
+}
+
 export function scoreCandidate(card, clues) {
   const number = printedNumber(card.card_number);
-  const numberMatch = clues.identifiers.some(
+  const numberMatch = (clues.identifiers ?? []).some(
     (item) => normalizeNumber(item.query) === number,
   );
   const nameScore = Math.max(
     0,
-    ...clues.names.map((name) => nameSimilarity(name, printedName(card.name))),
+    ...(clues.names ?? []).map((name) =>
+      nameSimilarity(name, printedName(card.name)),
+    ),
   );
-  const setMatch = clues.setCodes.some(
+  const setMatch = (clues.setCodes ?? []).some(
     (code) => code.toUpperCase() === String(card.set_code ?? "").toUpperCase(),
   );
-  let score = (numberMatch ? 0.6 : 0) + nameScore * 0.4 + (setMatch ? 0.1 : 0);
-  if (!clues.identifiers.length) score = nameScore * 0.8; // name-only reads cap below IDENTIFIED
+  const setNameScore = Math.max(
+    0,
+    ...(clues.setNames ?? []).map((set) =>
+      nameSimilarity(set, card.set_name ?? ""),
+    ),
+  );
+  const setNameMatch = setNameScore >= 0.6;
+  const labelHit = Math.max(
+    0,
+    ...variantLabels(card.name).map((label) => labelEvidence(label, clues)),
+    // Finish / edition printed as the provider `printing` field (1st Edition,
+    // Unlimited, Reverse Holofoil…) when OCR read that phrase.
+    card.printing ? labelEvidence(card.printing, clues) : 0,
+  );
+  // Base evidence is unchanged so equal printings still tie when nothing about
+  // the printing was read. Label / set-name hits raise an uncapped `rank` so
+  // an alt print can lead (and clear IDENTIFIED) without the plain name ever
+  // winning just by having fewer catalog words.
+  let base =
+    (numberMatch ? 0.6 : 0) +
+    nameScore * 0.4 +
+    (setMatch ? 0.1 : 0) +
+    (setNameMatch ? 0.1 : 0);
+  if (!(clues.identifiers ?? []).length)
+    base = nameScore * 0.8 + (setNameMatch ? 0.1 : 0); // name-only caps below IDENTIFIED without labels
+  const rank = base + labelHit * 0.3;
   // A number was read and this card's number differs: show the conflict
   // instead of letting a name match quietly stand in for the card.
-  const readNumbers = clues.identifiers
+  const readNumbers = (clues.identifiers ?? [])
     .filter((item) => item.query)
     .map((item) => item.raw ?? item.query);
   const numberConflict =
@@ -115,18 +174,25 @@ export function scoreCandidate(card, clues) {
   // "Pla") are not name evidence and raise no conflict.
   // Needs at least one name-like read, and no text read may fit the card
   // ("Mew" fits Mew ex even though only "Abilit" looks like a printed name).
+  // A printing-label hit is name evidence too: OCR of "Wanted Poster" fits
+  // Monkey.D.Luffy (Wanted Poster) even though the printed character name was
+  // not read.
   const nameConflict =
     numberMatch &&
     nameScore === 0 &&
-    clues.names.some((name) => /[A-Z][a-z]{3,}/.test(name));
+    labelHit === 0 &&
+    (clues.names ?? []).some((name) => /[A-Z][a-z]{3,}/.test(name));
   return {
-    score: Math.min(1, Number(score.toFixed(3))),
+    score: Math.min(1, Number(rank.toFixed(3))),
+    rank: Number(rank.toFixed(3)),
     numberMatch,
     numberConflict,
     nameConflict,
     readNumbers: numberConflict ? readNumbers : [],
     nameScore: Number(nameScore.toFixed(3)),
+    labelHit: Number(labelHit.toFixed(3)),
     setMatch,
+    setNameMatch,
   };
 }
 
@@ -200,7 +266,9 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     .filter((item) => item.score >= CANDIDATE_SCORE)
     .sort(
       (a, b) =>
-        Number(a.nameConflict) - Number(b.nameConflict) || b.score - a.score,
+        Number(a.nameConflict) - Number(b.nameConflict) ||
+        (b.rank ?? b.score) - (a.rank ?? a.score) ||
+        b.score - a.score,
     );
   if (!ranked.length)
     return {
@@ -209,9 +277,13 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       searched: byId.size,
     };
   const [best, next] = ranked;
+  // Prefer uncapped `rank` so a variant-label hit can clear the margin when
+  // the capped `score` would otherwise tie every same-number printing at 1.
+  const bestRank = best.rank ?? best.score;
+  const nextRank = next ? (next.rank ?? next.score) : null;
   const clear =
     best.score >= IDENTIFIED_SCORE &&
-    (!next || best.score - next.score >= IDENTIFIED_MARGIN);
+    (nextRank === null || bestRank - nextRank >= IDENTIFIED_MARGIN);
   if (clear)
     return {
       status: MATCH_STATUS.IDENTIFIED,
@@ -236,7 +308,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       .slice(0, Math.max(0, MAX_CANDIDATES - numbered.length)),
   ]);
   const first = (key) => ranked.find((item) => cardKey(item) === key);
-  const topScore = (key) => first(key).score;
+  const topRank = (key) => first(key).rank ?? first(key).score;
   // A misread number can match a different real card exactly; when another
   // card fits the name read better, number and name disagree and neither
   // card is a lead.
@@ -262,7 +334,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       !first(cards[0]).nameConflict &&
       !(numberOnly && !clues.corrected) &&
       (cards.length === 1 ||
-        (topScore(cards[0]) > topScore(cards[1]) && !nameDisagrees)),
+        (topRank(cards[0]) > topRank(cards[1]) && !nameDisagrees)),
     // No candidate matched a printed number, so the name alone cannot tell
     // these cards apart: the card's number is the evidence still needed.
     // A number match the name contradicts does not count as the number.
