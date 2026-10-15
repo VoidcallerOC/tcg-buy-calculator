@@ -120,6 +120,16 @@ export function labelEvidence(label, clues) {
   return 0;
 }
 
+// Catalog name has no alt/parallel/special tag — the "common" listing.
+export function isPlainPrinting(card) {
+  return variantLabels(card?.name).length === 0;
+}
+
+// OCR/AI actually supported a specific printing (not just the character name).
+export function hasPrintingEvidence(item) {
+  return (item?.labelHit ?? 0) >= 0.8 || item?.setNameMatch === true;
+}
+
 export function scoreCandidate(card, clues) {
   const number = printedNumber(card.card_number);
   const numberMatch = (clues.identifiers ?? []).some(
@@ -262,6 +272,9 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   // A card whose number matches but whose name contradicts the name read is
   // listed after the cards the name fits: a misread number is a real code of
   // another card, and must not push the card in hand down the list.
+  // Tied same-number printings keep stable order; IDENTIFIED is withheld so
+  // the UI's printing-choice copy asks which art/finish is in hand instead of
+  // presenting the provider's common listing as "Card found".
   const ranked = [...byId.values()]
     .filter((item) => item.score >= CANDIDATE_SCORE)
     .sort(
@@ -281,9 +294,38 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   // the capped `score` would otherwise tie every same-number printing at 1.
   const bestRank = best.rank ?? best.score;
   const nextRank = next ? (next.rank ?? next.score) : null;
+  const numberMatched = ranked.filter(
+    (item) => item.numberMatch && !item.nameConflict,
+  );
+  const distinctNumberCards = new Set(numberMatched.map(cardKey));
+  const bestPrinted = printedName(best.card.name);
+  const sameNameGroup = ranked.filter(
+    (item) => item.nameScore > 0 && printedName(item.card.name) === bestPrinted,
+  );
+  const distinctSameName = new Set(sameNameGroup.map(cardKey));
+  // Finishes of one provider card (Normal / Holofoil / …) share a cardKey but
+  // are still different printings the customer must pick.
+  const finishChoices = new Set(
+    ranked
+      .filter((item) => cardKey(item) === cardKey(best))
+      .map((item) => String(item.card.printing ?? "")),
+  );
+  const printingAmbiguous =
+    distinctNumberCards.size > 1 ||
+    distinctSameName.size > 1 ||
+    finishChoices.size > 1;
+  // IDENTIFIED only when evidence picks one printing:
+  // - Same-number / same-name groups (or several finishes) stay confirmation
+  //   unless OCR/AI supported a specific label or set.
+  // - A solitary unlabeled "common" listing is never IDENTIFIED either: foil
+  //   alts rarely OCR their tags, and a truncated catalog search often returns
+  //   only the common — "Card found" would silently prefer it. Confirmation
+  //   with that one candidate still requires Use this card.
   const clear =
     best.score >= IDENTIFIED_SCORE &&
-    (nextRank === null || bestRank - nextRank >= IDENTIFIED_MARGIN);
+    (nextRank === null || bestRank - nextRank >= IDENTIFIED_MARGIN) &&
+    (!printingAmbiguous || hasPrintingEvidence(best)) &&
+    (hasPrintingEvidence(best) || !isPlainPrinting(best.card));
   if (clear)
     return {
       status: MATCH_STATUS.IDENTIFIED,
@@ -330,6 +372,8 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     moreCards: cards.length - shown.size,
     // The first card is only a lead when its evidence beats the next card's;
     // a tie (e.g. a name read with no number) has no lead to suggest.
+    // Multiple finishes of that card are all highlighted — the scan named the
+    // card, not Holofoil vs Reverse; the customer still picks the finish.
     leader:
       !first(cards[0]).nameConflict &&
       !(numberOnly && !clues.corrected) &&
