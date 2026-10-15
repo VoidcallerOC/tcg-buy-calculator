@@ -1182,6 +1182,29 @@ body.scanner-open {
   color: var(--text-muted);
   font-size: 0.875rem;
 }
+.scan-candidate-info .scan-candidate-variant {
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.scan-candidate-info .scan-candidate-set {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.scan-candidate-info .scan-candidate-set.is-emphasis {
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid var(--accent-text);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.scan-candidate-info .scan-candidate-printing {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
 .scan-candidate-info small {
   margin-top: 0.15rem;
   color: var(--text-subtle);
@@ -1189,6 +1212,10 @@ body.scanner-open {
 }
 .scan-candidate-info .scan-candidate-conflict {
   color: var(--warning);
+}
+.scanner-set-choice {
+  border-left: 3px solid var(--accent-text);
+  padding-left: 0.65rem;
 }
 .scan-candidate .button {
   flex: 0 0 auto;

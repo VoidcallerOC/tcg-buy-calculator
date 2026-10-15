@@ -5,7 +5,7 @@ import { CameraCapture } from "./camera-capture.js";
 import { preprocessCard } from "./image-preprocessor.js";
 import { createTesseractEngine } from "./ocr-engine.js";
 import { createScanSession, SCAN_STATE, SCAN_ERROR } from "./scan-session.js";
-import { MATCH_STATUS } from "./catalog-matcher.js";
+import { MATCH_STATUS, printedName, variantLabels } from "./catalog-matcher.js";
 import { gameLabel } from "./game-patterns.js";
 import { bestSearchQuery, correctClues } from "./card-identifier.js";
 import { formatMoney } from "../lib/money.js";
@@ -326,33 +326,44 @@ function createUi() {
     return block;
   }
 
-  function candidate(item, primary) {
+  function candidate(item, primary, { emphasizeSet = false } = {}) {
     const { card } = item;
     const row = el(
       "div",
       primary ? "scan-candidate is-primary" : "scan-candidate",
     );
     const info = el("div", "scan-candidate-info");
-    const name = el("strong", "", card.name);
+    // Character name without catalog-only tags — set/product carry the
+    // One Piece reprint identity (ST-32 vs Learn Together vs Parallel).
+    const title = printedName(card.name) || card.name;
+    const name = el("strong", "", title);
     if (card.demo) name.append(" ", el("em", "demo-tag", "Demo"));
     info.append(name);
+    const labels = variantLabels(card.name);
+    if (labels.length)
+      info.append(el("span", "scan-candidate-variant", labels.join(" · ")));
     info.append(
       el(
         "span",
-        "",
+        emphasizeSet ? "scan-candidate-set is-emphasis" : "scan-candidate-set",
+        card.set_name || "Set not listed",
+      ),
+    );
+    info.append(
+      el(
+        "span",
+        "scan-candidate-printing",
         [
-          card.set_name,
           card.card_number,
           card.printing,
+          card.rarity,
           card.language && card.language !== "English" ? card.language : null,
         ]
           .filter(Boolean)
-          .join(" · ") || "Set not listed",
+          .join(" · ") || "Printing not listed",
       ),
     );
-    const meta = [gameLabel(item.game), card.rarity]
-      .filter(Boolean)
-      .join(" · ");
+    const meta = gameLabel(item.game);
     if (meta) info.append(el("small", "", meta));
     if (item.numberConflict)
       info.append(
@@ -469,12 +480,17 @@ function createUi() {
           // Only a card whose evidence beats the rest is highlighted, and all
           // of its printings equally: the scan says which card, never which
           // printing (1st Edition and Unlimited can differ several-fold).
+          // Same-number multi-set groups (OP12-020 ST-32 vs Learn Together)
+          // never get a lead — set/product must be chosen explicitly.
           const cardOf = (item) => item.card.provider_card_id ?? item.card.id;
           const lead =
             match.leader === true ? cardOf(match.candidates[0]) : null;
+          const setChoice = match.setChoice === true;
           match.candidates.forEach((item) =>
             list.append(
-              candidate(item, lead !== null && cardOf(item) === lead),
+              candidate(item, lead !== null && cardOf(item) === lead, {
+                emphasizeSet: setChoice,
+              }),
             ),
           );
           const readNumbers = (clues?.identifiers ?? [])
@@ -510,6 +526,7 @@ function createUi() {
               !readNumbers.length &&
               !numbered.length &&
               (cardCount > 1 || match.moreCards > 0));
+          const setCount = match.setCount || numbered.length;
           fill(
             el("span", "eyebrow", "Needs confirmation"),
             el(
@@ -517,23 +534,31 @@ function createUi() {
               "scanner-title",
               match.checkNumber
                 ? "The name and number we read point to different cards."
-                : askForNumber && cardCount > 1
-                  ? "Several cards match the name. Which one is yours?"
-                  : askForNumber && cardCount === 1
-                    ? "We need the card number to confirm this printing."
-                    : printingChoice
-                      ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
-                      : match.candidates.length > 1
-                        ? "Which card is in your hand?"
-                        : "Is this your card?",
+                : setChoice
+                  ? `${setCount} sets share this number. Which set and printing is yours?`
+                  : askForNumber && cardCount > 1
+                    ? "Several cards match the name. Which one is yours?"
+                    : askForNumber && cardCount === 1
+                      ? "We need the card number to confirm this printing."
+                      : printingChoice
+                        ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
+                        : match.candidates.length > 1
+                          ? "Which card is in your hand?"
+                          : "Is this your card?",
             ),
-            printingChoice
+            setChoice
               ? el(
                   "p",
-                  "scanner-note scanner-printing-choice",
-                  `They print the same name and number but differ in artwork, and ${valueRange}${unpriced ? ` (${unpriced} with no online price)` : ""}. Compare the artwork, set and label (e.g. Alternate Art, Manga, SP) with your card. The shop checks the printing in person.`,
+                  "scanner-note scanner-set-choice",
+                  `One Piece reprints keep the same collector number across starter decks, Learn Together products, parallels and promos. Check the set or product name on each row (not just the number) — prices differ${nm.length > 1 && Math.max(...nm) > Math.min(...nm) ? ` (${valueRange})` : ""}. The shop confirms set and printing in person.`,
                 )
-              : null,
+              : printingChoice
+                ? el(
+                    "p",
+                    "scanner-note scanner-printing-choice",
+                    `They print the same name and number but differ in artwork, and ${valueRange}${unpriced ? ` (${unpriced} with no online price)` : ""}. Compare the artwork, set and label (e.g. Alternate Art, Manga, SP) with your card. The shop checks the printing in person.`,
+                  )
+                : null,
             match.checkNumber
               ? el(
                   "p",

@@ -6,7 +6,7 @@
   "description": "Generic TCG buy calculator with JustTCG pricing and optional camera scanner",
   "scripts": {
     "format:check": "prettier --check .",
-    "test:calculator": "node --test lib/calculator.test.js lib/offer-list.test.js lib/tcgplayer.test.js lib/tcgcsv-provider.test.js lib/justtcg-provider.test.js lib/catalog-sync.test.js lib/blockers.test.js api/cards.test.js api/games.test.js api/identify.test.js tests/scanner.test.js tests/scanner-corpus.test.js tests/scanner-variants.test.js tests/scanner-onepiece.test.js tests/scanner-oden.test.js",
+    "test:calculator": "node --test lib/calculator.test.js lib/offer-list.test.js lib/tcgplayer.test.js lib/tcgcsv-provider.test.js lib/justtcg-provider.test.js lib/catalog-sync.test.js lib/blockers.test.js api/cards.test.js api/games.test.js api/identify.test.js tests/scanner.test.js tests/scanner-corpus.test.js tests/scanner-variants.test.js tests/scanner-onepiece.test.js tests/scanner-oden.test.js tests/scanner-alt-printing.test.js",
     "test:browser": "playwright test",
     "test": "npm run format:check && npm run test:calculator",
     "test:smoke": "playwright test --config playwright.smoke.config.js"

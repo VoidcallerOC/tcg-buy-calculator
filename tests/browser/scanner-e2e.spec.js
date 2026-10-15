@@ -570,30 +570,43 @@ test("One Piece printings sharing a number: none implied, value range shown, the
   };
   await scan();
   const panel = page.locator("#scanner-panel");
-  const distinct = new Set(cards.map((c) => c.provider_card_id)).size;
+  const setCount = new Set(cards.map((c) => c.set_name)).size;
   await expect(panel.locator(".scanner-title")).toHaveText(
-    `${distinct} printings share this number. Which one is yours?`,
+    `${setCount} sets share this number. Which set and printing is yours?`,
   );
-  const warning = panel.locator(".scanner-printing-choice");
+  const warning = panel.locator(".scanner-set-choice");
   await expect(warning).toContainText("$10.00 to $10,000.00");
-  await expect(warning).toContainText("with no online price");
-  // Every printing listed, none highlighted.
+  await expect(warning).toContainText("same collector number");
+  // Every printing listed, none highlighted; sets emphasized.
   await expect(panel.locator(".scan-candidate")).toHaveCount(cards.length);
   await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  await expect(panel.locator(".scan-candidate-set.is-emphasis")).toHaveCount(
+    cards.length,
+  );
 
-  // Picks the listing whose name is exactly `name` (names nest: "(Alternate
-  // Art)" is a prefix of "(Alternate Art) (Manga)").
-  const choose = (name, set) =>
-    panel
+  // Character name is in <strong>; printing tags live in .scan-candidate-variant.
+  // Labels distinguish nested arts ("Alternate Art" vs "Alternate Art · Manga").
+  const choose = (printed, set, labels = []) => {
+    let row = panel
       .locator(".scan-candidate")
       .filter({
         has: page.locator("strong", {
-          hasText: new RegExp(`^${name.replace(/[.()]/g, "\\$&")}$`),
+          hasText: new RegExp(`^${printed.replace(/[.()]/g, "\\$&")}$`),
         }),
       })
-      .filter({ hasText: set })
-      .getByRole("button", { name: "Use this card" })
-      .click();
+      .filter({ hasText: set });
+    if (labels.length)
+      row = row.filter({
+        has: page.locator(".scan-candidate-variant", {
+          hasText: labels.join(" · "),
+        }),
+      });
+    else
+      row = row.filter({
+        hasNot: page.locator(".scan-candidate-variant"),
+      });
+    return row.getByRole("button", { name: "Use this card" }).click();
+  };
   const offerFor = (cents) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -601,10 +614,7 @@ test("One Piece printings sharing a number: none implied, value range shown, the
     }).format(Number((BigInt(cents) * 6000n + 5000n) / 10000n) / 100);
 
   // The alternate art is priced as the alternate art.
-  await choose(
-    "Monkey.D.Luffy (119) (Alternate Art)",
-    "Awakening of the New Era",
-  );
+  await choose("Monkey.D.Luffy", "Awakening of the New Era", ["Alternate Art"]);
   await page.getByRole("button", { name: "Near Mint" }).click();
   await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
   await expect(page.locator("#offer-value")).toHaveText(offerFor(15000));
@@ -621,7 +631,7 @@ test("One Piece printings sharing a number: none implied, value range shown, the
   await page.getByLabel("Card name").fill("Monkey.D.Luffy");
   await page.getByLabel("Card number").fill("OP05-119");
   await page.getByRole("button", { name: "Search again" }).click();
-  await choose("Monkey.D.Luffy (119)", "Awakening of the New Era");
+  await choose("Monkey.D.Luffy", "Awakening of the New Era");
   await expect(page.locator("#result-ready")).toBeHidden();
   await expect(page.locator("#add-to-list")).toBeHidden();
   await page.getByRole("button", { name: "Near Mint" }).click();
@@ -637,10 +647,10 @@ test("One Piece printings sharing a number: none implied, value range shown, the
   await page.getByLabel("Card name").fill("Monkey.D.Luffy");
   await page.getByLabel("Card number").fill("OP05-119");
   await page.getByRole("button", { name: "Search again" }).click();
-  await choose(
-    "Monkey.D.Luffy (119) (Alternate Art) (Manga)",
-    "Awakening of the New Era",
-  );
+  await choose("Monkey.D.Luffy", "Awakening of the New Era", [
+    "Alternate Art",
+    "Manga",
+  ]);
   await expect(
     page.locator('.condition-option[data-code="NM"] .condition-note'),
   ).toHaveText("No online price");
@@ -730,8 +740,13 @@ test("One Piece layout, number unreadable: the type line and ability text are no
   );
   await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
   await panel
-    .locator(".scan-candidate", { hasText: "Roronoa Zoro (Alternate Art)" })
+    .locator(".scan-candidate")
     .filter({ hasText: "Wings of the Captain" })
+    .filter({
+      has: page.locator(".scan-candidate-variant", {
+        hasText: "Alternate Art",
+      }),
+    })
     .getByRole("button", { name: "Use this card" })
     .click();
   await page.getByRole("button", { name: "Near Mint" }).click();
@@ -795,5 +810,105 @@ test("a number that belongs to a differently named card is questioned, not highl
   await expect(panel.locator("details.scanner-correct")).toHaveAttribute(
     "open",
     "",
+  );
+});
+
+test("OP12-020: ST-32 vs Learn Together vs Alternate Art stay distinct set choices", async ({
+  page,
+}) => {
+  // Live-shaped OP12-020 listings: same collector number across Learn Together
+  // (Zoro Deck), Legacy AA, promos, and ST-32 starter reprint. Confirmation
+  // must emphasize set/product — never collapse to one common hit.
+  const entries = [
+    {
+      id: "lt-zoro::foil",
+      provider_card_id: "lt-zoro",
+      game: "one-piece-card-game",
+      name: "Roronoa Zoro - OP12-020 (Zoro Deck)",
+      card_number: "OP12-020",
+      set_name: "Learn Together Deck Set",
+      printing: "Foil",
+      rarity: "Leader",
+      language: "English",
+      pricing: { NM: { reference_cents: 533, source_updated_at: fresh() } },
+    },
+    {
+      id: "legacy-aa::foil",
+      provider_card_id: "legacy-aa",
+      game: "one-piece-card-game",
+      name: "Roronoa Zoro (020) (Alternate Art)",
+      card_number: "OP12-020",
+      set_name: "Legacy of the Master",
+      printing: "Foil",
+      rarity: "Leader",
+      language: "English",
+      pricing: { NM: { reference_cents: 2500, source_updated_at: fresh() } },
+    },
+    {
+      id: "st32::foil",
+      provider_card_id: "st32",
+      game: "one-piece-card-game",
+      name: "Roronoa Zoro (OP12-020)",
+      card_number: "OP12-020",
+      set_name: "ST-32: Starter Deck 32 GREEN Roronoa Zoro",
+      printing: "Foil",
+      rarity: "Leader",
+      language: "English",
+      pricing: { NM: { reference_cents: 185, source_updated_at: fresh() } },
+    },
+  ];
+  await page.route("**/api/cards?**", (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") || "";
+    const cards = /OP12-020|zoro/i.test(q) ? entries : [];
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cards }),
+    });
+  });
+  await fakeCamera(page, { lines: [] });
+  await page.goto("/");
+  await page.getByLabel("Game").selectOption("one-piece-card-game");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await page.getByRole("button", { name: "Capture" }).click();
+  await expect(page.getByText("Could not identify")).toBeVisible({
+    timeout: 150_000,
+  });
+  await page.getByLabel("Card name").fill("Roronoa Zoro");
+  await page.getByLabel("Card number").fill("OP12-020");
+  await page.getByRole("button", { name: "Search again" }).click();
+  const panel = page.locator("#scanner-panel");
+  await expect(page.getByText("Needs confirmation")).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(panel.locator(".scanner-title")).toHaveText(
+    "3 sets share this number. Which set and printing is yours?",
+  );
+  await expect(panel.locator(".scanner-set-choice")).toContainText(
+    "Learn Together",
+  );
+  await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
+  await expect(panel.locator(".scan-candidate-set.is-emphasis")).toHaveCount(3);
+  await expect(panel.locator(".scan-candidate-set")).toContainText(
+    "Learn Together Deck Set",
+  );
+  await expect(panel.locator(".scan-candidate-set")).toContainText("ST-32");
+  await expect(panel.locator(".scan-candidate-variant")).toContainText(
+    "Alternate Art",
+  );
+  // Character name without catalog number tags; set carries identity.
+  await expect(panel.locator(".scan-candidate strong").first()).toHaveText(
+    /Roronoa Zoro/,
+  );
+  await panel
+    .locator(".scan-candidate")
+    .filter({ hasText: "Learn Together Deck Set" })
+    .getByRole("button", { name: "Use this card" })
+    .click();
+  await page.getByRole("button", { name: "Near Mint" }).click();
+  await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
+  await expect(page.locator("#offer-value")).toHaveText("$3.20");
+  await expect(page.locator("#result-card-label")).toContainText(
+    "Learn Together",
   );
 });
