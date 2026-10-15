@@ -502,6 +502,14 @@ function createUi() {
             nm.length > 1 && Math.max(...nm) > Math.min(...nm)
               ? `their Near Mint market references range from ${formatMoney(Math.min(...nm))} to ${formatMoney(Math.max(...nm))}`
               : "they can differ in value";
+          // needsNumber is about missing collector-number evidence; the title
+          // must match what is actually listed (never "several" for one row).
+          const askForNumber =
+            match.needsNumber === true ||
+            (cardCount >= 1 &&
+              !readNumbers.length &&
+              !numbered.length &&
+              (cardCount > 1 || match.moreCards > 0));
           fill(
             el("span", "eyebrow", "Needs confirmation"),
             el(
@@ -509,13 +517,15 @@ function createUi() {
               "scanner-title",
               match.checkNumber
                 ? "The name and number we read point to different cards."
-                : match.needsNumber
+                : askForNumber && cardCount > 1
                   ? "Several cards match the name. Which one is yours?"
-                  : printingChoice
-                    ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
-                    : match.candidates.length > 1
-                      ? "Which card is in your hand?"
-                      : "Is this your card?",
+                  : askForNumber && cardCount === 1
+                    ? "We need the card number to confirm this printing."
+                    : printingChoice
+                      ? `${new Set(numbered.map(cardOf)).size} printings share this number. Which one is yours?`
+                      : match.candidates.length > 1
+                        ? "Which card is in your hand?"
+                        : "Is this your card?",
             ),
             printingChoice
               ? el(
@@ -532,13 +542,13 @@ function createUi() {
                     ? `Check the name and number (${readNumbers.join(", ")}) printed on your card and correct them below.`
                     : `We may have misread the number (${readNumbers.join(", ")}). Check the name and number printed on your card and correct them below if they differ.`,
                 )
-              : match.needsNumber
+              : askForNumber
                 ? el(
                     "p",
                     "scanner-note scanner-needs-number",
                     readNumbers.length
                       ? `The number we read (${readNumbers.join(", ")}) doesn't match any of these cards. Check the number printed at the bottom of your card and type it below, or compare the set and number of each match.`
-                      : "We read the name but not the card number, so we can't tell which set your card is from. Type the number printed at the bottom of your card (e.g. 43/64) below, or compare the set and number of each match.",
+                      : "We read the name but not the card number, so we can't tell which set or printing this is. Type the number at the bottom of your card (e.g. OP02-030 or 43/64) below — that finds parallels and alternate arts the name alone cannot.",
                   )
                 : match.numberOnly && !clues?.corrected
                   ? el(
@@ -554,7 +564,7 @@ function createUi() {
                   "scanner-note",
                   numbered.length
                     ? `${match.moreCards} more cards with a different number are not shown.`
-                    : `Showing ${cardCount} matching cards; ${match.moreCards} more match. Add the card number to narrow it down.`,
+                    : `Showing ${cardCount} matching cards; ${match.moreCards} more match. Type the card number to reach other printings (including alternate arts).`,
                 )
               : null,
             matchNote,
@@ -562,7 +572,9 @@ function createUi() {
             aiBlock(next, false),
             correctionForm(
               clues,
-              match.needsNumber === true || match.checkNumber === true,
+              match.needsNumber === true ||
+                match.checkNumber === true ||
+                askForNumber,
             ),
             actions(againButton(), manualButton()),
           );

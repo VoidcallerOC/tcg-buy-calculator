@@ -93,5 +93,18 @@ export function preprocessCard(canvas, doc = globalThis.document) {
         doc,
       ),
     },
+    // One Piece (especially full-bleed parallels) prints OP##-### in a tiny
+    // bottom-right corner under the name banner. A tighter, more enlarged
+    // crop gives Tesseract a better chance when the wide strip only reads
+    // the name / type line.
+    {
+      region: "bottom",
+      image: renderRegion(
+        canvas,
+        { x: 0.58, y: 0.9, width: 0.42, height: 0.1 },
+        2000,
+        doc,
+      ),
+    },
   ];
 }
