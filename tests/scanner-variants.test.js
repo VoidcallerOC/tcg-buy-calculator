@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { correctClues } from "../scanner/card-identifier.js";
 import {
+  isPlainPrinting,
   matchCatalog,
   MATCH_STATUS,
   planQueries,
@@ -203,7 +204,7 @@ test("Pokémon Red Cheeks alt is distinguished from base Pikachu when the label 
   }
 });
 
-test("name-only base vs SIR with different numbers stays a confirmation choice", async () => {
+test("name-only same-name group must not IDENTIFIED as common; alts appear", async () => {
   const cards = [
     {
       id: "base",
@@ -235,7 +236,9 @@ test("name-only base vs SIR with different numbers stays a confirmation choice",
   );
 });
 
-test("collector number for the SIR picks that printing, not the base number", async () => {
+test("collector number for the SIR lists that printing for confirmation, not the base", async () => {
+  // Unlabeled catalog name: still NEEDS_CONFIRMATION (not Card found), but the
+  // matching number must be the only lead — never the base 006/165.
   const cards = [
     {
       id: "base",
@@ -259,8 +262,57 @@ test("collector number for the SIR picks that printing, not the base number", as
     correctClues(null, { name: "Charizard ex", number: "199/165" }, "pokemon"),
     { selectedGame: "pokemon", search: async () => cards },
   );
-  assert.equal(match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
   assert.equal(match.candidates[0].card.id, "sir");
+  assert.ok(
+    match.candidates.every(
+      (item) => item.card.id === "sir" || item.numberConflict,
+    ),
+  );
+});
+
+test("OCR name+number with only the common listing returned is never IDENTIFIED", async () => {
+  // Truncated /api/cards responses often return only the unlabeled common.
+  // That must not become "Card found" — confirmation stays mandatory.
+  const group = groups.find((g) => g.number === "OP05-119");
+  const common = group.entries.find(
+    (entry) =>
+      printedName(entry.name) === "Monkey.D.Luffy" &&
+      variantLabels(entry.name).length === 0,
+  );
+  const alts = group.entries.filter((entry) => entry.id !== common.id);
+  assert.ok(common && alts.length > 0);
+  const clues = correctClues(
+    null,
+    { name: "Monkey.D.Luffy", number: "OP05-119" },
+    group.game,
+  );
+  const truncated = await matchCatalog(clues, {
+    selectedGame: group.game,
+    search: async () => [common],
+  });
+  assert.equal(truncated.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(truncated.candidates[0].card.id, common.id);
+
+  const full = await matchCatalog(clues, {
+    selectedGame: group.game,
+    search: async () => group.entries,
+  });
+  assert.equal(full.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(full.leader, false);
+  for (const entry of group.entries)
+    assert.ok(
+      full.candidates.some((item) => item.card.id === entry.id),
+      `missing ${entry.name}`,
+    );
+  assert.ok(
+    full.candidates.some((item) => !isPlainPrinting(item.card)),
+    "alts must appear in confirmation",
+  );
+  assert.ok(
+    full.candidates.some((item) => isPlainPrinting(item.card)),
+    "common still listed for the customer to pick",
+  );
 });
 
 test("set name from AI clues prefers the printing in that set among same-number alts", async () => {

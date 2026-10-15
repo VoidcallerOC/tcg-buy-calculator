@@ -219,15 +219,18 @@ test("unreadable text yields no usable clues", () => {
 
 // ---------- CatalogMatcher ----------
 
-test("number and name agreement → IDENTIFIED, still a single candidate to confirm", async () => {
+test("number and name agreement on an unlabeled printing → confirmation, not Card found", async () => {
+  // Plain catalog names (no Alternate Art / Manga / … tag) are never IDENTIFIED
+  // from text alone — truncated searches often return only the common listing.
   const clues = extractClues(ocrPasses("Charizard ex\n199/165"));
   const match = await matchCatalog(clues, {
     selectedGame: "pokemon",
     search: fixtureSearch,
   });
-  assert.equal(match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
   assert.equal(match.candidates.length, 1);
   assert.equal(match.candidates[0].card.card_number, "199/165");
+  assert.equal(match.leader, true);
 });
 
 test("identifier for another game searches that game too", async () => {
@@ -236,7 +239,7 @@ test("identifier for another game searches that game too", async () => {
     selectedGame: "pokemon",
     search: fixtureSearch,
   });
-  assert.equal(match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
   assert.equal(match.candidates[0].game, "one-piece-card-game");
 });
 
@@ -664,7 +667,7 @@ function harness({
   return { session, states, stopped: () => stopped };
 }
 
-test("permission granted → live → capture → IDENTIFIED", async () => {
+test("permission granted → live → capture → result requiring confirmation", async () => {
   const { session, states } = harness();
   await session.open();
   assert.equal(session.state.status, SCAN_STATE.LIVE);
@@ -673,7 +676,10 @@ test("permission granted → live → capture → IDENTIFIED", async () => {
     states.map((s) => s.step ?? s.status),
     ["starting", "live", "capturing", "reading", "matching", "result"],
   );
-  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  // Unlabeled catalog names stay NEEDS_CONFIRMATION even on a clear number+name
+  // read — confirmation is still mandatory via Use this card.
+  assert.equal(session.state.match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(session.state.match.candidates.length, 1);
 });
 
 test("permission denied / unavailable / unsupported → error with code", async () => {
@@ -1021,7 +1027,8 @@ test("rematch searches the corrected clues and can identify the card", async () 
     ),
   );
   assert.equal(session.state.status, SCAN_STATE.RESULT);
-  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(session.state.match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(session.state.match.candidates[0].card.card_number, "199/165");
   assert.equal(session.state.clues.corrected, true);
   assert.ok(searches.includes("pokemon:199/165"));
 });
@@ -1056,7 +1063,8 @@ test("search failure keeps what was read so it can be corrected and retried", as
   assert.ok(session.state.clues.identifiers.length);
   fail = false;
   await session.rematch(session.state.clues);
-  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(session.state.match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(session.state.match.candidates[0].card.card_number, "199/165");
 });
 
 // ---------- AI fallback (identify) ----------
@@ -1083,7 +1091,8 @@ test("AI identification runs only on request and its reading goes through the ca
   await session.identifyWithAi();
   assert.deepEqual(sent, [{ frame: { frame: true }, game: "pokemon" }]);
   assert.equal(session.state.status, SCAN_STATE.RESULT);
-  assert.equal(session.state.match.status, MATCH_STATUS.IDENTIFIED);
+  assert.equal(session.state.match.status, MATCH_STATUS.NEEDS_CONFIRMATION);
+  assert.equal(session.state.match.candidates[0].card.card_number, "199/165");
   assert.equal(session.state.clues.source, "ai");
   assert.equal(session.state.clues.corrected, false);
   assert.ok(searches.includes("pokemon:199/165"));
