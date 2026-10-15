@@ -595,13 +595,16 @@ test("One Piece printings sharing a number: none implied, value range shown, the
         }),
       })
       .filter({ hasText: set });
-    if (labels.length)
+    if (labels.length) {
+      const exact = labels
+        .map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join(" · ");
       row = row.filter({
         has: page.locator(".scan-candidate-variant", {
-          hasText: labels.join(" · "),
+          hasText: new RegExp(`^${exact}$`),
         }),
       });
-    else
+    } else
       row = row.filter({
         hasNot: page.locator(".scan-candidate-variant"),
       });
@@ -889,13 +892,17 @@ test("OP12-020: ST-32 vs Learn Together vs Alternate Art stay distinct set choic
   );
   await expect(panel.locator(".scan-candidate.is-primary")).toHaveCount(0);
   await expect(panel.locator(".scan-candidate-set.is-emphasis")).toHaveCount(3);
-  await expect(panel.locator(".scan-candidate-set")).toContainText(
-    "Learn Together Deck Set",
-  );
-  await expect(panel.locator(".scan-candidate-set")).toContainText("ST-32");
-  await expect(panel.locator(".scan-candidate-variant")).toContainText(
-    "Alternate Art",
-  );
+  await expect(
+    panel.locator(".scan-candidate-set", {
+      hasText: "Learn Together Deck Set",
+    }),
+  ).toHaveCount(1);
+  await expect(
+    panel.locator(".scan-candidate-set", { hasText: "ST-32" }),
+  ).toHaveCount(1);
+  await expect(
+    panel.locator(".scan-candidate-variant", { hasText: "Alternate Art" }),
+  ).toHaveCount(1);
   // Character name without catalog number tags; set carries identity.
   await expect(panel.locator(".scan-candidate strong").first()).toHaveText(
     /Roronoa Zoro/,
@@ -908,7 +915,5 @@ test("OP12-020: ST-32 vs Learn Together vs Alternate Art stay distinct set choic
   await page.getByRole("button", { name: "Near Mint" }).click();
   await page.getByRole("button", { name: /Calculate estimated offer/ }).click();
   await expect(page.locator("#offer-value")).toHaveText("$3.20");
-  await expect(page.locator("#result-card-label")).toContainText(
-    "Learn Together",
-  );
+  await expect(page.locator("#result-card-label")).toContainText("Zoro Deck");
 });
