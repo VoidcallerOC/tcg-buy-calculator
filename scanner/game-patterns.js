@@ -37,6 +37,18 @@ export const GAME_PATTERNS = [
           /(?<![A-Za-z0-9])[O0o©Q]?[PpRr]([A-Za-z0-9]{2,3})\s?-\s?([0-9OoIil]{3})/g,
         toQuery: (m) => setCode("OP", m[1], m[2]),
       },
+      // Phone OCR on foil/parallel corners often inserts junk between the
+      // prefix and the set ("OPO TY 02-030", "OP 02 - 030", "0P02—030").
+      {
+        regex:
+          /(?<![A-Za-z0-9])[O0o©Q]?[PpRr]\W{0,3}([A-Za-z0-9]{2,3})\W{0,3}[\-—–]\W{0,3}([0-9OoIil]{3})/g,
+        toQuery: (m) => setCode("OP", m[1], m[2]),
+      },
+      {
+        regex:
+          /(?<![A-Za-z0-9])[O0o©Q]?[PpRr][^0-9]{0,6}(\d{2})\W{0,3}[\-—–]\W{0,3}([0-9OoIil]{3})/g,
+        toQuery: (m) => setCode("OP", m[1], m[2]),
+      },
       {
         regex: /(?<![0-9])[Ss5$][Tt7]([A-Za-z0-9]{2,3})\s?-\s?([0-9OoIil]{3})/g,
         toQuery: (m) => setCode("ST", m[1], m[2]),

@@ -125,9 +125,40 @@ export function isPlainPrinting(card) {
   return variantLabels(card?.name).length === 0;
 }
 
+// Labels that actually describe a printing (not "(#5)" / "(CLB)" catalog junk).
+const PRINTING_LABEL =
+  /alternate art|parallel|manga|\bsp\b|wanted poster|red cheeks|illustration|serial number|gold-?stamped|championship/i;
+
+export function hasArtPrintingLabel(card) {
+  return variantLabels(card?.name).some((label) => PRINTING_LABEL.test(label));
+}
+
 // OCR/AI actually supported a specific printing (not just the character name).
 export function hasPrintingEvidence(item) {
   return (item?.labelHit ?? 0) >= 0.8 || item?.setNameMatch === true;
+}
+
+// Provider name search often returns tournament / promo / release-event
+// reprints of a character before the main-set or parallel printings. When the
+// scan has no number, those secondary products must not fill the shortlist.
+export function promoSetPenalty(card) {
+  const set = String(card?.set_name ?? "").toLowerCase();
+  if (
+    /tournament|championship|winner pack|gift collection|promotion cards|\bpromo\b|pre-?release|release event|demo deck|learn together|anniversary tournament/i.test(
+      set,
+    )
+  )
+    return 0.2;
+  if (/starter deck|extra booster/i.test(set)) return 0.04;
+  return 0;
+}
+
+export function rarityBoost(card) {
+  const rarity = String(card?.rarity ?? "").toLowerCase();
+  if (/secret|manga|\bsp\b|special illustration/.test(rarity)) return 0.08;
+  if (/super rare|\bleader\b/.test(rarity)) return 0.05;
+  if (/\brare\b/.test(rarity)) return 0.03;
+  return 0;
 }
 
 export function scoreCandidate(card, clues) {
@@ -167,9 +198,17 @@ export function scoreCandidate(card, clues) {
     nameScore * 0.4 +
     (setMatch ? 0.1 : 0) +
     (setNameMatch ? 0.1 : 0);
-  if (!(clues.identifiers ?? []).length)
-    base = nameScore * 0.8 + (setNameMatch ? 0.1 : 0); // name-only caps below IDENTIFIED without labels
+  const nameOnly = !(clues.identifiers ?? []).length;
+  if (nameOnly) base = nameScore * 0.8 + (setNameMatch ? 0.1 : 0); // name-only caps below IDENTIFIED without labels
+  // Evidence rank drives IDENTIFIED / leader. Name-only shortlist bias is a
+  // separate sortKey so demoting tournament reprints cannot invent a lead.
   const rank = base + labelHit * 0.3;
+  const nameOnlyBias = nameOnly
+    ? rarityBoost(card) +
+      (hasArtPrintingLabel(card) ? 0.04 : 0) -
+      promoSetPenalty(card)
+    : 0;
+  const sortKey = rank + nameOnlyBias;
   // A number was read and this card's number differs: show the conflict
   // instead of letting a name match quietly stand in for the card.
   const readNumbers = (clues.identifiers ?? [])
@@ -195,6 +234,7 @@ export function scoreCandidate(card, clues) {
   return {
     score: Math.min(1, Number(rank.toFixed(3))),
     rank: Number(rank.toFixed(3)),
+    sortKey: Number(sortKey.toFixed(3)),
     numberMatch,
     numberConflict,
     nameConflict,
@@ -280,6 +320,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     .sort(
       (a, b) =>
         Number(a.nameConflict) - Number(b.nameConflict) ||
+        (b.sortKey ?? b.rank ?? b.score) - (a.sortKey ?? a.rank ?? a.score) ||
         (b.rank ?? b.score) - (a.rank ?? a.score) ||
         b.score - a.score,
     );
@@ -382,6 +423,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     // No candidate matched a printed number, so the name alone cannot tell
     // these cards apart: the card's number is the evidence still needed.
     // A number match the name contradicts does not count as the number.
+    // Based on every ranked card (including those truncated off the shortlist).
     needsNumber:
       cards.length > 1 &&
       !ranked.some((item) => item.numberMatch && !item.nameConflict),
