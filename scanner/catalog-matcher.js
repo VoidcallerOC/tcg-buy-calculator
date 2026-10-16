@@ -141,16 +141,35 @@ export function hasPrintingEvidence(item) {
 // Provider name search often returns tournament / promo / release-event
 // reprints of a character before the main-set or parallel printings. When the
 // scan has no number, those secondary products must not fill the shortlist.
+// Learn Together deck products are real retail printings (e.g. OP12-020 Zoro
+// Deck) — never treat them as promos, or ST-32 reprints outrank them.
 export function promoSetPenalty(card) {
   const set = String(card?.set_name ?? "").toLowerCase();
+  if (/learn together/i.test(set)) return 0;
   if (
-    /tournament|championship|winner pack|gift collection|promotion cards|\bpromo\b|pre-?release|release event|demo deck|learn together|anniversary tournament/i.test(
+    /tournament|championship|winner pack|gift collection|promotion cards|\bpromo\b|pre-?release|release event|demo deck|anniversary tournament/i.test(
       set,
     )
   )
     return 0.2;
   if (/starter deck|extra booster/i.test(set)) return 0.04;
   return 0;
+}
+
+// One Piece (and similar) reuse one collector number across starter reprints,
+// learn-together decks, parallels and promos. SortKey bias among those hits
+// must not invent IDENTIFIED — only reorder the confirmation shortlist.
+// Name-only: float rarity/art and demote tournament reprints (#18).
+// Numbered: demote promo/starter only — never prefer Parallel/AA without OCR
+// evidence (that would bury the base printing the customer actually scanned).
+export function productSortBias(card, { nameOnly = false } = {}) {
+  if (nameOnly)
+    return (
+      rarityBoost(card) +
+      (hasArtPrintingLabel(card) ? 0.04 : 0) -
+      promoSetPenalty(card)
+    );
+  return -promoSetPenalty(card);
 }
 
 export function rarityBoost(card) {
@@ -200,15 +219,11 @@ export function scoreCandidate(card, clues) {
     (setNameMatch ? 0.1 : 0);
   const nameOnly = !(clues.identifiers ?? []).length;
   if (nameOnly) base = nameScore * 0.8 + (setNameMatch ? 0.1 : 0); // name-only caps below IDENTIFIED without labels
-  // Evidence rank drives IDENTIFIED / leader. Name-only shortlist bias is a
-  // separate sortKey so demoting tournament reprints cannot invent a lead.
+  // Evidence rank drives IDENTIFIED / leader. Product sortKey bias reorders
+  // same-number / name-only shortlists (ST-32 vs Learn Together vs Parallel)
+  // without inventing a lead.
   const rank = base + labelHit * 0.3;
-  const nameOnlyBias = nameOnly
-    ? rarityBoost(card) +
-      (hasArtPrintingLabel(card) ? 0.04 : 0) -
-      promoSetPenalty(card)
-    : 0;
-  const sortKey = rank + nameOnlyBias;
+  const sortKey = rank + productSortBias(card, { nameOnly });
   // A number was read and this card's number differs: show the conflict
   // instead of letting a name match quietly stand in for the card.
   const readNumbers = (clues.identifiers ?? [])
@@ -405,6 +420,16 @@ export async function matchCatalog(clues, { selectedGame, search }) {
   const numberOnly =
     ranked.some((item) => item.numberMatch) &&
     ranked.every((item) => !item.numberMatch || item.nameScore === 0);
+  const shownNumbered = ranked.filter(
+    (item) =>
+      shown.has(cardKey(item)) && item.numberMatch && !item.nameConflict,
+  );
+  const distinctSets = new Set(
+    shownNumbered.map((item) => String(item.card.set_name ?? "").trim()),
+  );
+  // One Piece-style reprints: same collector number, different set/product.
+  // Never imply a lead — the customer must pick set + printing.
+  const setChoice = shownNumbered.length > 1 && distinctSets.size > 1;
   return {
     status: MATCH_STATUS.NEEDS_CONFIRMATION,
     candidates: ranked.filter((item) => shown.has(cardKey(item))),
@@ -415,7 +440,9 @@ export async function matchCatalog(clues, { selectedGame, search }) {
     // a tie (e.g. a name read with no number) has no lead to suggest.
     // Multiple finishes of that card are all highlighted — the scan named the
     // card, not Holofoil vs Reverse; the customer still picks the finish.
+    // Same-number multi-set groups never get a lead.
     leader:
+      !setChoice &&
       !first(cards[0]).nameConflict &&
       !(numberOnly && !clues.corrected) &&
       (cards.length === 1 ||
@@ -433,5 +460,7 @@ export async function matchCatalog(clues, { selectedGame, search }) {
       ranked.some((item) => item.numberMatch) &&
       ranked.every((item) => !item.numberMatch || item.nameConflict),
     numberOnly,
+    setChoice,
+    setCount: distinctSets.size,
   };
 }
