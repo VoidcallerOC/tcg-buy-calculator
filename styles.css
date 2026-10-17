@@ -821,8 +821,20 @@ a {
 }
 .card-list-actions {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
   gap: 0.6rem;
+}
+.card-list-actions .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (max-width: 720px) {
+  .card-list-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card-list-actions #scan-next {
+    grid-column: 1 / -1;
+  }
 }
 @media (max-width: 420px) {
   .card-list-item {

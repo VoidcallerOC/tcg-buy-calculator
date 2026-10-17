@@ -162,3 +162,71 @@ test("changing condition after pricing withdraws the stale Add button", async ({
   await page.locator('.condition-option[data-code="LP"]').click();
   await expect(page.locator("#add-to-list")).toBeHidden();
 });
+
+test("download and copy export the visit list as shop-intake JSON", async ({
+  page,
+}) => {
+  await stubScanner(page);
+  await page.goto("/");
+  await expect(page.locator("#download-intake")).toBeHidden();
+  await expect(page.locator("#copy-intake")).toBeHidden();
+
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await priceAndAdd(page, "$120.00");
+  await expect(page.locator("#download-intake")).toBeEnabled();
+  await expect(page.locator("#copy-intake")).toBeEnabled();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download JSON" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^shop-intake-.*\.json$/);
+  const stream = await download.createReadStream();
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  const payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  expect(payload.schema).toBe("tcg-buy-calculator.shop-intake.v1");
+  expect(payload.summary.offerCents).toBe(12000);
+  expect(payload.items).toHaveLength(1);
+  expect(payload.items[0].label).toContain("Charizard");
+
+  await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.getByRole("button", { name: "Copy JSON" }).click();
+  await expect(page.locator("#card-list-note")).toContainText(
+    "copied to the clipboard",
+  );
+  const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+  const copied = JSON.parse(clipboard);
+  expect(copied.schema).toBe("tcg-buy-calculator.shop-intake.v1");
+  expect(copied.summary.offerCents).toBe(12000);
+  expect(copied.items[0].offerCents).toBe(12000);
+});
+
+test("clipboard denial leaves a clear note and download still works", async ({
+  page,
+}) => {
+  await stubScanner(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: /Scan a card/ }).click();
+  await priceAndAdd(page, "$120.00");
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async () => {
+          throw new Error("Permission denied");
+        },
+      },
+    });
+  });
+
+  await page.getByRole("button", { name: "Copy JSON" }).click();
+  await expect(page.locator("#card-list-note")).toContainText(
+    "Clipboard permission was denied",
+  );
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download JSON" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^shop-intake-.*\.json$/);
+});
