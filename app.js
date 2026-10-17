@@ -5,6 +5,14 @@ import {
   parsePercentageToBasisPoints,
 } from "./lib/money.js";
 import { addEntry, removeEntry, summarize } from "./lib/offer-list.js";
+import {
+  buildShopIntakePayload,
+  canExportList,
+  copyTextToClipboard,
+  formatShopIntakeJson,
+  shopIntakeFilename,
+  triggerJsonDownload,
+} from "./lib/shop-intake-export.js";
 
 const config = await fetch("./data/config.json").then(async (response) => {
   if (!response.ok) throw new Error("Client configuration unavailable.");
@@ -50,6 +58,8 @@ const listCount = document.querySelector("#card-list-count");
 const listTotal = document.querySelector("#card-list-total");
 const listNote = document.querySelector("#card-list-note");
 const scanNextButton = document.querySelector("#scan-next");
+const downloadIntakeButton = document.querySelector("#download-intake");
+const copyIntakeButton = document.querySelector("#copy-intake");
 const clearListButton = document.querySelector("#clear-list");
 
 // "usable" | "missing" | "undated" | "stale". A price without a source date
@@ -216,6 +226,9 @@ function renderList() {
   }
   listCount.textContent = `${summary.count} card${summary.count === 1 ? "" : "s"}`;
   listTotal.textContent = formatMoney(summary.offerCents, config.currency);
+  const exportable = canExportList(state.list).ok;
+  downloadIntakeButton.disabled = !exportable;
+  copyIntakeButton.disabled = !exportable;
   listNote.textContent = [
     summary.unpriced
       ? `${summary.unpriced} card${summary.unpriced === 1 ? " has" : "s have"} no online estimate and ${summary.unpriced === 1 ? "is" : "are"} not in the total; the shop prices ${summary.unpriced === 1 ? "it" : "them"} in person.`
@@ -224,6 +237,36 @@ function renderList() {
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+function intakeExportClient() {
+  return {
+    clientId: config.client_id ?? null,
+    businessName: config.business_name ?? null,
+    currency: config.currency ?? null,
+    buyRate: config.buy_rate ?? null,
+  };
+}
+
+function buildIntakeExportText() {
+  const gate = canExportList(state.list);
+  if (!gate.ok) {
+    listNote.textContent =
+      gate.reason === "empty"
+        ? "Add at least one card before exporting this visit."
+        : "This visit list cannot be exported.";
+    return null;
+  }
+  const exportedAt = new Date().toISOString();
+  const payload = buildShopIntakePayload({
+    list: state.list,
+    client: intakeExportClient(),
+    exportedAt,
+  });
+  return {
+    text: formatShopIntakeJson(payload),
+    filename: shopIntakeFilename(exportedAt),
+  };
 }
 
 // Back to step 1 for the next card; the list and the game stay as they are.
@@ -428,6 +471,29 @@ addButton.addEventListener("click", () => {
   clearSelection(`Added ${label}. Scan or search the next card.`);
   listSection.scrollIntoView({ behavior: scrollBehavior, block: "nearest" });
   scanNextButton.focus({ preventScroll: true });
+});
+
+downloadIntakeButton.addEventListener("click", () => {
+  const exported = buildIntakeExportText();
+  if (!exported) return;
+  const result = triggerJsonDownload(exported.text, exported.filename);
+  listNote.textContent = result.ok
+    ? `Downloaded ${exported.filename}.`
+    : "Download is not available in this browser. Try Copy JSON instead.";
+});
+
+copyIntakeButton.addEventListener("click", async () => {
+  const exported = buildIntakeExportText();
+  if (!exported) return;
+  const result = await copyTextToClipboard(exported.text);
+  if (result.ok) {
+    listNote.textContent = "Visit list JSON copied to the clipboard.";
+    return;
+  }
+  listNote.textContent =
+    result.reason === "denied"
+      ? "Clipboard permission was denied. Use Download JSON instead."
+      : "Clipboard is not available in this browser. Use Download JSON instead.";
 });
 
 clearListButton.addEventListener("click", () => {
