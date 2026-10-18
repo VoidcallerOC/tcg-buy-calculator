@@ -5,6 +5,9 @@
   "primary_color": "#7c3aed",
   "secondary_color": "#c4b5fd",
   "buy_rate": "60%",
+  "buy_rate_tiers": [
+    { "applies_to": "raw", "min_market_value": "1000.00", "buy_rate": "70%" }
+  ],
   "currency": "USD",
   "disclaimer": "Estimated offer based on the current market reference and the configured 60% buying rate. Final offer may vary after physical inspection, including condition, authenticity, edition/printing, and shop policy.",
   "contact": "Bring your cards into the shop for a final assessment.",
