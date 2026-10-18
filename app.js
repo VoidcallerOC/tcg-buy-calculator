@@ -4,6 +4,10 @@ import {
   formatRate,
   parsePercentageToBasisPoints,
 } from "./lib/money.js";
+import {
+  parseBuyRateTiers,
+  resolveBuyRateBasisPoints,
+} from "./lib/buy-rate-tiers.js";
 import { addEntry, removeEntry, summarize } from "./lib/offer-list.js";
 import {
   buildShopIntakePayload,
@@ -18,6 +22,8 @@ const config = await fetch("./data/config.json").then(async (response) => {
   if (!response.ok) throw new Error("Client configuration unavailable.");
   return response.json();
 });
+
+const buyRateTiers = parseBuyRateTiers(config.buy_rate_tiers);
 
 const conditions = [
   { name: "Near Mint", code: "NM" },
@@ -628,7 +634,13 @@ function renderResult() {
   }
   const result = calculateOffer(
     pricing.reference_cents,
-    parsePercentageToBasisPoints(config.buy_rate ?? "60%"),
+    resolveBuyRateBasisPoints({
+      marketReferenceCents: pricing.reference_cents,
+      baseRateBasisPoints: parsePercentageToBasisPoints(
+        config.buy_rate ?? "60%",
+      ),
+      tiers: buyRateTiers,
+    }),
   );
   document.querySelector("#offer-value").textContent = formatMoney(
     result.offerCents,
@@ -655,6 +667,7 @@ function renderResult() {
     condition: state.condition.name,
     offerCents: result.offerCents,
     referenceCents: result.referenceCents,
+    rateBasisPoints: result.rateBasisPoints,
     sourceUpdatedAt: pricing.source_updated_at,
   });
   resultPanel.scrollIntoView({ behavior: scrollBehavior, block: "start" });

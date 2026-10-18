@@ -18,6 +18,27 @@ const cards = {
     set_name: "Heroines Edition",
     pricing: { NM: { reference_cents: 1000, source_updated_at: fresh() } },
   },
+  "TIER-LOW": {
+    id: "tier-low",
+    name: "Tier Low",
+    card_number: "TIER-LOW",
+    set_name: "Fixture",
+    pricing: { NM: { reference_cents: 99999, source_updated_at: fresh() } },
+  },
+  "TIER-AT": {
+    id: "tier-at",
+    name: "Tier At",
+    card_number: "TIER-AT",
+    set_name: "Fixture",
+    pricing: { NM: { reference_cents: 100000, source_updated_at: fresh() } },
+  },
+  "TIER-OVER": {
+    id: "tier-over",
+    name: "Tier Over",
+    card_number: "TIER-OVER",
+    set_name: "Fixture",
+    pricing: { NM: { reference_cents: 100001, source_updated_at: fresh() } },
+  },
 };
 
 test.beforeEach(async ({ page }) => {
@@ -383,4 +404,32 @@ test("a live game list keeps featured games first and Pokémon selected", async 
     "Cyberpunk TCG",
     "Digimon Card Game",
   ]);
+});
+
+for (const [code, name, offer, reference, rate] of [
+  ["TIER-LOW", "Tier Low", "$599.99", "$999.99", "60%"],
+  ["TIER-AT", "Tier At", "$700.00", "$1,000.00", "70%"],
+  ["TIER-OVER", "Tier Over", "$700.01", "$1,000.01", "70%"],
+]) {
+  test(`value tier: ${reference} reference is offered at ${rate}`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByLabel("Card search").fill(code);
+    await page.getByRole("button", { name: new RegExp(name) }).click();
+    await page.getByRole("button", { name: "Near Mint" }).click();
+    await page
+      .getByRole("button", { name: /Calculate estimated offer/ })
+      .click();
+    await expect(page.locator("#reference-value")).toHaveText(reference);
+    await expect(page.locator("#rate-value")).toHaveText(rate);
+    await expect(page.locator("#offer-value")).toHaveText(offer);
+  });
+}
+
+test("disclaimer does not claim a universal 60% rate", async ({ page }) => {
+  await page.goto("/");
+  const text = await page.locator("[data-disclaimer]").innerText();
+  expect(text).not.toMatch(/configured 60% buying rate/);
+  expect(text).toMatch(/higher for higher-value cards/);
 });

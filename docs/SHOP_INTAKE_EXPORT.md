@@ -63,6 +63,7 @@ Unit tests: `lib/shop-intake-export.test.js`.
       "condition": "Near Mint",
       "offerCents": 600,
       "referenceCents": 1000,
+      "effectiveBuyRateBasisPoints": 6000,
       "sourceUpdatedAt": "2026-10-10T00:00:00.000Z",
       "unavailable": null
     }
@@ -71,3 +72,9 @@ Unit tests: `lib/shop-intake-export.test.js`.
 ```
 
 Money fields are integer cents. `unavailable` is set only when the card was added without an online estimate.
+
+## Effective buy rate (additive, still v1)
+
+`client.buyRate` is the **base configured** rate (unchanged meaning). Raw cards whose market reference meets a configured `buy_rate_tiers` threshold (default: $1,000.00+ → 70%) are offered at a higher rate. Each item therefore carries `effectiveBuyRateBasisPoints` — the integer basis points actually used for that offer (`6000` = 60%), or `null` for unpriced entries. It is recorded from the calculation already shown, never recomputed on export.
+
+Compatibility: the field is additive; the schema id stays `v1`, no existing field changed meaning, and consumers that ignore unknown keys are unaffected. Consumers that need the real rate per card should read the item field rather than `client.buyRate`. Graded/slab cards are not supported and are not tiered.
