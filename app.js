@@ -667,6 +667,7 @@ function renderResult() {
     condition: state.condition.name,
     offerCents: result.offerCents,
     referenceCents: result.referenceCents,
+    rateBasisPoints: result.rateBasisPoints,
     sourceUpdatedAt: pricing.source_updated_at,
   });
   resultPanel.scrollIntoView({ behavior: scrollBehavior, block: "start" });
